@@ -1,0 +1,378 @@
+{
+  "vision_r": 8,
+  "att_bandwidth": 8,
+  "retention": 8,
+  "curr_time": "February 13, 2023, 10:19:10",
+  "curr_tile": [
+    77,
+    19
+  ],
+  "daily_plan_req": "Isabella Rodriguez opens Hobbs Cafe at 8am everyday, and works at the counter until 8pm, at which point she closes the cafe.",
+  "name": "Isabella Rodriguez",
+  "first_name": "Isabella",
+  "last_name": "Rodriguez",
+  "age": 34,
+  "innate": "friendly, outgoing, hospitable",
+  "learned": "Isabella Rodriguez is a cafe owner of Hobbs Cafe who loves to make people feel welcome. She is always looking for ways to make the cafe a place where people can come to relax and enjoy themselves.",
+  "currently": "Isabella Rodriguez is planning on having a Valentine's Day party at Hobbs Cafe with her customers on February 14th, 2023 at 5pm. She is gathering party material, and is telling everyone to join the party at Hobbs Cafe on February 14th, 2023, from 5pm to 7pm.",
+  "lifestyle": "Isabella Rodriguez goes to bed around 11pm, awakes up around 6am.",
+  "living_area": "the Ville:Isabella Rodriguez's apartment:main room",
+  "concept_forget": 100,
+  "daily_reflection_time": 180,
+  "daily_reflection_size": 5,
+  "overlap_reflect_th": 4,
+  "kw_strg_event_reflect_th": 10,
+  "kw_strg_thought_reflect_th": 9,
+  "recency_w": 1,
+  "relevance_w": 1,
+  "importance_w": 1,
+  "recency_decay": 0.995,
+  "importance_trigger_max": 150,
+  "importance_trigger_curr": 72,
+  "importance_ele_n": 25,
+  "thought_count": 5,
+  "daily_req": [
+    "wake up and complete the morning routine at 6:00 am",
+    "go to the kitchen and start cooking the order for the day at 7:00 am",
+    "open the cafe at 8:00 am",
+    "",
+    "have lunch at 12:00 pm"
+  ],
+  "f_daily_schedule": [
+    [
+      "sleeping",
+      360
+    ],
+    [
+      "waking up and completing her morning routine (taking a shower)",
+      10
+    ],
+    [
+      "waking up and completing her morning routine (getting dressed)",
+      10
+    ],
+    [
+      "waking up and completing her morning routine (having breakfast)",
+      10
+    ],
+    [
+      "waking up and completing her morning routine (getting her things together for the day)",
+      10
+    ],
+    [
+      "waking up and completing her morning routine (preparing the coffee machine)",
+      5
+    ],
+    [
+      "waking up and completing her morning routine (setting up the tables and chairs)",
+      15
+    ],
+    [
+      "in the kitchen, cooking the order for the day (measuring out ingredients)",
+      10
+    ],
+    [
+      "in the kitchen, cooking the order for the day (chopping vegetables)",
+      15
+    ],
+    [
+      "in the kitchen, cooking the order for the day (stirring the pot)",
+      10
+    ],
+    [
+      "in the kitchen, cooking the order for the day (plating the dish)",
+      10
+    ],
+    [
+      "in the kitchen, cooking the order for the day (cleaning up the kitchen)",
+      10
+    ],
+    [
+      "in the kitchen, cooking the order for the day (taking a break)",
+      5
+    ],
+    [
+      "opening the cafe and greeting the customers (turning on the coffee machine)",
+      5
+    ],
+    [
+      "opening the cafe and greeting the customers (setting up the cash register)",
+      5
+    ],
+    [
+      "opening the cafe and greeting the customers (arranging the chairs and tables)",
+      10
+    ],
+    [
+      "opening the cafe and greeting the customers (wiping down the counters and tables)",
+      10
+    ],
+    [
+      "opening the cafe and greeting the customers (on the way to putting out the menu)",
+      0
+    ],
+    [
+      "opening the cafe and greeting the customers (conversing about Klaus declines Isabella's invitation for coffee or breakfast and informs her that he is heading to the library.)",
+      2
+    ],
+    [
+      "opening the cafe and greeting the customers (putting out the menu)",
+      3
+    ],
+    [
+      "opening the cafe and greeting the customers (greeting the first customer)",
+      5
+    ],
+    [
+      "opening the cafe and greeting the customers (taking the first order)",
+      10
+    ],
+    [
+      "opening the cafe and greeting the customers (preparing the first drink)",
+      10
+    ],
+    [
+      "helping customers, taking orders, and preparing drinks and food (greeting customers as they enter the cafe)",
+      10
+    ],
+    [
+      "helping customers, taking orders, and preparing drinks and food (taking orders from customers)",
+      20
+    ],
+    [
+      "helping customers, taking orders, and preparing drinks and food (preparing drinks for customers)",
+      30
+    ],
+    [
+      "helping customers, taking orders, and preparing drinks and food (preparing food for customers)",
+      30
+    ],
+    [
+      "helping customers, taking orders, and preparing drinks and food (serving drinks and food to customers)",
+      30
+    ],
+    [
+      "having lunch (eating her lunch)",
+      30
+    ],
+    [
+      "having lunch (checking her phone for messages)",
+      10
+    ],
+    [
+      "having lunch (responding to messages)",
+      20
+    ],
+    [
+      "having lunch (taking a short walk outside)",
+      10
+    ],
+    [
+      "having lunch (washing her hands)",
+      5
+    ],
+    [
+      "having lunch (preparing her food for the evening)",
+      25
+    ],
+    [
+      "having lunch (taking a break)",
+      10
+    ],
+    [
+      "having lunch (cleaning up the kitchen)",
+      10
+    ],
+    [
+      "helping customers, taking orders, and preparing drinks and food",
+      300
+    ],
+    [
+      "closing the cafe and cleaning up",
+      60
+    ],
+    [
+      "preparing for the Valentine's Day party at Hobbs Cafe",
+      60
+    ],
+    [
+      "closing the cafe and cleaning up",
+      180
+    ],
+    [
+      "sleeping",
+      60
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ]
+  ],
+  "f_daily_schedule_hourly_org": [
+    [
+      "sleeping",
+      360
+    ],
+    [
+      "waking up and completing her morning routine",
+      60
+    ],
+    [
+      "in the kitchen, cooking the order for the day",
+      60
+    ],
+    [
+      "opening the cafe and greeting the customers",
+      60
+    ],
+    [
+      "helping customers, taking orders, and preparing drinks and food",
+      120
+    ],
+    [
+      "having lunch",
+      120
+    ],
+    [
+      "helping customers, taking orders, and preparing drinks and food",
+      300
+    ],
+    [
+      "closing the cafe and cleaning up",
+      60
+    ],
+    [
+      "preparing for the Valentine's Day party at Hobbs Cafe",
+      60
+    ],
+    [
+      "closing the cafe and cleaning up",
+      180
+    ],
+    [
+      "sleeping",
+      60
+    ]
+  ],
+  "act_address": "the Ville:Hobbs Cafe:cafe:kitchen sink",
+  "act_start_time": "February 13, 2023, 10:00:00",
+  "act_duration": 30,
+  "act_description": "helping customers, taking orders, and preparing drinks and food (preparing food for customers)",
+  "act_pronunciatio": "\ud83c\udf74\ud83d\udc69\u200d",
+  "act_event": [
+    "Isabella Rodriguez",
+    "prepare",
+    "food"
+  ],
+  "act_obj_description": "in use by Isabella Rodriguez for preparing food for customers",
+  "act_obj_pronunciatio": "\ud83c\udf74\ud83d\udc69\u200d",
+  "act_obj_event": [
+    "kitchen sink",
+    "use",
+    "Isabella Rodriguez"
+  ],
+  "chatting_with": null,
+  "chat": null,
+  "chatting_with_buffer": {
+    "Klaus Mueller": 96
+  },
+  "chatting_end_time": null,
+  "act_path_set": true,
+  "planned_path": []
+}

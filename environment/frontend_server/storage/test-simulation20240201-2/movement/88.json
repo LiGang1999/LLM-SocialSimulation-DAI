@@ -1,0 +1,164 @@
+{
+  "persona": {
+    "Isabella Rodriguez": {
+      "movement": [
+        75,
+        14
+      ],
+      "pronunciatio": "\ud83d\ude80\ud83d\udca4",
+      "description": "waking up and completing her morning routine (waking up) @ the Ville:Isabella Rodriguez's apartment:main room:refrigerator",
+      "chat": null
+    },
+    "Maria Lopez": {
+      "movement": [
+        126,
+        50
+      ],
+      "pronunciatio": "\ud83d\udcac",
+      "description": "conversing about planning a collaborative stream on gentrification and sociology between Maria Lopez and Klaus Mueller, discussing their interests and potential date for the stream. @ <persona> Klaus Mueller",
+      "chat": [
+        [
+          "Maria Lopez",
+          "Hey Klaus, what are your plans for today?"
+        ],
+        [
+          "Klaus Mueller",
+          "Hey Maria, I'm planning to head to the library at Oak Hill College early to work on my research paper on gentrification in low-income communities. How about you? What are your plans for today?"
+        ],
+        [
+          "Maria Lopez",
+          "I'm planning to stream on Twitch for a few hours today, and then head to my physics class at Oak Hill. After that, I usually watch some TV before going to bed. How about you, do you have any plans for the rest of the day after working on your research paper?"
+        ],
+        [
+          "Klaus Mueller",
+          "That sounds like a productive day, Maria. I usually spend my evenings reading or watching documentaries related to sociology. What kind of content do you stream on Twitch?"
+        ],
+        [
+          "Maria Lopez",
+          "I stream mostly games, but I also like to connect with my viewers and talk about our interests. Sometimes we even play games together."
+        ],
+        [
+          "Klaus Mueller",
+          "That sounds really interesting, Maria. I've never streamed before, but it seems like a great way to connect with people who share your interests. Maybe I'll have to give it a try sometime."
+        ],
+        [
+          "Maria Lopez",
+          "I think it's a great way to connect with people, too. You should definitely give it a try. You could even stream about sociology-related topics and engage with people who are interested in that field."
+        ],
+        [
+          "Klaus Mueller",
+          "That sounds like a great idea, Maria. I'll definitely consider streaming about sociology-related topics sometime. It's always interesting to hear different perspectives and engage with people who share similar interests."
+        ],
+        [
+          "Maria Lopez",
+          "That's great, Klaus. I'm sure you'll find streaming a rewarding experience. Maybe we can collaborate on a stream sometime and talk about gentrification and sociology. What do you think?"
+        ],
+        [
+          "Klaus Mueller",
+          "That sounds like a great idea, Maria. I'd love to collaborate with you on a stream sometime and talk about gentrification and sociology. Let's exchange contact information and plan a date for the stream."
+        ],
+        [
+          "Maria Lopez",
+          "That sounds great, Klaus! Let's exchange numbers and set a date for the stream. Maybe we can also invite some other students from Oak Hill to join us and discuss gentrification and sociology. What do you think?"
+        ],
+        [
+          "Klaus Mueller",
+          "I think that's a great idea, Maria. We can invite some of our classmates who are interested in sociology and gentrification to join us on the stream. We can also discuss our findings on the effects of gentrification in low-income communities. What do you think?"
+        ],
+        [
+          "Maria Lopez",
+          "Sounds like a plan, Klaus. Let's exchange numbers and decide on a date for the stream. I'll send you a message later today to set everything up."
+        ],
+        [
+          "Klaus Mueller",
+          "Sounds great, Maria. I'm looking forward to our collaborative stream on gentrification and sociology. Let me know when you have a date in mind and I'll make sure to clear my schedule."
+        ],
+        [
+          "Maria Lopez",
+          "Great, I'll send you a message later today with some dates that work for me. Let me know which one works best for you and we can set a time for the stream. I'm really excited to collaborate with you on this."
+        ],
+        [
+          "Klaus Mueller",
+          "I'm really excited to collaborate with you too, Maria. Let me know your availability and we can set a date that works for both of us."
+        ]
+      ]
+    },
+    "Klaus Mueller": {
+      "movement": [
+        125,
+        50
+      ],
+      "pronunciatio": "\ud83d\udcac",
+      "description": "conversing about planning a collaborative stream on gentrification and sociology between Maria Lopez and Klaus Mueller, discussing their interests and potential date for the stream. @ <persona> Maria Lopez",
+      "chat": [
+        [
+          "Maria Lopez",
+          "Hey Klaus, what are your plans for today?"
+        ],
+        [
+          "Klaus Mueller",
+          "Hey Maria, I'm planning to head to the library at Oak Hill College early to work on my research paper on gentrification in low-income communities. How about you? What are your plans for today?"
+        ],
+        [
+          "Maria Lopez",
+          "I'm planning to stream on Twitch for a few hours today, and then head to my physics class at Oak Hill. After that, I usually watch some TV before going to bed. How about you, do you have any plans for the rest of the day after working on your research paper?"
+        ],
+        [
+          "Klaus Mueller",
+          "That sounds like a productive day, Maria. I usually spend my evenings reading or watching documentaries related to sociology. What kind of content do you stream on Twitch?"
+        ],
+        [
+          "Maria Lopez",
+          "I stream mostly games, but I also like to connect with my viewers and talk about our interests. Sometimes we even play games together."
+        ],
+        [
+          "Klaus Mueller",
+          "That sounds really interesting, Maria. I've never streamed before, but it seems like a great way to connect with people who share your interests. Maybe I'll have to give it a try sometime."
+        ],
+        [
+          "Maria Lopez",
+          "I think it's a great way to connect with people, too. You should definitely give it a try. You could even stream about sociology-related topics and engage with people who are interested in that field."
+        ],
+        [
+          "Klaus Mueller",
+          "That sounds like a great idea, Maria. I'll definitely consider streaming about sociology-related topics sometime. It's always interesting to hear different perspectives and engage with people who share similar interests."
+        ],
+        [
+          "Maria Lopez",
+          "That's great, Klaus. I'm sure you'll find streaming a rewarding experience. Maybe we can collaborate on a stream sometime and talk about gentrification and sociology. What do you think?"
+        ],
+        [
+          "Klaus Mueller",
+          "That sounds like a great idea, Maria. I'd love to collaborate with you on a stream sometime and talk about gentrification and sociology. Let's exchange contact information and plan a date for the stream."
+        ],
+        [
+          "Maria Lopez",
+          "That sounds great, Klaus! Let's exchange numbers and set a date for the stream. Maybe we can also invite some other students from Oak Hill to join us and discuss gentrification and sociology. What do you think?"
+        ],
+        [
+          "Klaus Mueller",
+          "I think that's a great idea, Maria. We can invite some of our classmates who are interested in sociology and gentrification to join us on the stream. We can also discuss our findings on the effects of gentrification in low-income communities. What do you think?"
+        ],
+        [
+          "Maria Lopez",
+          "Sounds like a plan, Klaus. Let's exchange numbers and decide on a date for the stream. I'll send you a message later today to set everything up."
+        ],
+        [
+          "Klaus Mueller",
+          "Sounds great, Maria. I'm looking forward to our collaborative stream on gentrification and sociology. Let me know when you have a date in mind and I'll make sure to clear my schedule."
+        ],
+        [
+          "Maria Lopez",
+          "Great, I'll send you a message later today with some dates that work for me. Let me know which one works best for you and we can set a time for the stream. I'm really excited to collaborate with you on this."
+        ],
+        [
+          "Klaus Mueller",
+          "I'm really excited to collaborate with you too, Maria. Let me know your availability and we can set a date that works for both of us."
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "curr_time": "February 16, 2023, 16:00:00"
+  }
+}

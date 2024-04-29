@@ -1,0 +1,188 @@
+{
+  "vision_r": 8,
+  "att_bandwidth": 8,
+  "retention": 8,
+  "curr_time": "February 13, 2023, 00:00:00",
+  "curr_tile": [
+    123,
+    57
+  ],
+  "daily_plan_req": "Maria Lopez spends at least 3 hours a day Twitch streaming or gaming.",
+  "name": "Maria Lopez",
+  "first_name": "Maria",
+  "last_name": "Lopez",
+  "age": 21,
+  "innate": "energetic, enthusiastic, inquisitive",
+  "learned": "Maria Lopez is a student at Oak Hill College studying physics and a part time Twitch game streamer who loves to connect with people and explore new ideas.",
+  "currently": "Maria Lopez is working on her physics degree and streaming games on Twitch to make some extra money. She visits Hobbs Cafe for studying and eating just about everyday.",
+  "lifestyle": "Maria Lopez goes to bed around 2am, awakes up around 9am, eats dinner around 6pm. She likes to hang out at Hobbs Cafe if it's before 6pm.",
+  "living_area": "the Ville:Dorm for Oak Hill College:Maria Lopez's room",
+  "concept_forget": 100,
+  "daily_reflection_time": 180,
+  "daily_reflection_size": 5,
+  "overlap_reflect_th": 4,
+  "kw_strg_event_reflect_th": 10,
+  "kw_strg_thought_reflect_th": 9,
+  "recency_w": 1,
+  "relevance_w": 1,
+  "importance_w": 1,
+  "recency_decay": 0.99,
+  "importance_trigger_max": 150,
+  "importance_trigger_curr": 144,
+  "importance_ele_n": 6,
+  "thought_count": 5,
+  "daily_req": [
+    "wake up and complete the morning routine at 9:00 am",
+    "go to Hobbs Cafe and study from 10:00 am to 12:00 pm",
+    "Twitch stream for 3 hours starting at 1:00 pm",
+    "have a late lunch/early dinner at 6:00 pm at Hobbs Cafe"
+  ],
+  "f_daily_schedule": [
+    [
+      "sleeping",
+      600
+    ],
+    [
+      "at Hobbs Cafe studying (ordering food)",
+      5
+    ],
+    [
+      "at Hobbs Cafe studying (finding a seat)",
+      5
+    ],
+    [
+      "at Hobbs Cafe studying (taking out her books and notes)",
+      5
+    ],
+    [
+      "at Hobbs Cafe studying (reviewing her notes)",
+      10
+    ],
+    [
+      "at Hobbs Cafe studying (doing homework)",
+      20
+    ],
+    [
+      "at Hobbs Cafe studying (taking a break)",
+      5
+    ],
+    [
+      "at Hobbs Cafe studying (checking her phone)",
+      5
+    ],
+    [
+      "at Hobbs Cafe studying (finishing up her homework)",
+      10
+    ],
+    [
+      "at Hobbs Cafe studying (packing up her things)",
+      5
+    ],
+    [
+      "at Hobbs Cafe studying (leaving Hobbs Cafe)",
+      5
+    ],
+    [
+      "at Hobbs Cafe studying (walking to her next destination)",
+      5
+    ],
+    [
+      "at Hobbs Cafe studying (arriving at her next destination)",
+      5
+    ],
+    [
+      "at Hobbs Cafe studying (starting her Twitch stream)",
+      10
+    ],
+    [
+      "at Hobbs Cafe studying (greeting her viewers)",
+      25
+    ],
+    [
+      "at Hobbs Cafe eating lunch",
+      60
+    ],
+    [
+      "Twitch streaming",
+      300
+    ],
+    [
+      "at Hobbs Cafe eating dinner",
+      240
+    ],
+    [
+      "in her room getting ready for bed",
+      60
+    ],
+    [
+      "in bed sleeping",
+      60
+    ],
+    [
+      "sleeping",
+      0
+    ]
+  ],
+  "f_daily_schedule_hourly_org": [
+    [
+      "sleeping",
+      600
+    ],
+    [
+      "at Hobbs Cafe studying",
+      120
+    ],
+    [
+      "at Hobbs Cafe eating lunch",
+      60
+    ],
+    [
+      "Twitch streaming",
+      300
+    ],
+    [
+      "at Hobbs Cafe eating dinner",
+      240
+    ],
+    [
+      "in her room getting ready for bed",
+      60
+    ],
+    [
+      "in bed sleeping",
+      60
+    ]
+  ],
+  "act_address": "the Ville:Dorm for Oak Hill College:Maria Lopez's room:closet",
+  "act_start_time": "February 13, 2023, 00:00:00",
+  "act_duration": 600,
+  "act_description": "sleeping",
+  "act_pronunciatio": "\ud83d\ude34\ud83d\udca4",
+  "act_event": [
+    "Maria Lopez",
+    "is",
+    "sleep"
+  ],
+  "act_obj_description": "closed",
+  "act_obj_pronunciatio": "\ud83d\udd12\ud83d\udca4",
+  "act_obj_event": [
+    "closet",
+    "is",
+    "closed"
+  ],
+  "chatting_with": null,
+  "chat": null,
+  "chatting_with_buffer": {},
+  "chatting_end_time": null,
+  "act_path_set": true,
+  "planned_path": [
+    [
+      123,
+      55
+    ],
+    [
+      123,
+      54
+    ]
+  ]
+}

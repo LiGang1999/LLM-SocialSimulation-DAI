@@ -1,0 +1,134 @@
+Environmental impact of the Fukushima accident: Radiological situation in Japan
+Radioactive fallout was dispersed over land and sea by wind and precipitation.
+Areas to the north-west of the reactor plant received high levels of contamination, especially in the prefecture of Fukushima.
+Almost no foodstuffs in Japan are still contaminated today, with wild boar being one exception.
+Radioactive material continues to enter the water used to cool the Fukushima reactors.The reactor accident in Fukushima in 2011 resulted in the release of radioactive material (radionuclides) into the atmosphere. The radioactive fallout was dispersed locally, regionally and globally over land and sea by the weather (wind and precipitation).
+
+After the accident in Fukushima, areas to the north-west of the reactor plant received high levels of contamination, particularly in the prefecture of Fukushima. Outside of Japan, the level of contamination with radioactive material from the Fukushima reactors was low.
+
+Relevant radionuclides
+Radionuclides of the elements iodine, tellurium (which decays into radioactive iodine) and caesium were particularly relevant in terms of the radioactive contamination of the environment, as well as that of humans.
+
+Half-lives of up to eight days mean that radioactive iodine released in a reactor accident disappears from the environment after about three months. This was also the case in Fukushima.
+Contamination with radioactive caesium, with a half-life of up to around 30 years, remains in the environment for a long time. It is principally responsible for the increased radiation levels still present in the area around Fukushima.Contamination of foodstuffs and water in Japan
+Foodstuffs were contaminated by radioactive material that was deposited on the leaves or directly on agricultural produce such as fruit and vegetables, or that was absorbed via the roots of fruit and vegetable crops.
+
+As a result of the Fukushima accident, not only was radioactive material released into the atmosphere, but it also entered the water – primarily the water that was fed into the reactors for emergency cooling, but also the groundwater penetrating into the reactor. Large quantities of contaminated water were pumped out of the reactor, cleaned of radioactivity by filtering and stored in numerous tanks on the reactor site.
+
+Information on the radiation exposure of the Japanese population can be found in the article "Health consequences of the accident of Fukushima".Decontamination of affected areas in Japan
+High-pressure cleaners that were used for the decontaminationHigh-pressure cleanersHigh-pressure cleaners for decontamination
+Following the reactor accident in March 2011, some 120,000 people in a radius of up to 40 kilometres around the Fukushima-Daiichi nuclear power plant had to leave their homes due to the high levels of radiation. Part of the population was able to return following decontamination measures.
+
+The Japanese authorities have taken numerous steps to decontaminate the areas affected by fallout from the reactor accident. In the long term, they aim to reduce the additional external radiation exposure due to the accident to a maximum of 1 millisievert per year (which approximately corresponds to the natural external radiation exposure in Germany; i.e. not radiation from sources that have entered the body via inhalation or similar).
+
+Decontamination measures
+The decontamination measures were based on the level of external dose:
+
+In an exclusion zone extending up to about 30 kilometres around the power plant (towards the north-west), the ambient dose was more than 50 millisieverts (mSv) per year in 2011. To this day, people are only permitted to enter this exclusion zone with special authorisation, in protective clothing and with a dosimeter. Prior to the accident at the Fukushima nuclear power plant, this area was inhabited by some 25,000 people.
+In “Special Decontamination Areas”, which exhibited an ambient dose of more than 20 millisieverts per year following the accident, decontamination was completed under the overall control of the Japanese government in March 2017. Once the annual dose had fallen significantly below 20 millisieverts per year in that area, the evacuated residents were permitted to return to their homes. For example, residents have been allowed to return to the city of Tamura since June 2013, to Naraha since March 2014, to Namie (partially) and Minamisoma since spring 2017, and to Futaba (partially) since March 2020.
+In “Intensive Contamination Survey Areas”, which exhibited an external dose of between one and 20 millisieverts per year following the accident, decontamination work was handled by the local authorities with financial and technical support from the Japanese government. In March 2018, decontamination was also completed in these areas.
+For example, the decontamination of areas contaminated with radiation involved removing a several-centimetre layer of topsoil, gathering up leaves, and thoroughly cleaning roofs and streets with pressure washers in order to eliminate, above all, radioactive caesium..
+
+Storage of contaminated material
+Huge quantities of contaminated soil (around 20 million cubic metres in total), primarily from the decontamination of gardens, as well as organic waste such as leaves and branches were stored temporarily in situ in plastic bags. For a number of years, this material has gradually been transferred to a centralised storage facility in the direct vicinity of the Fukushima reactor site.Travel to Japan
+Lantern in a park in TokyoLanternLantern in a park in Japan (Tokyo)
+As a result of the Fukushima accident, people on trips to the affected areas are exposed to increased levels of radiation. Unlike the local population, however, tourists are only exposed to the radiation for a short time. Accordingly, the potential additional radiation dose from a typical visit remains well below one millisievert.
+
+For comparison, the average radiation dose received by people in Germany due to natural radiation (from the ground, for example) is about 2–3 millisieverts per year.
+
+Example: visiting the city of Fukushima as a tourist
+The city of Fukushima is outside of the exclusion zone and has an average dose rate of approximately 0.1 to 0.5 microsieverts per hour (for comparison, the average dose rate in Germany is about 0.1 microsieverts per hour). A one-week visit to the city of Fukushima would result in an additional radiation dose of up to about 0.1 millisieverts, which remains within the range of variation for annual natural radiation exposure in Germany.
+
+Exclusion zone around the Fukushima power plant
+Given the high ambient dose, people are only permitted to enter the exclusion zone around the Fukushima power plant with special authorisation, in protective clothing and with a dosimeter.
+
+Situation outside of Japan
+Air dust collector at the BfS monitoring station on the Schauinsland mountainAir dust collector SchauinslandAir dust collector at the BfS monitoring station Schauinsland
+Outside of Japan, worldwide measurements following the accident showed that contamination with radioactive substances from the Fukushima reactors was low, partly because 80% of the radioactive material was distributed into the atmosphere in the direction of the Pacific Ocean. This material was primarily dispersed in the northern hemisphere, where it became diluted.
+
+Minimal quantities of the material could be detected by trace measurements, such as those taken in Germany by the BfS on the Schauinsland mountain near Freiburg. In the period from mid-March to mid-May 2011, extremely low concentrations of iodine-131 and caesium-134/137 could be detected in the air in Germany.
+
+Japanese imports
+Imported goods from Japan undergo spot radiation checks by the customs authorities, especially in the case of goods arriving by container ship. The import of food and feed products from Japan into the European Union (EU) is subject to the Japanese limit values, which are much more stringent than the EU maximums. In Germany, the customs authorities monitor the legal import of Japanese foodstuffs.
+
+Increased contamination of shipping units following the accident in Fukushima was very rare. The authorities also inspected ships and aircraft.
+
+For a shipping unit, the surface contamination was not allowed to exceed four Becquerels per square centimetre. If this limit was exceeded, the freight had to be decontaminated. If that was not possible, the goods were returned to sender.
+
+Data basis
+The information presented here on radiological data, measures and planning in Japan is based on information from Japanese government authorities, Fukushima Prefecture authorities, TEPCO, measurements by private individuals (safecast.org), scientific publications and BfS's own estimates and expert assessments.
+
+More than a decade later, Fukushima nuclear disaster clouds Japan's clean-energy ambitions
+A quarter-mile inland from the eastern Japanese coastline, a sprawling complex of solar panels, robotic lawnmowers and the world’s largest hydrogen power plant stands as a monument to the country’s zero-carbon aspirations.
+
+But surrounding the site are reminders of the biggest challenge Japan faces in realizing those ambitions: abandoned buildings, empty lots, roadside Geiger counters — the grim aftermath of one of the world's worst nuclear disasters.
+As climate change worsens, nations around the globe have ramped up efforts to reduce fossil fuel use and reach carbon neutrality by 2050. But for Japan to achieve that goal, the government says it must turn back to the country's now-idled nuclear power plants, reigniting a painful debate over the necessity and safety of nuclear energy.
+On March 11, 2011, the largest earthquake in Japan’s recorded history triggered a tsunami that killed more than 18,000 people and knocked out power for the cooling systems at the Fukushima Daiichi power plant. The subsequent nuclear meltdown prompted the evacuation of nearby residents to escape harmful radiation.
+Twelve years later, some areas in Fukushima prefecture remain uninhabitable, and some of its residents remain vehemently opposed to nuclear power.
+
+“Neither the national nor local government will protect the community from local disasters,” said Sumio Konno, 59, who grew up here in Namie, several miles north of the Daiichi plant, and fled during the disaster. “If they can’t protect us, we shouldn’t have such nuclear power plants.”
+Namie’s population of 1,200 is still less than a tenth of what it was before the meltdown. Futaba, a town just west of the plant, reopened for residents to return only last year.
+
+After the accident, nuclear power as a proportion of Japan’s electricity mix fell from about 30% to 6% in 2019. But the country’s plan to halve its use of fossil fuels in power generation by 2030 is contingent on boosting nuclear energy back up to at least 20%.
+
+To accomplish that, Japan would need to restart 15 more of its 33 nuclear reactors, said Tatsuya Terazawa, chief executive of the Institute of Energy Economics, Japan. For years after the disaster, all of them were shut down and faced high safety hurdles and public opposition to restarting. So far, 12 reactors have resumed operations.
+Environmental organizations and nuclear power critics argue that Japan can avoid restarting nuclear plants by building more solar and wind farms, increasing energy efficiency and improving flexibility in the country's electricity distribution system.
+
+"The Japanese government claims that 100% renewable energy is impossible and that both nuclear power and thermal power are needed,” said Akiko Yoshida, a campaigner with the environmental group Friends of the Earth Japan. “What is needed, however, is a flexible power system that makes the best use of fluctuating renewable energy.”
+
+But Terazawa said such improvements would help only marginally with Japan's energy needs and would face their own challenges. While Japan is working to develop more renewable energy, limited land has hampered expansion of wind and solar, he said. Favorable tax incentives have already spurred rapid growth in solar, while lower wind speeds and more frequent typhoons also make wind power less reliable in Asia, he added.
+
+Without nuclear energy, Terazawa said Japan would need to import more costly hydrogen, to fuel transportation and manufacturing, and also ammonia, which when mixed with coal and gas helps reduce emissions from burning. Hydrogen and ammonia are expected to account for only about 1% of Japan's power mix by 2030.
+
+
+Without nuclear energy, Terazawa said Japan would need to import more costly hydrogen, to fuel transportation and manufacturing, and also ammonia, which when mixed with coal and gas helps reduce emissions from burning. Hydrogen and ammonia are expected to account for only about 1% of Japan's power mix by 2030.
+
+
+“The reality is that we still face constraints,” Terazawa said. “We will need nuclear for a zero-carbon source of power.”
+
+The reassessment of nuclear energy as a critical source of low-carbon power has been hastened globally by growing concerns over climate change and rising energy costs amid the wars in Ukraine and Gaza. During an annual United Nations climate conference on Dec. 2, 22 countries, including the U.S., Canada, France, Britain and Japan, signed a pledge to triple nuclear generation capacity by 2050.
+
+In the last couple of years, Japanese Prime Minister Fumio Kishida has pushed to reopen nuclear plants, extend their lifespans and possibly build new ones. While Kishida said he wants to minimize reliance on nuclear energy, he has also said it will be an essential part of decarbonization.
+Some surveys show that Japanese are warming to the idea. According to an annual poll by the Asahi Shimbun newspaper, a slim majority of respondents — 51% — were in favor of restarting idled nuclear plants for the first time since the Fukushima meltdown. The idea of building new reactors was less popular, with 45% in favor and 46% opposed.
+
+To some residents of Fukushima prefecture, even in places that were never evacuated, returning to nuclear energy still seems a risk.
+
+Last year, six plaintiffs who lived in the prefecture and were diagnosed with thyroid cancer following the 2011 disaster sued the Tokyo Electric Power Company, or TEPCO, the operator of the Daiichi power plant, for nearly $5 million.
+The plaintiffs were between 6 and 16 years old when the accident occurred, and said in the lawsuit that the released radiation caused their cancer. TEPCO has said there was not enough radiation exposure in those unevacuated areas to lead to cancer. Government officials have attributed higher levels of thyroid cancer in Fukushima to over-diagnosis following widespread testing.
+
+One 48-year-old resident of Koriyama, a city west of the Daiichi plant and about 30 miles outside of the evacuation zone, said she believes her daughter, then 13, developed thyroid cancer because of radiation from the accident.
+
+The mother, who declined to provide her name for fear of harassment for speaking about the sensitive issue, said she didn't have the resources or ability to move but often wondered whether it would have been better to leave right after the meltdown. Even now, she doesn’t dry her clothes outside anymore.
+
+“Before the accident, we didn’t really think much about the nuclear power plants at all — we were just going about our daily lives,” she said. “But after the explosion, we have had to live in fear of this radiation that we can’t even see.”
+
+Besides the air, some residents are also worried about what's in the water.
+
+Earlier this year, the Japanese government started releasing radioactive wastewater from the destroyed nuclear plant into the Pacific Ocean. Officials say the treated wastewater still contains the radioactive isotope tritium, but at concentrations that meet regulatory standards and are lower than that of other nuclear facilities.
+
+The International Atomic Energy Agency concurs that the plan will have a negligible radiological impact and says the water will be monitored regularly. TEPCO says that releasing the wastewater, which has built up in more than 1,000 storage tanks after being used to cool the Fukushima plant’s nuclear fuel rods, is necessary to fully decommission the plant and avoid another nuclear accident.
+Masato Kino of the Ministry of Economy, Trade and Industry, who is in charge of the plant's decommissioning, said the government has conducted about 1,500 meetings with local communities and associations over the last two years to answer questions and allay concerns.
+
+The wastewater release has also angered some of Japan's neighbors. China has banned all seafood from Japan, accusing the country of being “selfish and irresponsible.” Residents of South Korea and Taiwan have expressed their alarm, though their governments have not taken direct action against it. To persuade skeptics, Kishida posted a video on social media of himself eating raw fish from the waters near Fukushima.
+
+“We tried to be very transparent,” Kino said. “What we can share, we’ve already shared. So I really wonder what else we can do.”
+
+Still, public distrust has lingered given the unprecedented scale of the wastewater release, which will occur incrementally over the next three decades, along with memories of the 2011 disaster.
+
+“Poison is poison, no matter how much you dilute it,” said Konno, the former Namie resident who now lives in Fukushima City, the prefecture capital, and remains a staunch opponent of anything to do with nuclear energy.
+
+At the time of the 2011 earthquake, Konno was working as an engineer at the Onagawa nuclear power plant in the prefecture to the north of the Daiichi facility. He watched gas explosions near his hometown of Namie on TV and wondered if it was the end of the world.
+His facility maintained power despite the tsunami. But the flooding kept Konno trapped inside with thousands of other workers; they ate only instant noodles for four days. Once Konno was able to leave, he went to find his family, which had fled to the south.
+
+That was his last day with TEPCO. Now, Konno works as a tour guide and actor. He returns to Namie only to show visitors around his old family home, which has been locked up and closed to entry by the general public because of residual radiation.
+
+Often they pass through the neighboring town of Futaba. He points out the deserted streets and the place where a now-infamous sign once declared: “Nuclear Power: Energy for a Bright Future.” The sign was taken down after the accident.
+Before the meltdown, the site of Namie's sleek new hydrogen power plant and industrial complex had been earmarked for another nuclear plant. After the facility was completed in 2020, Konno began including it in his tours, as a reminder that nuclear energy, too, had once been hailed as a safe and exciting new development.
+
+“I don’t have anything against trying new technology for the future, but that shouldn’t be used as a method for covering up the past,” he said, looking out over the expanse of solar panels.
+
+Still, hydrogen seems like a vastly safer bet, one that offers hope for an end to nuclear energy.
+
+“Hydrogen,” he said slowly in English, gesturing at an imaginary signboard. He smiled ironically. “Bright future.”
+
+This story originally appeared in Los Angeles Times.

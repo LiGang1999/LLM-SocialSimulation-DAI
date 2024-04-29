@@ -1,0 +1,308 @@
+{
+  "vision_r": 8,
+  "att_bandwidth": 8,
+  "retention": 8,
+  "curr_time": "February 13, 2023, 07:10:00",
+  "curr_tile": [
+    82,
+    16
+  ],
+  "daily_plan_req": "Isabella Rodriguez opens Hobbs Cafe at 8am everyday, and works at the counter until 8pm, at which point she closes the cafe.",
+  "name": "Isabella Rodriguez",
+  "first_name": "Isabella",
+  "last_name": "Rodriguez",
+  "age": 34,
+  "innate": "friendly, outgoing, hospitable",
+  "learned": "Isabella Rodriguez is a cafe owner of Hobbs Cafe who loves to make people feel welcome. She is always looking for ways to make the cafe a place where people can come to relax and enjoy themselves.",
+  "currently": "Isabella Rodriguez is planning on having a Valentine's Day party at Hobbs Cafe with her customers on February 14th, 2023 at 5pm. She is gathering party material, and is telling everyone to join the party at Hobbs Cafe on February 14th, 2023, from 5pm to 7pm.",
+  "lifestyle": "Isabella Rodriguez goes to bed around 11pm, awakes up around 6am.",
+  "living_area": "the Ville:Isabella Rodriguez's apartment:main room",
+  "concept_forget": 100,
+  "daily_reflection_time": 180,
+  "daily_reflection_size": 5,
+  "overlap_reflect_th": 4,
+  "kw_strg_event_reflect_th": 10,
+  "kw_strg_thought_reflect_th": 9,
+  "recency_w": 1,
+  "relevance_w": 1,
+  "importance_w": 1,
+  "recency_decay": 0.995,
+  "importance_trigger_max": 150,
+  "importance_trigger_curr": 3,
+  "importance_ele_n": 68,
+  "thought_count": 5,
+  "daily_req": [
+    "wake up and complete the morning routine at 6:00 am",
+    "open cafe at 8:00 am",
+    "work at the cafe from 8:00 am to 8:00 pm.",
+    "close cafe at 8:00 pm"
+  ],
+  "f_daily_schedule": [
+    [
+      "sleeping",
+      360
+    ],
+    [
+      "waking up and getting ready for the day (brushing her teeth)",
+      5
+    ],
+    [
+      "waking up and getting ready for the day (washing her face)",
+      5
+    ],
+    [
+      "waking up and getting ready for the day (getting dressed)",
+      10
+    ],
+    [
+      "waking up and getting ready for the day (making breakfast)",
+      15
+    ],
+    [
+      "waking up and getting ready for the day (eating breakfast)",
+      10
+    ],
+    [
+      "waking up and getting ready for the day (getting her things ready for the day)",
+      10
+    ],
+    [
+      "waking up and getting ready for the day (leaving the house)",
+      5
+    ],
+    [
+      "having breakfast and getting ready for the day (brushing her teeth)",
+      5
+    ],
+    [
+      "having breakfast and getting ready for the day (washing her face)",
+      5
+    ],
+    [
+      "having breakfast and getting ready for the day (getting dressed)",
+      10
+    ],
+    [
+      "having breakfast and getting ready for the day (making breakfast)",
+      20
+    ],
+    [
+      "having breakfast and getting ready for the day (eating breakfast)",
+      20
+    ],
+    [
+      "opening Hobbs Cafe (turning on the lights and heating up the cafe)",
+      10
+    ],
+    [
+      "opening Hobbs Cafe (setting up the cafe, including putting out tables and chairs)",
+      20
+    ],
+    [
+      "opening Hobbs Cafe (making coffee and getting out the cups and saucers)",
+      20
+    ],
+    [
+      "opening Hobbs Cafe (putting out the menu and setting up the cash register)",
+      10
+    ],
+    [
+      "working at the counter of Hobbs Cafe",
+      120
+    ],
+    [
+      "taking a short break and checking the cafe's social media accounts for the day",
+      60
+    ],
+    [
+      "working at the counter of Hobbs Cafe",
+      180
+    ],
+    [
+      "taking a short break and checking the cafe's social media accounts for the day",
+      120
+    ],
+    [
+      "preparing for the Valentine's Day party at Hobbs Cafe on February 14th, 2023, at 5pm",
+      60
+    ],
+    [
+      "closing Hobbs Cafe and getting ready for the Valentine's Day party",
+      60
+    ],
+    [
+      "getting ready for the Valentine's Day party",
+      60
+    ],
+    [
+      "closing Hobbs Cafe and getting ready for the Valentine's Day party",
+      60
+    ],
+    [
+      "getting ready for bed and winding down for the night",
+      180
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ],
+    [
+      "sleeping",
+      0
+    ]
+  ],
+  "f_daily_schedule_hourly_org": [
+    [
+      "sleeping",
+      360
+    ],
+    [
+      "waking up and getting ready for the day",
+      60
+    ],
+    [
+      "having breakfast and getting ready for the day",
+      60
+    ],
+    [
+      "opening Hobbs Cafe",
+      60
+    ],
+    [
+      "working at the counter of Hobbs Cafe",
+      120
+    ],
+    [
+      "taking a short break and checking the cafe's social media accounts for the day",
+      60
+    ],
+    [
+      "working at the counter of Hobbs Cafe",
+      180
+    ],
+    [
+      "taking a short break and checking the cafe's social media accounts for the day",
+      120
+    ],
+    [
+      "preparing for the Valentine's Day party at Hobbs Cafe on February 14th, 2023, at 5pm",
+      60
+    ],
+    [
+      "closing Hobbs Cafe and getting ready for the Valentine's Day party",
+      60
+    ],
+    [
+      "getting ready for the Valentine's Day party",
+      60
+    ],
+    [
+      "closing Hobbs Cafe and getting ready for the Valentine's Day party",
+      60
+    ],
+    [
+      "getting ready for bed and winding down for the night",
+      180
+    ]
+  ],
+  "act_address": "the Ville:Isabella Rodriguez's apartment:main room:bed",
+  "act_start_time": "February 13, 2023, 07:10:00",
+  "act_duration": 10,
+  "act_description": "having breakfast and getting ready for the day (getting dressed)",
+  "act_pronunciatio": "\ud83d\udec1\ud83e\uddd6\u200d",
+  "act_event": [
+    "Isabella Rodriguez",
+    "get",
+    "dressed"
+  ],
+  "act_obj_description": "being used",
+  "act_obj_pronunciatio": "\ud83d\udec1\ud83e\uddd6\u200d",
+  "act_obj_event": [
+    "bed",
+    "be",
+    "used"
+  ],
+  "chatting_with": null,
+  "chat": null,
+  "chatting_with_buffer": {},
+  "chatting_end_time": null,
+  "act_path_set": true,
+  "planned_path": [
+    [
+      80,
+      16
+    ],
+    [
+      79,
+      16
+    ],
+    [
+      78,
+      16
+    ],
+    [
+      77,
+      16
+    ],
+    [
+      76,
+      16
+    ],
+    [
+      75,
+      16
+    ],
+    [
+      74,
+      16
+    ],
+    [
+      73,
+      16
+    ],
+    [
+      73,
+      15
+    ],
+    [
+      73,
+      14
+    ]
+  ]
+}

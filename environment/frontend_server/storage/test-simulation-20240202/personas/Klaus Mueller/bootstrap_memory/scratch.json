@@ -1,0 +1,205 @@
+{
+  "vision_r": 8,
+  "att_bandwidth": 8,
+  "retention": 8,
+  "curr_time": "March 04, 2023, 00:00:00",
+  "curr_tile": [
+    131,
+    46
+  ],
+  "daily_plan_req": "1. Wake up and complete the morning routine at 7:00 am 2. Have breakfast at Hobbs Cafe at 8:00 am 3. Spend the morning engaging in leisure activities or spending time with friends and family (until 1:00 pm) 4. Attend the meeting with research supervisor at Oak Hill College library at 1:00 pm 5. Work on the research paper from home from 2:00 pm to 5:00 pm 6. Have dinner at a downtown restaurant with a client at 7:00 pm.",
+  "name": "Klaus Mueller",
+  "first_name": "Klaus",
+  "last_name": "Mueller",
+  "age": 20,
+  "innate": "kind, inquisitive, passionate",
+  "learned": "Klaus Mueller is a student at Oak Hill College studying sociology. He is passionate about social justice and loves to explore different perspectives.",
+  "currently": "Status: Klaus Mueller is following their usual routine on Saturday March 04. They completed their morning routine and had breakfast at Hobbs Cafe at 8:00 am. They plan to work on their research paper and have not scheduled any meetings or events for the day.",
+  "lifestyle": "Klaus Mueller goes to bed around 11pm, awakes up around 7am, eats dinner around 5pm.",
+  "living_area": "the Ville:Dorm for Oak Hill College:Klaus Mueller's room",
+  "concept_forget": 100,
+  "daily_reflection_time": 180,
+  "daily_reflection_size": 5,
+  "overlap_reflect_th": 4,
+  "kw_strg_event_reflect_th": 10,
+  "kw_strg_thought_reflect_th": 9,
+  "recency_w": 1,
+  "relevance_w": 1,
+  "importance_w": 1,
+  "recency_decay": 0.99,
+  "importance_trigger_max": 150,
+  "importance_trigger_curr": 135,
+  "importance_ele_n": 7,
+  "thought_count": 5,
+  "daily_req": [
+    "wake up and complete the morning routine at 7:00 am",
+    "go to Hobbs Cafe for breakfast at 8:00 am",
+    "go to the Oak Hill College library for research on gentrification from 9:00 am to 1:00 pm",
+    "have lunch at Hobbs Cafe at 12:00 pm",
+    "go back to the dorm room to work on his research paper from 1:00 pm to 5:00 pm",
+    "have dinner at Hobbs Cafe at 5:00 pm"
+  ],
+  "f_daily_schedule": [
+    [
+      "sleeping",
+      420
+    ],
+    [
+      "waking up and completing morning routine",
+      60
+    ],
+    [
+      "having breakfast at Hobbs Cafe",
+      60
+    ],
+    [
+      "going to the Oak Hill College library for research on gentrification",
+      60
+    ],
+    [
+      "researching gentrification at the Oak Hill College library",
+      60
+    ],
+    [
+      "taking a break from research and going for a walk around campus",
+      60
+    ],
+    [
+      "taking a lunch break and eating at Hobbs Cafe",
+      60
+    ],
+    [
+      "working on his research paper",
+      60
+    ],
+    [
+      "continuing to work on his research paper",
+      60
+    ],
+    [
+      "having dinner with a client at a downtown restaurant",
+      60
+    ],
+    [
+      "having a break and going to the park",
+      60
+    ],
+    [
+      "going to the park",
+      60
+    ],
+    [
+      "having a break and going to the park",
+      60
+    ],
+    [
+      "going to the park",
+      60
+    ],
+    [
+      "having a break and going to the park",
+      120
+    ],
+    [
+      "going to bed",
+      60
+    ],
+    [
+      "sleeping",
+      60
+    ]
+  ],
+  "f_daily_schedule_hourly_org": [
+    [
+      "sleeping",
+      420
+    ],
+    [
+      "waking up and completing morning routine",
+      60
+    ],
+    [
+      "having breakfast at Hobbs Cafe",
+      60
+    ],
+    [
+      "going to the Oak Hill College library for research on gentrification",
+      60
+    ],
+    [
+      "researching gentrification at the Oak Hill College library",
+      60
+    ],
+    [
+      "taking a break from research and going for a walk around campus",
+      60
+    ],
+    [
+      "taking a lunch break and eating at Hobbs Cafe",
+      60
+    ],
+    [
+      "working on his research paper",
+      60
+    ],
+    [
+      "continuing to work on his research paper",
+      60
+    ],
+    [
+      "having dinner with a client at a downtown restaurant",
+      60
+    ],
+    [
+      "having a break and going to the park",
+      60
+    ],
+    [
+      "going to the park",
+      60
+    ],
+    [
+      "having a break and going to the park",
+      60
+    ],
+    [
+      "going to the park",
+      60
+    ],
+    [
+      "having a break and going to the park",
+      120
+    ],
+    [
+      "going to bed",
+      60
+    ],
+    [
+      "sleeping",
+      60
+    ]
+  ],
+  "act_address": "the Ville:Dorm for Oak Hill College:Klaus Mueller's room:desk",
+  "act_start_time": "February 13, 2023, 00:00:00",
+  "act_duration": 420,
+  "act_description": "sleeping",
+  "act_pronunciatio": "\ud83d\ude34\ud83d\udca4",
+  "act_event": [
+    "Klaus Mueller",
+    "is",
+    "sleep"
+  ],
+  "act_obj_description": "being used by Klaus Mueller",
+  "act_obj_pronunciatio": "\ud83e\udd14\ud83d\udcad",
+  "act_obj_event": [
+    "desk",
+    "is",
+    "used"
+  ],
+  "chatting_with": null,
+  "chat": null,
+  "chatting_with_buffer": {},
+  "chatting_end_time": null,
+  "act_path_set": true,
+  "planned_path": []
+}

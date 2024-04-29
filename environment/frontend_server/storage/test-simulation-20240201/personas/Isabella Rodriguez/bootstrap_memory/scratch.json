@@ -1,0 +1,133 @@
+{
+  "vision_r": 8,
+  "att_bandwidth": 8,
+  "retention": 8,
+  "curr_time": "February 15, 2023, 07:30:00",
+  "curr_tile": [
+    73,
+    16
+  ],
+  "daily_plan_req": "1. Wake up at 6:00 am and complete the morning routine, 2. Have breakfast at 6:30 am, 3. Prepare Hobbs Cafe for opening at 8:00 am, 4. Open Hobbs Cafe and work at the counter from 8:00 am to 8:00 pm, 5. Prepare for Valentine's Day party from 8:00 pm to 9:00 pm, 6. Relax and prepare for bed at 10:00 pm.",
+  "name": "Isabella Rodriguez",
+  "first_name": "Isabella",
+  "last_name": "Rodriguez",
+  "age": 34,
+  "innate": "friendly, outgoing, hospitable",
+  "learned": "Isabella Rodriguez is a cafe owner of Hobbs Cafe who loves to make people feel welcome. She is always looking for ways to make the cafe a place where people can come to relax and enjoy themselves.",
+  "currently": "Status: Isabella Rodriguez is following her usual routine for Wednesday, February 15th, 2023. She will wake up early, complete her morning routine, prepare breakfast, and open the cafe at 8:00 am as usual. She will work at the counter until 8:00 pm, just like any other day. There are no meetings or special events mentioned for that day, so she can expect to have a relatively normal workday. Isabella is prepared to handle any challenges that come her way and is looking forward to serving her customers at Hobbs Cafe.",
+  "lifestyle": "Isabella Rodriguez goes to bed around 11pm, awakes up around 6am.",
+  "living_area": "the Ville:Isabella Rodriguez's apartment:main room",
+  "concept_forget": 100,
+  "daily_reflection_time": 180,
+  "daily_reflection_size": 5,
+  "overlap_reflect_th": 4,
+  "kw_strg_event_reflect_th": 10,
+  "kw_strg_thought_reflect_th": 9,
+  "recency_w": 1,
+  "relevance_w": 1,
+  "importance_w": 1,
+  "recency_decay": 0.995,
+  "importance_trigger_max": 150,
+  "importance_trigger_curr": 124,
+  "importance_ele_n": 11,
+  "thought_count": 5,
+  "daily_req": [
+    "wake up and complete the morning routine at 6:00 am",
+    "prepare breakfast and eat at 7:00 am",
+    "open the cafe at 8:00 am",
+    "work at the counter until 8:00 pm",
+    "meet with the baker at 4:00 pm to discuss the Valentine's Day party and gather materials",
+    "have dinner at 7:00 pm"
+  ],
+  "f_daily_schedule": [
+    [
+      "sleeping",
+      480
+    ],
+    [
+      "preparing Hobbs Cafe to open",
+      60
+    ],
+    [
+      "working at the counter",
+      420
+    ],
+    [
+      "meeting with the baker to discuss the Valentine's Day party and gather materials",
+      120
+    ],
+    [
+      "preparing Hobbs Cafe for the Valentine's Day party",
+      120
+    ],
+    [
+      "meeting with the baker to discuss the Valentine's Day party and gather materials",
+      60
+    ],
+    [
+      "preparing Hobbs Cafe for the Valentine's Day party",
+      120
+    ],
+    [
+      "relaxing and preparing for bed",
+      60
+    ]
+  ],
+  "f_daily_schedule_hourly_org": [
+    [
+      "sleeping",
+      480
+    ],
+    [
+      "preparing Hobbs Cafe to open",
+      60
+    ],
+    [
+      "working at the counter",
+      420
+    ],
+    [
+      "meeting with the baker to discuss the Valentine's Day party and gather materials",
+      120
+    ],
+    [
+      "preparing Hobbs Cafe for the Valentine's Day party",
+      120
+    ],
+    [
+      "meeting with the baker to discuss the Valentine's Day party and gather materials",
+      60
+    ],
+    [
+      "preparing Hobbs Cafe for the Valentine's Day party",
+      120
+    ],
+    [
+      "relaxing and preparing for bed",
+      60
+    ]
+  ],
+  "act_address": "the Ville:Isabella Rodriguez's apartment:main room:desk",
+  "act_start_time": "February 13, 2023, 06:00:00",
+  "act_duration": 5,
+  "act_description": "waking up and completing her morning routine (turning off her alarm clock)",
+  "act_pronunciatio": "\ud83d\udd0f\ud83d\udca4",
+  "act_event": [
+    "Isabella Rodriguez",
+    "turn off",
+    "alarm clock"
+  ],
+  "act_obj_description": "being used by Isabella Rodriguez for her morning routine",
+  "act_obj_pronunciatio": "\ud83d\udec1\ud83e\uddd6\u200d",
+  "act_obj_event": [
+    "desk",
+    "use",
+    "Isabella Rodriguez"
+  ],
+  "chatting_with": null,
+  "chat": null,
+  "chatting_with_buffer": {},
+  "chatting_end_time": null,
+  "act_path_set": true,
+  "planned_path": []
+}
