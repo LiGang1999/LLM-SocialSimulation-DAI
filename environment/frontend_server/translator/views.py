@@ -117,7 +117,7 @@ def home(request):
   with open(f_curr_step) as json_file:  
     step = json.load(json_file)["step"]
 
-  os.remove(f_curr_step)
+  os.remove(f_curr_step) # TODO：删掉这行代码是否有影响。删掉这行代码是不是就可以随意刷新该网页了
 
   persona_names = []
   persona_names_set = set()
@@ -313,7 +313,11 @@ def path_tester_update(request):
 
   return HttpResponse("received")
 
-
+def start(request):
+  context = {}
+  template = "start/start.html"
+  main()
+  HttpResponse("received")
 
 
 

@@ -27,6 +27,7 @@ import math
 import os
 import shutil
 import traceback
+from queue import Queue
 
 from selenium import webdriver
 
@@ -38,6 +39,7 @@ from vector_db import *#
 from institution import *#
 
 global_rs = None#???
+command_queue = Queue()
 
 def return_rs():
   global global_rs
@@ -444,6 +446,7 @@ class ReverieServer:
     OUTPUT
       None
     """
+    global command_queue
     print ("Note: The agents in this simulation package are computational")
     print ("constructs powered by generative agents architecture and LLM. We")
     print ("clarify that these agents lack human-like agency, consciousness,")
@@ -453,7 +456,10 @@ class ReverieServer:
     sim_folder = f"{fs_storage}/{self.sim_code}"
 
     while True: 
-      sim_command = input("Enter option: ")
+      # sim_command = input("Enter option: ")
+      print("Enter option: ")
+      sim_command = command_queue.get()
+      print(sim_command)
       sim_command = sim_command.strip()
       ret_str = ""
 
@@ -629,7 +635,10 @@ class ReverieServer:
           # args['gpt_config']['temperature'] = args['temperature']
           # args['gpt_config']['top_p'] = args['top_p']
           # print("run args:", args)
-          Is_or_Not_Institution = input("Is_or_Not_Institution, Enter Input (yes or no): ")
+          # Is_or_Not_Institution = input("Is_or_Not_Institution, Enter Input (yes or no): ")
+          print("Is_or_Not_Institution, Enter Input (yes or no): ")
+          Is_or_Not_Institution = command_queue.get()
+          print(Is_or_Not_Institution)
           if Is_or_Not_Institution == 'yes':
             self.maze.content = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
             # self.maze.policy = run(args, case=self.maze.content)
@@ -657,7 +666,10 @@ class ReverieServer:
 
           rows = read_file_to_list(curr_file, header=True, strip_trail=True)[1]
           clean_whispers = []
-          Your_content = input("Input your content: ")
+          # Your_content = input("Input your content: ")
+          print("Input your content: ")
+          Your_content = command_queue.get()
+          print(Your_content)
           for row in rows: 
             agent_name = row[0].strip() 
             # whispers = row[1].split(";")
@@ -949,6 +961,12 @@ class ReverieServer:
 #     args = args.parse_args()
 #     return args
 ################SPP###############
+
+def start_sim(forked_sim_name, new_sim_name):
+  global rs
+  rs = ReverieServer(forked_sim_name, new_sim_name)
+  global_rs = rs#
+  rs.open_server()
 
 if __name__ == '__main__':
   # rs = ReverieServer("base_the_ville_isabella_maria_klaus", 
