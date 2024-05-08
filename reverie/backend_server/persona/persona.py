@@ -27,7 +27,7 @@ from persona.cognitive_modules.reflect import *
 from persona.cognitive_modules.execute import *
 from persona.cognitive_modules.converse import *
 
-from workflow import *
+from persona.workflow import *
 
 class Persona: 
   def __init__(self): 
@@ -250,3 +250,48 @@ class GaPersona(Persona):
   
   def open_convo_session(self, convo_mode, vbase): 
     open_convo_session(self, convo_mode, vbase)
+
+class DaiPersona(Persona): 
+  def __init__(self, name, folder_mem_saved=False):
+    super().__init__()
+    # PERSONA BASE STATE 
+    # <name> is the full name of the persona. This is a unique identifier for
+    # the persona within Reverie. 
+    self.name = name
+
+    self.workflow = DaiWorkFlow()#
+
+    # PERSONA MEMORY 
+    # If there is already memory in folder_mem_saved, we load that. Otherwise,
+    # we create new memory instances. 
+
+    # <s_mem> is the persona's associative memory. 
+    f_a_mem_saved = f"{folder_mem_saved}/bootstrap_memory/associative_memory"
+    self.a_mem = AssociativeMemory(f_a_mem_saved)
+    # <scratch> is the persona's scratch (short term memory) space. 
+    scratch_saved = f"{folder_mem_saved}/bootstrap_memory/scratch.json"
+    self.scratch = Scratch(scratch_saved)
+
+  def single_workflow(self, maze, curr_time):
+    self.workflow.work(self, maze, curr_time)
+
+  def save(self, save_folder): 
+    """
+    Save persona's current state (i.e., memory). 
+
+    INPUT: 
+      save_folder: The folder where we wil be saving our persona's state. 
+    OUTPUT: 
+      None
+    """
+    # Associative memory contains a csv with the following rows: 
+    # [event.type, event.created, event.expiration, s, p, o]
+    # e.g., event,2022-10-23 00:00:00,,Isabella Rodriguez,is,idle
+    f_a_mem = f"{save_folder}/associative_memory"
+    self.a_mem.save(f_a_mem)
+
+    # Scratch contains non-permanent data associated with the persona. When 
+    # it is saved, it takes a json form. When we load it, we move the values
+    # to Python variables. 
+    f_scratch = f"{save_folder}/scratch.json"
+    self.scratch.save(f_scratch)

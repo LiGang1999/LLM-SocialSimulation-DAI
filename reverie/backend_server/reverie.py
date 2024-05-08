@@ -32,14 +32,17 @@ from queue import Queue
 from selenium import webdriver
 
 from global_methods import *
-from utils import *
+# from utils import *
 from maze import *
 from persona.persona import *
 from vector_db import *#
 from institution import *#
+from memorynode import *
 
 global_rs = None#???
 command_queue = Queue()
+
+global_offline_mode = False ##false means online
 
 def return_rs():
   global global_rs
@@ -102,7 +105,10 @@ class ReverieServer:
     # <maze> is the main Maze instance. Note that we pass in the maze_name
     # (e.g., "double_studio") to instantiate Maze. 
     # e.g., Maze("double_studio")
-    self.maze = OfflineMaze(reverie_meta['maze_name'])
+    if global_offline_mode:
+      self.maze = OfflineMaze(reverie_meta['maze_name'])
+    else:
+      self.maze = OnlineMaze(reverie_meta['maze_name'])
     
     # <step> denotes the number of steps that our game has taken. A step here
     # literally translates to the number of moves our personas made in terms
@@ -120,7 +126,8 @@ class ReverieServer:
     # the personas (!-> NOT px tile, but the actual tile coordinate).
     # The tile take the form of a set, (row, col). 
     # e.g., ["Isabella Rodriguez"] = (58, 39)
-    self.personas_tile = dict()
+    if global_offline_mode:
+      self.personas_tile = dict()
     
     # # <persona_convo_match> is a dictionary that describes which of the two
     # # personas are talking to each other. It takes a key of a persona's full
@@ -139,14 +146,18 @@ class ReverieServer:
     init_env = json.load(open(init_env_file))
     for persona_name in reverie_meta['persona_names']: 
       persona_folder = f"{sim_folder}/personas/{persona_name}"
-      p_x = init_env[persona_name]["x"]
-      p_y = init_env[persona_name]["y"]
-      curr_persona = GaPersona(persona_name, persona_folder)
+      if global_offline_mode:
+        p_x = init_env[persona_name]["x"]
+        p_y = init_env[persona_name]["y"]
+        curr_persona = GaPersona(persona_name, persona_folder)
 
-      self.personas[persona_name] = curr_persona
-      self.personas_tile[persona_name] = (p_x, p_y)
-      self.maze.tiles[p_y][p_x]["events"].add(curr_persona.scratch
-                                              .get_curr_event_and_desc())
+        self.personas[persona_name] = curr_persona
+        self.personas_tile[persona_name] = (p_x, p_y)
+        self.maze.tiles[p_y][p_x]["events"].add(curr_persona.scratch
+                                                .get_curr_event_and_desc())
+      else:
+        curr_persona = DaiPersona(persona_name, persona_folder)
+        self.personas[persona_name] = curr_persona
 
     # REVERIE SETTINGS PARAMETERS:  
     # <server_sleep> denotes the amount of time that our while loop rests each
@@ -321,116 +332,133 @@ class ReverieServer:
     game_obj_cleanup = dict()
 
     # The main while loop of Reverie. 
+    n = 1
     while (True): 
       # Done with this iteration if <int_counter> reaches 0. 
       if int_counter == 0: 
         break
-
-      # <curr_env_file> file is the file that our frontend outputs. When the
-      # frontend has done its job and moved the personas, then it will put a 
-      # new environment file that matches our step count. That's when we run 
-      # the content of this for loop. Otherwise, we just wait. 
-      curr_env_file = f"{sim_folder}/environment/{self.step}.json"
-      if check_if_file_exists(curr_env_file):
-        # If we have an environment file, it means we have a new perception
-        # input to our personas. So we first retrieve it.
-        try: 
-          # Try and save block for robustness of the while loop.
-          with open(curr_env_file) as json_file:
-            new_env = json.load(json_file)
-            env_retrieved = True
-        except: 
-          pass
       
-        if env_retrieved: 
-          # This is where we go through <game_obj_cleanup> to clean up all 
-          # object actions that were used in this cylce. 
-          for key, val in game_obj_cleanup.items(): 
-            # We turn all object actions to their blank form (with None). 
-            self.maze.turn_event_from_tile_idle(key, val)
-          # Then we initialize game_obj_cleanup for this cycle. 
-          game_obj_cleanup = dict()
+      if global_offline_mode:
+        # <curr_env_file> file is the file that our frontend outputs. When the
+        # frontend has done its job and moved the personas, then it will put a 
+        # new environment file that matches our step count. That's when we run 
+        # the content of this for loop. Otherwise, we just wait. 
+        curr_env_file = f"{sim_folder}/environment/{self.step}.json"
+        if check_if_file_exists(curr_env_file):
+          # If we have an environment file, it means we have a new perception
+          # input to our personas. So we first retrieve it.
+          try: 
+            # Try and save block for robustness of the while loop.
+            with open(curr_env_file) as json_file:
+              new_env = json.load(json_file)
+              env_retrieved = True
+          except: 
+            pass
+        
+          if env_retrieved: 
+            # This is where we go through <game_obj_cleanup> to clean up all 
+            # object actions that were used in this cylce. 
+            for key, val in game_obj_cleanup.items(): 
+              # We turn all object actions to their blank form (with None). 
+              self.maze.turn_event_from_tile_idle(key, val)
+            # Then we initialize game_obj_cleanup for this cycle. 
+            game_obj_cleanup = dict()
 
-          # We first move our personas in the backend environment to match 
-          # the frontend environment. 
-          for persona_name, persona in self.personas.items(): 
-            # <curr_tile> is the tile that the persona was at previously. 
-            curr_tile = self.personas_tile[persona_name]
-            # <new_tile> is the tile that the persona will move to right now,
-            # during this cycle. 
-            new_tile = (new_env[persona_name]["x"], 
-                        new_env[persona_name]["y"])
+            # We first move our personas in the backend environment to match 
+            # the frontend environment. 
+            for persona_name, persona in self.personas.items(): 
+              # <curr_tile> is the tile that the persona was at previously. 
+              curr_tile = self.personas_tile[persona_name]
+              # <new_tile> is the tile that the persona will move to right now,
+              # during this cycle. 
+              new_tile = (new_env[persona_name]["x"], 
+                          new_env[persona_name]["y"])
 
-            # We actually move the persona on the backend tile map here. 
-            self.personas_tile[persona_name] = new_tile
-            self.maze.remove_subject_events_from_tile(persona.name, curr_tile)
-            self.maze.add_event_from_tile(persona.scratch
-                                         .get_curr_event_and_desc(), new_tile)
-
-            # Now, the persona will travel to get to their destination. *Once*
-            # the persona gets there, we activate the object action.
-            if not persona.scratch.planned_path: 
-              # We add that new object action event to the backend tile map. 
-              # At its creation, it is stored in the persona's backend. 
-              game_obj_cleanup[persona.scratch
-                               .get_curr_obj_event_and_desc()] = new_tile
+              # We actually move the persona on the backend tile map here. 
+              self.personas_tile[persona_name] = new_tile
+              self.maze.remove_subject_events_from_tile(persona.name, curr_tile)
               self.maze.add_event_from_tile(persona.scratch
-                                     .get_curr_obj_event_and_desc(), new_tile)
-              # We also need to remove the temporary blank action for the 
-              # object that is currently taking the action. 
-              blank = (persona.scratch.get_curr_obj_event_and_desc()[0], 
-                       None, None, None)
-              self.maze.remove_event_from_tile(blank, new_tile)
+                                          .get_curr_event_and_desc(), new_tile)
 
-          # Then we need to actually have each of the personas perceive and
-          # move. The movement for each of the personas comes in the form of
-          # x y coordinates where the persona will move towards. e.g., (50, 34)
-          # This is where the core brains of the personas are invoked. 
-          movements = {"persona": dict(), 
-                       "meta": dict()}
-          for persona_name, persona in self.personas.items(): 
-            # <next_tile> is a x,y coordinate. e.g., (58, 9)
-            # <pronunciatio> is an emoji. e.g., "\ud83d\udca4"
-            # <description> is a string description of the movement. e.g., 
-            #   writing her next novel (editing her novel) 
-            #   @ double studio:double studio:common room:sofa
-            # next_tile, pronunciatio, description = persona.move(
-            next_tile, pronunciatio, description = persona.single_workflow(
-              self.maze, self.personas, self.personas_tile[persona_name], 
-              self.curr_time)
-            movements["persona"][persona_name] = {}
-            movements["persona"][persona_name]["movement"] = next_tile
-            movements["persona"][persona_name]["pronunciatio"] = pronunciatio
-            movements["persona"][persona_name]["description"] = description
-            movements["persona"][persona_name]["chat"] = (persona
-                                                          .scratch.chat)
+              # Now, the persona will travel to get to their destination. *Once*
+              # the persona gets there, we activate the object action.
+              if not persona.scratch.planned_path: 
+                # We add that new object action event to the backend tile map. 
+                # At its creation, it is stored in the persona's backend. 
+                game_obj_cleanup[persona.scratch
+                                .get_curr_obj_event_and_desc()] = new_tile
+                self.maze.add_event_from_tile(persona.scratch
+                                      .get_curr_obj_event_and_desc(), new_tile)
+                # We also need to remove the temporary blank action for the 
+                # object that is currently taking the action. 
+                blank = (persona.scratch.get_curr_obj_event_and_desc()[0], 
+                        None, None, None)
+                self.maze.remove_event_from_tile(blank, new_tile)
 
-          # Include the meta information about the current stage in the 
-          # movements dictionary. 
-          movements["meta"]["curr_time"] = (self.curr_time 
-                                             .strftime("%B %d, %Y, %H:%M:%S"))
+            # Then we need to actually have each of the personas perceive and
+            # move. The movement for each of the personas comes in the form of
+            # x y coordinates where the persona will move towards. e.g., (50, 34)
+            # This is where the core brains of the personas are invoked. 
+            movements = {"persona": dict(), 
+                        "meta": dict()}
+            for persona_name, persona in self.personas.items(): 
+              # <next_tile> is a x,y coordinate. e.g., (58, 9)
+              # <pronunciatio> is an emoji. e.g., "\ud83d\udca4"
+              # <description> is a string description of the movement. e.g., 
+              #   writing her next novel (editing her novel) 
+              #   @ double studio:double studio:common room:sofa
+              # next_tile, pronunciatio, description = persona.move(
+              next_tile, pronunciatio, description = persona.single_workflow(
+                self.maze, self.personas, self.personas_tile[persona_name], 
+                self.curr_time)
+              movements["persona"][persona_name] = {}
+              movements["persona"][persona_name]["movement"] = next_tile
+              movements["persona"][persona_name]["pronunciatio"] = pronunciatio
+              movements["persona"][persona_name]["description"] = description
+              movements["persona"][persona_name]["chat"] = (persona
+                                                            .scratch.chat)
 
-          # We then write the personas' movements to a file that will be sent 
-          # to the frontend server. 
-          # Example json output: 
-          # {"persona": {"Maria Lopez": {"movement": [58, 9]}},
-          #  "persona": {"Klaus Mueller": {"movement": [38, 12]}}, 
-          #  "meta": {curr_time: <datetime>}}
-          ###---lg---###
-          exist_move_file = f"{sim_folder}/movement/"
-          if not os.path.exists(exist_move_file):
-            os.makedirs(exist_move_file)
-          ###---lg---###
-          curr_move_file = f"{sim_folder}/movement/{self.step}.json"
-          with open(curr_move_file, "w") as outfile: 
-            outfile.write(json.dumps(movements, indent=2))
+            # Include the meta information about the current stage in the 
+            # movements dictionary. 
+            movements["meta"]["curr_time"] = (self.curr_time 
+                                              .strftime("%B %d, %Y, %H:%M:%S"))
 
-          # After this cycle, the world takes one step forward, and the 
-          # current time moves by <sec_per_step> amount. 
-          self.step += 1
-          self.curr_time += datetime.timedelta(seconds=self.sec_per_step)
+            # We then write the personas' movements to a file that will be sent 
+            # to the frontend server. 
+            # Example json output: 
+            # {"persona": {"Maria Lopez": {"movement": [58, 9]}},
+            #  "persona": {"Klaus Mueller": {"movement": [38, 12]}}, 
+            #  "meta": {curr_time: <datetime>}}
+            ###---lg---###
+            exist_move_file = f"{sim_folder}/movement/"
+            if not os.path.exists(exist_move_file):
+              os.makedirs(exist_move_file)
+            ###---lg---###
+            curr_move_file = f"{sim_folder}/movement/{self.step}.json"
+            with open(curr_move_file, "w") as outfile: 
+              outfile.write(json.dumps(movements, indent=2))
+          
 
-          int_counter -= 1
+            # After this cycle, the world takes one step forward, and the 
+            # current time moves by <sec_per_step> amount. 
+            self.step += 1
+            self.curr_time += datetime.timedelta(seconds=self.sec_per_step)
+
+            int_counter -= 1
+      
+      else: # online
+        for persona_name, persona in self.personas.items():
+          for node in self.maze.get_memories():
+            if node.name == persona_name:
+              node.new_or_old = False
+          print("\n\n\n★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ "+persona_name+" 第"+str(n)+"轮"+" ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★")
+          persona.single_workflow(self.maze, self.curr_time)
+                
+        n += 1
+        self.step += 1
+        self.curr_time += datetime.timedelta(seconds=self.sec_per_step)
+        print("❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ next step ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤")
+        int_counter -= 1
           
       # Sleep so we don't burn our machines. 
       time.sleep(self.server_sleep)
@@ -702,6 +730,24 @@ class ReverieServer:
             load_history_via_whisper(self.personas, clean_whispers)
           else:
             print("<---There is no case.--->")
+        
+        elif ("call -- load weibo"  # 将事件广播给每个智能体。
+              in sim_command.lower()):
+          # tyn
+          # truth = input("Input your content: ")
+          truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
+
+          # s, p, o = generate_action_event_triple_new(truth)
+          s="日本"
+          p="排放"
+          o="核废水"
+          description = truth
+
+
+          #创建一个memory_node
+          memory_node = MemoryNode("public",s, p, o, description, True)         
+
+          self.maze.add_memory(memory_node)
 
         print (ret_str)
 

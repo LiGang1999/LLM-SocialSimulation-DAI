@@ -9,8 +9,11 @@ import random
 sys.path.append('../../')
 
 from global_methods import *
+from persona.cognitive_modules.converse import *
 from path_finder import *
 from utils import *
+from memorynode import *
+
 
 def execute(persona, maze, personas, plan): 
   """
@@ -158,6 +161,16 @@ def execute(persona, maze, personas, plan):
   execution = ret, persona.scratch.act_pronunciatio, description
   return execution
 
+
+def execute_dai(persona, maze, retrived):
+  ###如果plan返回yes，则进行评论，判断在reverie里
+  comment = generate_one_utterance_for_comment(persona, retrived)
+  s="日本"
+  p="排放"
+  o="核废水"
+  memory_node = MemoryNode(persona.name, s, p, o, comment, True)
+  maze.add_memory(memory_node)
+  return memory_node
 
 
 

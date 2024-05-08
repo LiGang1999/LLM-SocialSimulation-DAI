@@ -219,6 +219,65 @@ def ChatGPT_safe_generate_response(prompt,
   return False
 
 
+# tyn
+def ChatGPT_safe_generate_response_new(prompt,
+                                   example_output,
+                                   special_instruction,
+                                   repeat=3,
+                                   fail_safe_response="error",
+                                   func_validate=None,
+                                   func_clean_up=None,
+                                   verbose=False):
+  # prompt = 'GPT-3 Prompt:\n"""\n' + prompt + '\n"""\n'
+  prompt = '"""\n' + prompt + '\n"""\n'
+  prompt += f"Please output the response to the prompt above in json. {special_instruction}\n"
+  prompt += "Example output json:\n"
+  prompt += '{"output": ' + str(example_output) + '}'
+
+  if verbose:
+    print("CHAT GPT PROMPT")
+    print(prompt)
+  print("lg: start")  #
+  for i in range(repeat):
+
+    try:
+      print("lg: try")  #
+      curr_gpt_response = ChatGPT_request(prompt)
+      print("lg")  #
+      print(curr_gpt_response)  #
+      print("lg")  #
+      curr_gpt_response = curr_gpt_response.strip()
+      end_index = curr_gpt_response.rfind('}') + 1
+      ###
+      begin_index = curr_gpt_response.find('{')  #
+      curr_gpt_response = curr_gpt_response[begin_index:end_index]  #
+      ###
+      # curr_gpt_response = curr_gpt_response[:end_index]
+
+      curr_gpt_response = json.loads(curr_gpt_response)["output"]
+      print("lg: happy")  #
+
+      # curr_gpt_response = curr_gpt_response + ""#lg
+      curr_gpt_response = str(curr_gpt_response)  # lg
+
+      # print ("---ashdfaf")
+      # print (curr_gpt_response)
+      # print ("000asdfhia")
+
+      if func_validate(curr_gpt_response, prompt=prompt):
+        return func_clean_up(curr_gpt_response, prompt=prompt)
+
+      if verbose:
+        print("---- repeat count: \n", i, curr_gpt_response)
+        print(curr_gpt_response)
+        print("~~~~")
+
+    except:
+      pass
+  print('lg: fail')  #
+  return False
+
+
 def ChatGPT_safe_generate_response_OLD(prompt, 
                                    repeat=3,
                                    fail_safe_response="error",

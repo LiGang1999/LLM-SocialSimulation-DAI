@@ -2129,6 +2129,81 @@ def run_gpt_prompt_focal_pt(persona, statements, n, test_input=None, verbose=Fal
   if output != False: 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
   # ChatGPT Plugin ===========================================================
+  
+
+def run_gpt_prompt_focal_pt_new(persona, statements, n, test_input=None, verbose=False): 
+  def create_prompt_input(persona, statements, n, test_input=None): 
+    prompt_input = [statements, str(n)]
+    return prompt_input
+  
+  def __func_clean_up(gpt_response, prompt=""):
+    gpt_response = "1) " + gpt_response.strip()
+    ret = []
+    for i in gpt_response.split("\n"): 
+      ret += [i.split(") ")[-1]]
+    return ret
+
+  def __func_validate(gpt_response, prompt=""): 
+    try: 
+      __func_clean_up(gpt_response, prompt)
+      return True
+    except:
+      return False 
+
+  def get_fail_safe(n): 
+    return ["Who am I"] * n
+
+
+  # ChatGPT Plugin ===========================================================
+  def __chat_func_clean_up(gpt_response, prompt=""): ############
+    ret = ast.literal_eval(gpt_response)
+    return ret
+
+  def __chat_func_validate(gpt_response, prompt=""): ############
+    try: 
+      __func_clean_up(gpt_response, prompt)
+      return True
+    except:
+      return False 
+
+
+  print ("asdhfapsh8p9hfaiafdsi;ldfj as DEBUG 12") ########
+  gpt_param = {"engine": "text-davinci-002", "max_tokens": 15, 
+               "temperature": 0, "top_p": 1, "stream": False,
+               "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
+  prompt_template = "persona/prompt_template/v3_ChatGPT/generate_focal_pt_v1.txt" ########
+  prompt_input = create_prompt_input(persona, statements, n)  ########
+  prompt = generate_prompt(prompt_input, prompt_template)
+  example_output = '["xxx", "xxx", "xxx"]' ########
+  special_instruction = "Output must be a list of str." ########
+  fail_safe = get_fail_safe(n) ########
+  output = ChatGPT_safe_generate_response_new(prompt, example_output, special_instruction, 3, fail_safe,
+                                          __chat_func_validate, __chat_func_clean_up, True)
+  if output != False: 
+    return output, [output, prompt, gpt_param, prompt_input, fail_safe]
+  # ChatGPT Plugin ===========================================================
+
+
+
+
+
+
+  gpt_param = {"engine": "text-davinci-003", "max_tokens": 150, 
+               "temperature": 0, "top_p": 1, "stream": False,
+               "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
+  prompt_template = "persona/prompt_template/v2/generate_focal_pt_v1.txt"
+  prompt_input = create_prompt_input(persona, statements, n)
+  prompt = generate_prompt(prompt_input, prompt_template)
+
+  fail_safe = get_fail_safe(n)
+  output = safe_generate_response(prompt, gpt_param, 5, fail_safe,
+                                   __func_validate, __func_clean_up)
+
+  if debug or verbose: 
+    print_run_prompts(prompt_template, persona, gpt_param, 
+                      prompt_input, prompt, output)
+  
+  return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
 
@@ -2928,6 +3003,180 @@ def run_gpt_generate_iterative_chat_utt(maze, init_persona, target_persona, retr
   return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
+###wzt
+def run_gpt_generate_iterative_comment_utt(persona, retrieved, test_input=None, verbose=False):
+  def create_prompt_input(persona, retrieved,test_input=None):
+    pm = ""
+    n , m= 1, 1
+    ###pm->[memorynode[name,s,p,o,description]]
+    retrieved_context = ""
+    description1 = []
+    description2 = []
+    for key, vals in retrieved.items():
+     
+      pm_node = str(n) + "."
+      pm_node +=vals["curr_event"].name
+      pm_node +=" said, "
+      pm_node +=vals["curr_event"].description + "\n"
+      pm += pm_node
+
+
+      for c_node in vals["events"]:
+        description1 += [c_node.description]
+
+      for c_node in vals["thoughts"]:
+        description2 += [c_node.description]
+
+      n += 1
+      
+    for des in set(description1):
+        retrieved_context += str(m) + f". {des}\n"
+        m += 1
+        
+    for des in set(description2):
+        retrieved_context += str(m) + f". {des}\n"
+        m += 1
+
+    ###个人信息概述 (init_iss)：
+    init_iss = f"{persona.scratch.get_str_iss()}" #Here is the content and comments about the case, here is a brief description of {persona.scratch.name}.\n
+    prompt_input = [init_iss,pm,persona.scratch.name,retrieved_context,persona.scratch.name,persona.scratch.name,persona.scratch.name]
+    return prompt_input
+
+
+  def __chat_func_clean_up(gpt_response, prompt=""):
+    gpt_response = extract_first_json_dict(gpt_response)
+    cleaned_dict = dict()
+    cleaned = []
+    for key, val in gpt_response.items():
+      cleaned += [val]
+    cleaned_dict["comment"] = cleaned[0]
+    return cleaned_dict
+
+
+  def __chat_func_validate(gpt_response, prompt=""):
+    print("ugh...")
+    try:
+      # print ("debug 1")
+      # print (gpt_response)
+      # print ("debug 2")
+
+      print(extract_first_json_dict(gpt_response))
+      # print ("debug 3")
+      return True
+    except:
+      return False
+
+
+  def get_fail_safe():
+    cleaned_dict = dict()
+    cleaned_dict["utterance"] = "..."
+    return cleaned_dict
+
+  print("正在wzt-run_gpt_generate_iterative_comment_utt")
+  prompt_template = "persona/prompt_template/v3_ChatGPT/iterative_comment_v1.txt"
+  prompt_input = create_prompt_input(persona, retrieved)
+  prompt = generate_prompt(prompt_input, prompt_template)
+  print("\n==================================================================")
+  print(prompt)
+  fail_safe = get_fail_safe()
+  output = ChatGPT_safe_generate_response_OLD(prompt, 3, fail_safe,
+                                              __chat_func_validate, __chat_func_clean_up, verbose)
+  print("\n==================================================================")
+  print(output)
+  print("==================================================================\n")
+  
+
+  gpt_param = {"engine": "text-davinci-003", "max_tokens": 500,
+               "temperature": 0, "top_p": 1, "stream": False,
+               "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
+  return output, [output, prompt, gpt_param, prompt_input, fail_safe]
+
+
+###wzt plan里面调用的判断
+def run_gpt_prompt_decide_to_comment(persona, retrieved, test_input=None,
+                                     verbose=False):
+  def create_prompt_input(persona, retrieved,
+                          test_input=None):
+    pm = ""
+    n, m = 1, 1
+    ###pm->[memorynode[name,s,p,o,description]]
+    retrieved_context = ""
+    description1 = []
+    description2 = []
+    for key, vals in retrieved.items():
+
+      pm_node = str(n) + "."
+      pm_node += vals["curr_event"].name
+      pm_node += " said, "
+      pm_node += vals["curr_event"].description + "\n"
+      pm += pm_node
+
+      for c_node in vals["events"]:
+        description1 += [c_node.description]
+
+      for c_node in vals["thoughts"]:
+        description2 += [c_node.description]
+
+      n += 1
+
+    for des in set(description1):
+      retrieved_context += str(m) + f". {des}\n"
+      m += 1
+
+    for des in set(description2):
+      retrieved_context += str(m) + f". {des}\n"
+      m += 1
+
+    curr_time = persona.scratch.curr_time.strftime("%B %d, %Y, %H:%M:%S %p")
+    prompt_input = []
+    prompt_input += [pm]
+    prompt_input += [retrieved_context]
+    prompt_input += [curr_time]
+    prompt_input += [persona.name]
+    init_iss = f"{persona.scratch.get_str_iss()}"  # Here is the content and comments about the case, here is a brief description of {persona.scratch.name}.\n
+    prompt_input += [init_iss]
+    return prompt_input
+
+  def __func_validate(gpt_response, prompt=""):
+    try:
+      if gpt_response.split("Answer in yes or no:")[-1].strip().lower() in ["yes", "no"]:
+        return True
+      return False
+    except:
+      return False
+
+  def __func_clean_up(gpt_response, prompt=""):
+    return gpt_response.split("Answer in yes or no:")[-1].strip().lower()
+
+  def get_fail_safe():
+    fs = "yes"
+    return fs
+
+  gpt_param = {"engine": "text-davinci-003", "max_tokens": 20,
+               "temperature": 0, "top_p": 1, "stream": False,
+               "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
+  prompt_template = "persona/prompt_template/v2/decide_to_comment_v2.txt"
+  prompt_input = create_prompt_input(persona, retrieved,
+                                     test_input)
+  # print(prompt_input)
+  # print("1")
+  prompt = generate_prompt(prompt_input, prompt_template)
+  print("\n==================================================================")
+  print(prompt)
+
+  fail_safe = get_fail_safe()
+
+  output = safe_generate_response(prompt, gpt_param, 3, fail_safe,
+                                  __func_validate, __func_clean_up)
+  print("\n==================================================================")
+  print(output)
+  print("==================================================================\n")
+
+  # if debug or verbose:
+  #   print_run_prompts(prompt_template, persona, gpt_param,
+  #                     prompt_input, prompt, output)
+
+  return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
 

@@ -34,6 +34,22 @@ def generate_focal_points(persona, n=3):
 
   return run_gpt_prompt_focal_pt(persona, statements, n)[0]
 
+def generate_focal_points_new(persona, n=3): 
+  if debug: print ("GNS FUNCTION: <generate_focal_points>")
+  
+  nodes = [[i.last_accessed, i]
+            for i in persona.a_mem.seq_event + persona.a_mem.seq_thought
+            if "idle" not in i.embedding_key]
+
+  nodes = sorted(nodes, key=lambda x: x[0])
+  nodes = [i for created, i in nodes]
+
+  statements = ""
+  for node in nodes[-1*persona.scratch.importance_ele_n:]: 
+    statements += node.embedding_key + "\n"
+
+  return run_gpt_prompt_focal_pt_new(persona, statements, n)[0]
+
 
 def generate_insights_and_evidence(persona, nodes, n=5): 
   if debug: print ("GNS FUNCTION: <generate_insights_and_evidence>")
@@ -128,6 +144,45 @@ def run_reflect(persona):
                                 thought, keywords, thought_poignancy, 
                                 thought_embedding_pair, evidence)
 
+# tyn
+def run_reflect_new(persona):
+  """
+  Run the actual reflection. We generate the focal points, retrieve any 
+  relevant nodes, and generate thoughts and insights. 
+
+  INPUT: 
+    persona: Current Persona object
+  Output: 
+    None
+  """
+  # Reflection requires certain focal points. Generate that first. 
+  focal_points = generate_focal_points_new(persona, 3)
+  # Retrieve the relevant Nodes object for each of the focal points. 
+  # <retrieved> has keys of focal points, and values of the associated Nodes. 
+  retrieved = new_retrieve(persona, focal_points)
+
+  # For each of the focal points, generate thoughts and save it in the 
+  # agent's memory. 
+  for focal_pt, nodes in retrieved.items(): 
+    xx = [i.embedding_key for i in nodes]
+    for xxx in xx: print (xxx)
+
+    thoughts = generate_insights_and_evidence(persona, nodes, 5)
+    for thought, evidence in thoughts.items(): 
+      created = persona.scratch.curr_time
+      expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
+      # s, p, o = generate_action_event_triple(thought, persona)
+      # tyn
+      s="日本"
+      p="排放"
+      o="核废水"
+      keywords = set([s, p, o])
+      thought_poignancy = generate_poig_score(persona, "thought", thought)
+      thought_embedding_pair = (thought, get_embedding(thought))
+
+      persona.a_mem.add_thought(created, expiration, s, p, o, 
+                                thought, keywords, thought_poignancy, 
+                                thought_embedding_pair, evidence)
 
 def reflection_trigger(persona): 
   """
@@ -255,6 +310,15 @@ def reflect(persona):
       persona.a_mem.add_thought(created, expiration, s, p, o, 
                                 memo_thought, keywords, thought_poignancy, 
                                 thought_embedding_pair, evidence)
+      
+      
+def reflect_dai(persona):
+
+  if reflection_trigger(persona): 
+    run_reflect_new(persona)
+    reset_reflection_counter(persona)
+  
+  return
 
 
 

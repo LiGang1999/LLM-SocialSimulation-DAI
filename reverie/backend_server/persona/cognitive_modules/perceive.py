@@ -181,6 +181,32 @@ def perceive(persona, maze):
   return ret_events
 
 
+def perceive_dai(persona, maze): 
+  memorynodes = maze.get_new_memories()
+  created = persona.scratch.curr_time
+  expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
+  for perceive_node in memorynodes:
+    if perceive_node.name == "public":
+      continue
+    s = perceive_node.subject
+    p = perceive_node.predicate
+    o = perceive_node.object
+    keywords = set([s, p, o])
+    event_poignancy = generate_poig_score(persona,
+                                          "event",
+                                          perceive_node.description)
+    print("正在存放："+perceive_node.name+" said, "+ perceive_node.description)
+    persona.a_mem.add_event(created, expiration, s, p, o, 
+                                perceive_node.name+" said, "+ perceive_node.description, keywords,event_poignancy , 
+                                (perceive_node.description, get_embedding(perceive_node.description)), None)
+    persona.scratch.importance_trigger_curr -= event_poignancy
+    persona.scratch.importance_ele_n += 1
+    
+  for perceive_node in memorynodes:
+    if perceive_node.name == "public":
+      return [perceive_node]
+
+
 
 
   

@@ -395,9 +395,23 @@ class OnlineMaze(Maze):
     self.maze_height = int(meta_info["maze_height"])
 
     self.relationship_matrix = None
+    self.public_memory = []
 
   def update_relationship():
     pass
 
   def get_relationship():
     pass
+  
+  def add_memory(self, memorynode):
+    self.public_memory.append(memorynode)
+
+  def get_memories(self):
+    return self.public_memory  
+
+  def get_new_memories(self):
+    new_memories = []
+    for node in self.public_memory:
+        if node.new_or_old:
+            new_memories.append(node)
+    return new_memories

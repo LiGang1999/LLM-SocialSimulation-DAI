@@ -18,7 +18,7 @@ from persona.memory_structures.scratch import *
 from persona.cognitive_modules.retrieve import *
 from persona.prompt_template.run_gpt_prompt import *
 from persona.cognitive_modules.base_sentiment import *#
-# from reverie import return_rs#
+from reverie import return_rs#
 
 def generate_agent_chat_summarize_ideas(init_persona, 
                                         target_persona, 
@@ -311,6 +311,12 @@ def open_convo_session(persona, convo_mode, vbase):
     persona.a_mem.add_thought(created, expiration, s, p, o, 
                               thought, keywords, thought_poignancy, 
                               thought_embedding_pair, None)
+    
+# tyn
+def generate_one_utterance_for_comment(persona, retrieved):
+  print("正在生成评论，请稍等")
+  x = run_gpt_generate_iterative_comment_utt(persona, retrieved)[0]
+  return x["comment"]
 
 
 

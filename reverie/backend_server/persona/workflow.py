@@ -1,5 +1,5 @@
 import sys
-from action import *
+from persona.action import *
 
 class WorkFlow:
     def __init__(self):
@@ -33,3 +33,31 @@ class GaWorkFlow(WorkFlow):
         self.reflect.action(persona)
 
         return self.execute.action(persona, maze, personas, plan)
+
+class DaiWorkFlow(WorkFlow):
+    def __init__(self):
+        self.perceive = DaiPerceive()
+        self.retrieve = DaiRetrieve()
+        self.plan = DaiPlan()
+        self.execute = DaiExecute()
+        self.reflect = DaiReflect()
+
+    def work(self, persona, maze, curr_time):
+
+        new_day = False
+        if not persona.scratch.curr_time: 
+            new_day = "First day"
+        elif (persona.scratch.curr_time.strftime('%A %B %d')
+            != curr_time.strftime('%A %B %d')):
+            new_day = "New day"
+        persona.scratch.curr_time = curr_time
+
+        perceived = self.perceive.action(persona, maze)
+        retrieved = self.retrieve.action(persona, perceived)
+        plan = self.plan.action(persona, retrieved)
+        if plan[0] == "yes":
+            print("正在调用execute发表评论")
+            self.execute.action(persona, maze, retrieved)
+        self.reflect.action(persona)
+
+        return

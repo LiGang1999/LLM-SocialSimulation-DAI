@@ -1051,6 +1051,11 @@ def plan(persona, maze, personas, new_day, retrieved):
       persona.scratch.chatting_with_buffer[persona_name] -= 1
 
   return persona.scratch.act_address
+####wzt
+def plan_dai(persona,retrieved):
+  retrieved = new_retrieve_dai(persona, retrieved)
+  return run_gpt_prompt_decide_to_comment(persona,retrieved)
+
 
 
 

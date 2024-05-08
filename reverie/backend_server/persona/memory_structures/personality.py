@@ -1,6 +1,6 @@
 import sys
 
-from memory import *
+from persona.memory_structures.memory import *
 
 class BigFiveTree: 
     def __init__(self): 

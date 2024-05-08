@@ -271,6 +271,129 @@ def new_retrieve(persona, focal_points, n_count=30):
 
   return retrieved
 
+# tyn
+def retrieve_dai(persona, perceived): 
+  """
+  This function takes the events that are perceived by the persona as input
+  and returns a set of related events and thoughts that the persona would 
+  need to consider as context when planning. 
+ 此函数将角色感知到的事件作为输入，并返回一组相关事件和想法，角色在计划时需要将其作为上下文考虑。
+  INPUT: 
+    perceived: a list of event <ConceptNode>s that represent any of the events
+    `         that are happening around the persona. What is included in here
+              are controlled by the att_bandwidth and retention 
+              hyper-parameters.
+  OUTPUT: 
+    retrieved: a dictionary of dictionary. The first layer specifies an event, 
+               while the latter layer specifies the "curr_event", "events", 
+               and "thoughts" that are relevant.
+  """
+  # We rerieve events and thoughts separately. 
+  retrieved = dict()
+  for event in perceived: 
+    retrieved[event.subject] = dict()
+    retrieved[event.subject]["curr_event"] = event
+    
+    relevant_events = persona.a_mem.retrieve_relevant_events(
+                        event.subject, event.predicate, event.object)
+    # print("pig-------------------------------")
+    # print(len(relevant_events))
+    # retrieved[event.description]["events"] = list(relevant_events)
+
+    relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(
+                          event.subject, event.predicate, event.object)
+    retrieved[event.subject]["events"] = list(relevant_events) + list(relevant_thoughts)
+    retrieved[event.subject]["thoughts"] = list()
+    
+    
+  return retrieved
+
+# tyn
+def new_retrieve_dai(persona, retrieved, n_count=30): 
+  """
+  Given the current persona and focal points (focal points are events or 
+  thoughts for which we are retrieving), we retrieve a set of nodes for each
+  of the focal points and return a dictionary. 
+
+  INPUT: 
+    persona: The current persona object whose memory we are retrieving. 
+    focal_points: A list of focal points (string description of the events or
+                  thoughts that is the focus of current retrieval).
+  OUTPUT: 
+    retrieved: A dictionary whose keys are a string focal point, and whose 
+               values are a list of Node object in the agent's associative 
+               memory.
+
+  Example input:
+    persona = <persona> object 
+    focal_points = ["How are you?", "Jane is swimming in the pond"]
+  """
+  # <retrieved> is the main dictionary that we are returning
+    # Getting all nodes from the agent's memory (both thoughts and events) and
+    # sorting them by the datetime of creation.
+    # You could also imagine getting the raw conversation, but for now.
+  '''
+persona.a_mem.seq_event + persona.a_mem.seq_thought：通过将事件节点列表和思想节点列表连接起来，我们得到了一个包含了所有事件和思想节点的混合列表。
+for i in ... if "idle" not in i.embedding_key：在遍历这个混合列表时，排除了那些嵌入键中包含字符串"idle"的节点，因为它们是表示空闲状态的特殊节点。
+[[i.last_accessed, i] for i in ...]：在遍历列表时，我们将每个节点 i 与其最后访问时间 i.last_accessed 组成一个二元组，并将这些二元组组成一个新的列表。这样做是为了方便后续的按照最后访问时间排序。
+    
+    '''
+  # nodes = [[i.last_accessed, i]
+  #             for i in old_retrieved["events"]
+  #             if "idle" not in i.embedding_key]
+  new_retrieved = retrieved.copy()
+  for keys, vals in new_retrieved.items():
+    if vals["events"] == []:
+      print("tyn--ok")
+      continue
+    nodes = []
+    for event in vals["events"]:
+      if "idle" not in event.embedding_key:
+        nodes.append([event.last_accessed, event])
+
+    nodes = sorted(nodes, key=lambda x: x[0])
+    nodes = [i for created, i in nodes]
+
+      # Calculating the component dictionaries and normalizing them.
+    recency_out = extract_recency(persona, nodes)
+    recency_out = normalize_dict_floats(recency_out, 0, 1)
+    importance_out = extract_importance(persona, nodes)
+    importance_out = normalize_dict_floats(importance_out, 0, 1)  
+
+      # Computing the final scores that combines the component values. 
+      # Note to self: test out different weights. [1, 1, 1] tends to work
+      # decently, but in the future, these weights should likely be learned, 
+      # perhaps through an RL-like process.
+      # gw = [1, 1, 1]
+      # gw = [1, 2, 1]
+    gw = [0.5, 3, 2]
+    master_out = dict()
+    for key in recency_out.keys(): 
+      master_out[key] = (persona.scratch.recency_w*recency_out[key]*gw[0] 
+                      + persona.scratch.importance_w*importance_out[key]*gw[2])
+    print("new_retrieve_new_tyn=========")
+
+    master_out = top_highest_x_values(master_out, len(master_out.keys()))
+    for key, val in master_out.items(): 
+        print (persona.a_mem.id_to_node[key].embedding_key, val)
+        print (persona.scratch.recency_w*recency_out[key]*1, 
+              persona.scratch.importance_w*importance_out[key]*1)
+
+      # Extracting the highest x values.
+      # <master_out> has the key of node.id and value of float. Once we get the 
+      # highest x values, we want to translate the node.id into nodes and return
+      # the list of nodes.
+    master_out = top_highest_x_values(master_out, n_count)
+    master_nodes = [persona.a_mem.id_to_node[key] 
+                      for key in list(master_out.keys())]
+
+    for n in master_nodes: 
+      n.last_accessed = persona.scratch.curr_time
+      
+    retrieved[keys]["events"] = list(master_nodes)
+      
+  return retrieved
+
 
 
 

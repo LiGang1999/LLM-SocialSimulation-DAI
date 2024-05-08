@@ -11,7 +11,7 @@ sys.path.append('../../')
 
 from global_methods import *
 
-from memory import *
+from persona.memory_structures.memory import *
 
 class Scratch(Memory): 
   def __init__(self, f_saved): 

@@ -15,7 +15,7 @@ import datetime
 
 from global_methods import *
 
-from memory import *
+from persona.memory_structures.memory import *
 
 class ConceptNode: 
   def __init__(self,

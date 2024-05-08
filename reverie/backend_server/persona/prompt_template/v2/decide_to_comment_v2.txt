@@ -1,0 +1,17 @@
+decide_to_comment_v1.txt
+
+<commentblockmarker>###</commentblockmarker>
+Task -- given the public memory and the context, determine whether the subject will comment for a case.
+Answer in yes or no: []
+---
+Public memory: 
+!<INPUT 0>!
+
+Context: 
+!<INPUT 1>!
+
+Right now, it is !<INPUT 2>!.
+
+Question:  Would !<INPUT 3>! will comment for the case?
+
+Reasoning: Let's think step by step and present the reasoning process step by step. It's worth noting that if you encounter a situation where you've already commented, you can choose to comment again to reiterate or update your viewpoint, or you can choose not to comment further.

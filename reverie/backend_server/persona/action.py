@@ -47,3 +47,38 @@ class GaReflect(Action):
 
     def action(self, persona):
         reflect(persona)
+
+class DaiPerceive(Action):
+    def __init__(self):
+        pass
+
+    def action(self, persona, maze):
+        return perceive_dai(persona, maze)
+
+class DaiRetrieve(Action):
+    def __init__(self):
+        pass
+
+    def action(self, persona, perceived):
+        return retrieve_dai(persona, perceived)
+
+class DaiPlan(Action):
+    def __init__(self):
+        pass
+
+    def action(self, persona, retrieved):
+        return plan_dai(persona, retrieved)
+
+class DaiExecute(Action):
+    def __init__(self):
+        pass
+
+    def action(self, persona, maze, retrieved):
+        return execute_dai(persona, maze, retrieved)
+
+class DaiReflect(Action):
+    def __init__(self):
+        pass
+
+    def action(self, persona):
+        reflect_dai(persona)

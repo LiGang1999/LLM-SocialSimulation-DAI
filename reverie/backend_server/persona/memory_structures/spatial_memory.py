@@ -12,7 +12,7 @@ sys.path.append('../../')
 from utils import *
 from global_methods import *
 
-from memory import *
+from persona.memory_structures.memory import *
 
 class MemoryTree(Memory): 
   def __init__(self, f_saved): 
