@@ -1,0 +1,12 @@
+stagely_planning.txt
+
+Variables: 
+!<INPUT 0>! -- Commonset
+!<INPUT 1>! -- Persona first names
+!<INPUT 2>! -- start_datetime
+!<INPUT 3>! -- end_datetime
+
+<commentblockmarker>###</commentblockmarker>
+!<INPUT 0>!
+
+Here is !<INPUT 1>!'s plan between !<INPUT 2>! and !<INPUT 3>! in broad-strokes (with dates. e.g., 1) exercise for two hours on !<INPUT 2>!, 2) complete graduation thesis from !<INPUT 2>! to !<INPUT 3>!):

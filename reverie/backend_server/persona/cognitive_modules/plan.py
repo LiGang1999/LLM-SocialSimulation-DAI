@@ -927,6 +927,16 @@ def _wait_react(persona, reaction_mode):
     act_address, act_event, chatting_with, chat, chatting_with_buffer, chatting_end_time,
     act_pronunciatio, act_obj_description, act_obj_pronunciatio, act_obj_event)
 
+def generate_stagely_plan(persona, maze):#extend planning cycle
+  return run_gpt_prompt_stagely_plan(persona, maze)[0]
+
+def generate_daily_schedule(persona, maze):#extend planning cycle
+  activities_everyday = []
+  for i in range(maze.planning_cycle):
+    curr_day = (maze.last_planning_day+datetime.timedelta(days=i+1)).strftime('%A %B %d')
+    curr_activity = run_gpt_prompt_generate_daily_schedule()[0]
+    activities_everyday += [[curr_activity, curr_day]]
+  return activities_everyday
 
 def plan(persona, maze, personas, new_day, retrieved): 
   """
@@ -950,6 +960,28 @@ def plan(persona, maze, personas, new_day, retrieved):
   OUTPUT 
     The target action address of the persona (persona.scratch.act_address).
   """ 
+  ###extend planning cycle###
+  if maze.need_stagely_planning:
+    persona.scratch.stagely_req = generate_stagely_plan(persona, maze)
+    persona.scratch.f_stagely_schedule = generate_daily_schedule(persona, maze)
+    persona.scratch.f_stagely_schedule_daily_org = (persona.scratch
+                                                   .f_stagely_schedule[:])
+    #adding plan to the memory:
+    thought = f"This is {persona.scratch.name}'s plan from {(maze.last_planning_day+datetime.timedelta(days=1)).strftime('%A %B %d')} to {(maze.last_planning_day+datetime.timedelta(days=maze.planning_cycle)).strftime('%A %B %d')}:"
+    for i in persona.scratch.stagely_req: 
+      thought += f" {i},"
+    thought = thought[:-1] + "."
+    created = persona.scratch.curr_time
+    expiration = persona.scratch.curr_time + datetime.timedelta(days=30+maze.planning_cycle)
+    s, p, o = (persona.scratch.name, "plan", f"period between {(maze.last_planning_day+datetime.timedelta(days=1)).strftime('%A %B %d')} and {(maze.last_planning_day+datetime.timedelta(days=maze.planning_cycle)).strftime('%A %B %d')}")
+    keywords = set(["plan"])
+    thought_poignancy = 5
+    thought_embedding_pair = (thought, get_embedding(thought))
+    persona.a_mem.add_thought(created, expiration, s, p, o, 
+                              thought, keywords, thought_poignancy, 
+                              thought_embedding_pair, None)
+  ###extend planning cycle###
+
   # PART 1: Generate the hourly schedule. 
   if new_day: 
     _long_term_planning(persona, new_day)

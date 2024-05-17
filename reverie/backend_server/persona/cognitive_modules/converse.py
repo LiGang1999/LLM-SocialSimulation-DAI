@@ -18,7 +18,7 @@ from persona.memory_structures.scratch import *
 from persona.cognitive_modules.retrieve import *
 from persona.prompt_template.run_gpt_prompt import *
 from persona.cognitive_modules.base_sentiment import *#
-from reverie import return_rs#
+# from reverie import return_rs#
 
 def generate_agent_chat_summarize_ideas(init_persona, 
                                         target_persona, 

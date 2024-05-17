@@ -181,6 +181,9 @@ class ReverieServer:
       outfile.write(json.dumps(curr_step, indent=2))
     
     self.tag = False#case
+    self.maze.planning_cycle = 2#extend planning cycle
+    self.maze.last_planning_day = None#extend planning cycle
+    self.maze.need_stagely_planning = True#extend planning cycle
 
 
   def save(self): 

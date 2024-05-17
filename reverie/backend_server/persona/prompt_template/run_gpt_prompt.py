@@ -157,6 +157,42 @@ def run_gpt_prompt_daily_plan(persona,
     
   return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
+def run_gpt_prompt_stagely_plan(persona, maze):#extend planning cycle
+  def create_prompt_input(persona, maze):
+    prompt_input = []
+    prompt_input += [persona.scratch.get_str_iss()]
+    prompt_input += [persona.scratch.get_str_firstname()]
+    prompt_input += [(maze.last_planning_day+datetime.timedelta(days=1)).strftime('%A %B %d')]
+    prompt_input += [(maze.last_planning_day+datetime.timedelta(days=maze.planning_cycle)).strftime('%A %B %d')]
+    return prompt_input
+  def __func_clean_up(gpt_response, prompt=""):
+    cr = []
+    _cr = gpt_response.split(")")
+    for i in _cr: 
+      if i[-1].isdigit(): 
+        i = i[:-1].strip()
+        if i[-1] == "." or i[-1] == ",": 
+          cr += [i[:-1].strip()]
+    return cr
+  def __func_validate(gpt_response, prompt=""):
+    try: __func_clean_up(gpt_response, prompt="")
+    except: 
+      return False
+    return True
+  def get_fail_safe():
+    fs = ['exercise for two hours on the first day', 
+          'complete graduation thesis during the period'] 
+    return fs
+  gpt_param = {"engine": "text-davinci-003", "max_tokens": 500, 
+               "temperature": 1, "top_p": 1, "stream": False,
+               "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
+  prompt_template = "persona/prompt_template/v2/stagely_planning.txt"
+  prompt_input = create_prompt_input(persona, maze)
+  prompt = generate_prompt(prompt_input, prompt_template)
+  fail_safe = get_fail_safe()
+  output = safe_generate_response(prompt, gpt_param, 5, fail_safe,
+                                   __func_validate, __func_clean_up)
+  return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 def run_gpt_prompt_generate_hourly_schedule(persona, 
                                             curr_hour_str,
@@ -287,8 +323,21 @@ def run_gpt_prompt_generate_hourly_schedule(persona,
     
   return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
-
-
+def run_gpt_prompt_generate_daily_schedule():#extend planning cycle
+  def create_prompt_input():
+    pass
+  def __func_clean_up():
+    pass
+  def __func_validate():
+    pass
+  def get_fail_safe():
+    pass
+  gpt_param = {"engine": "text-davinci-003", "max_tokens": 50, 
+               "temperature": 0.5, "top_p": 1, "stream": False,
+               "frequency_penalty": 0, "presence_penalty": 0, "stop": ["\n"]}
+  prompt_template = "persona/prompt_template/v2/generate_daily_schedule.txt"
+  prompt_input = create_prompt_input()#
+  return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
 

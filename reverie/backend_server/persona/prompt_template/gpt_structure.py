@@ -45,8 +45,8 @@ def ChatGPT_single_request(prompt):
     # model="gpt-3.5-turbo", 
     # model="Llama-2-7b-chat-hf", 
     # model="Llama-2-13b-chat-hf", 
-    # model="vicuna-13b-v1.5", 
-    model="vicuna-13b-v1.5-16k", 
+    model="vicuna-13b-v1.5", 
+    # model="vicuna-13b-v1.5-16k", 
     # model="vicuna-33b-v1.3", 
     # model="Baichuan-13B-Chat", 
     messages=[{"role": "user", "content": prompt}]
@@ -77,8 +77,8 @@ def GPT4_request(prompt):
     # model="gpt-4", 
     # model="Llama-2-7b-chat-hf", 
     # model="Llama-2-13b-chat-hf", 
-    # model="vicuna-13b-v1.5", 
-    model="vicuna-13b-v1.5-16k", 
+    model="vicuna-13b-v1.5", 
+    # model="vicuna-13b-v1.5-16k", 
     # model="vicuna-33b-v1.3", 
     # model="Baichuan-13B-Chat", 
     messages=[{"role": "user", "content": prompt}]
@@ -109,8 +109,8 @@ def ChatGPT_request(prompt):
     # model="gpt-3.5-turbo", 
     # model="Llama-2-7b-chat-hf", 
     # model="Llama-2-13b-chat-hf", 
-    # model="vicuna-13b-v1.5", 
-    model="vicuna-13b-v1.5-16k", 
+    model="vicuna-13b-v1.5", 
+    # model="vicuna-13b-v1.5-16k", 
     # model="vicuna-33b-v1.3", 
     # model="Baichuan-13B-Chat", 
     messages=[{"role": "user", "content": prompt}]
@@ -326,8 +326,8 @@ def GPT_request(prompt, gpt_parameter): ##lg##
                 # model=gpt_parameter["engine"],
                 # model="Llama-2-7b-chat-hf", 
                 # model="Llama-2-13b-chat-hf", 
-                # model="vicuna-13b-v1.5", 
-                model="vicuna-13b-v1.5-16k", 
+                model="vicuna-13b-v1.5", 
+                # model="vicuna-13b-v1.5-16k", 
                 # model="vicuna-33b-v1.3", 
                 # model="Baichuan-13B-Chat", 
                 prompt=prompt,
@@ -395,8 +395,8 @@ def safe_generate_response(prompt,
 def get_embedding(text, model="text-embedding-ada-002"):
   # model = "Llama-2-7b-chat-hf"#
   # model="Llama-2-13b-chat-hf"
-  # model="vicuna-13b-v1.5"
-  model="vicuna-13b-v1.5-16k"
+  model="vicuna-13b-v1.5"
+  # model="vicuna-13b-v1.5-16k"
   # model="vicuna-33b-v1.3"
   # model="Baichuan-13B-Chat"
   text = text.replace("\n", " ")

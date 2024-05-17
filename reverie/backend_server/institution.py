@@ -50,8 +50,8 @@ class DaiInstitution(Institution):
             },
             "vicuna": {
                 # "engine": "gpt-35-turbo",#《可以自己命名》
-                # "model": "vicuna-13b-v1.5",#《可以自己命名》
-                "model": "vicuna-13b-v1.5-16k",#《可以自己命名》
+                "model": "vicuna-13b-v1.5",#《可以自己命名》
+                # "model": "vicuna-13b-v1.5-16k",#《可以自己命名》
                 # "model": "vicuna-33b-v1.3",#《可以自己命名》
                 # "model": "gpt-3.5-turbo",#《可以自己命名》
                 "temperature": 0.0,

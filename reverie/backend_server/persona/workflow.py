@@ -1,5 +1,6 @@
 import sys
 from persona.action import *
+import datetime#extend planning cycle
 
 class WorkFlow:
     def __init__(self):
@@ -22,9 +23,12 @@ class GaWorkFlow(WorkFlow):
         new_day = False
         if not persona.scratch.curr_time: 
             new_day = "First day"
+            maze.last_planning_day = curr_time + datetime.timedelta(days=maze.planning_cycle-1)#extend planning cycle
         elif (persona.scratch.curr_time.strftime('%A %B %d')
             != curr_time.strftime('%A %B %d')):
             new_day = "New day"
+            if curr_time.strftime('%A %B %d') > maze.last_planning_day.strftime('%A %B %d'):#extend planning cycle
+                self.maze.need_stagely_planning = True
         persona.scratch.curr_time = curr_time
 
         perceived = self.perceive.action(persona, maze)
