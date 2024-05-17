@@ -337,6 +337,10 @@ def run_gpt_prompt_generate_daily_schedule():#extend planning cycle
                "frequency_penalty": 0, "presence_penalty": 0, "stop": ["\n"]}
   prompt_template = "persona/prompt_template/v2/generate_daily_schedule.txt"
   prompt_input = create_prompt_input()#
+  prompt = generate_prompt(prompt_input, prompt_template)
+  fail_safe = get_fail_safe()
+  output = safe_generate_response(prompt, gpt_param, 5, fail_safe,
+                                   __func_validate, __func_clean_up)
   return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 

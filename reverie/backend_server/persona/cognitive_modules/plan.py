@@ -961,7 +961,8 @@ def plan(persona, maze, personas, new_day, retrieved):
     The target action address of the persona (persona.scratch.act_address).
   """ 
   ###extend planning cycle###
-  if maze.need_stagely_planning:
+  # if maze.need_stagely_planning:
+  if False:
     persona.scratch.stagely_req = generate_stagely_plan(persona, maze)
     persona.scratch.f_stagely_schedule = generate_daily_schedule(persona, maze)
     persona.scratch.f_stagely_schedule_daily_org = (persona.scratch
