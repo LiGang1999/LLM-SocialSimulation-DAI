@@ -13,7 +13,7 @@ function StartApp() {
     const params = new URLSearchParams();
     params.append('fork', fork_name);
     params.append('new', new_name);
-    var url = "http://127.0.0.1:8007/start/?" + params.toString();
+    var url = "http://server_ip:back_port/start/?" + params.toString();
     console.log("Request the url to start simulation: ", url);
     const response = await fetch(url, {
       method: 'GET',

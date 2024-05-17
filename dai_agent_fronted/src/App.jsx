@@ -18,7 +18,7 @@ function App() {
     var input = document.getElementById("input").value;
     const params = new URLSearchParams();
     params.append('command', input);
-    var url = "http://127.0.0.1:8007/command/?" + params.toString();
+    var url = "http://server_ip:back_port/command/?" + params.toString();
     const response = await fetch(url, {
       method: 'GET',
       mode: 'no-cors'

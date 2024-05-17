@@ -15,7 +15,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: '0.0.0.0', // 可通过网络访问的IP地址
-    port: 5173 // 设置端口号
+    host: '0.0.0.0',
+    port: front_port
   }
 })
