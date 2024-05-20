@@ -1,3 +1,8 @@
+"""
+Author: Siyu Chen (3210101016@zju.edu.cn)
+
+File: browser.py
+"""
 import sys
 import requests
 import re
