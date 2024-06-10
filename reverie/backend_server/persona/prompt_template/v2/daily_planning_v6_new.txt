@@ -1,0 +1,16 @@
+Author: Siyu Chen (3210101016@zju.edu.cn)
+daily_planning_v6_new.txt
+
+Variables: 
+!<INPUT 0>! -- Commonset
+!<INPUT 1>! -- Lifestyle
+!<INPUT 2>! -- extra prompt
+!<INPUT 3>! -- Reverie date time now
+!<INPUT 4>! -- Persona first names
+!<INPUT 5>! -- wake_up_hour
+
+<commentblockmarker>###</commentblockmarker>
+!<INPUT 0>!
+
+In general, !<INPUT 1>!
+Today is !<INPUT 3>!.The original arrangement includes: !<INPUT 2>! Here is !<INPUT 4>!'s plan today in broad-strokes (with the time of the day. e.g., have a lunch at 12:00 pm, watch TV from 7 to 8 pm): 1) wake up and complete the morning routine at !<INPUT 5>!, 2)

@@ -68,6 +68,36 @@ def generate_first_daily_plan(persona, wake_up_hour):
   return run_gpt_prompt_daily_plan(persona, wake_up_hour)[0]
 
 
+def generate_first_daily_plan_directed_by_LTP(persona, wake_up_hour, extraprompt="exercise for two hours today."): 
+  """
+  Generates the daily plan for the persona. 
+  Basically the long term planning that spans a day. Returns a list of actions
+  that the persona will take today. Usually comes in the following form: 
+  'wake up and complete the morning routine at 6:00 am', 
+  'eat breakfast at 7:00 am',.. 
+  Note that the actions come without a period. 
+
+  Persona state: identity stable set, lifestyle, cur_data_str, first_name
+
+  INPUT: 
+    persona: The Persona class instance 
+    wake_up_hour: an integer that indicates when the hour the persona wakes up 
+                  (e.g., 8)
+  OUTPUT: 
+    a list of daily actions in broad strokes.
+  EXAMPLE OUTPUT: 
+    ['wake up and complete the morning routine at 6:00 am', 
+     'have breakfast and brush teeth at 6:30 am',
+     'work on painting project from 8:00 am to 12:00 pm', 
+     'have lunch at 12:00 pm', 
+     'take a break and watch TV from 2:00 pm to 4:00 pm', 
+     'work on painting project from 4:00 pm to 6:00 pm', 
+     'have dinner at 6:00 pm', 'watch TV from 7:00 pm to 8:00 pm']
+  """
+  if debug: print ("GNS FUNCTION: <generate_first_daily_plan>")
+  return run_gpt_prompt_daily_plan_directed_by_LTP(persona, wake_up_hour, extraprompt)[0]
+
+
 def generate_hourly_schedule(persona, wake_up_hour): 
   """
   Based on the daily req, creates an hourly schedule -- one hour at a time. 
@@ -481,6 +511,8 @@ def _long_term_planning(persona, new_day):
     # set of daily requirements.
     persona.scratch.daily_req = generate_first_daily_plan(persona, 
                                                           wake_up_hour)
+    # persona.scratch.daily_req = generate_first_daily_plan_directed_by_LTP(persona, 
+    #                                                       wake_up_hour, extraprompt="exercise for two hours today.")
   elif new_day == "New day":
     revise_identity(persona)#lg: ???
 
