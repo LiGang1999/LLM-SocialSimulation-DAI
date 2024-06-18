@@ -488,7 +488,7 @@ def revise_identity(persona):
   persona.scratch.daily_plan_req = new_daily_req#lg: ???
 
 
-def _long_term_planning(persona, new_day): 
+def _long_term_planning(persona, new_day, maze): 
   """
   Formulates the persona's daily long-term plan if it is the start of a new 
   day. This basically has two components: first, we create the wake-up hour, 
@@ -509,10 +509,17 @@ def _long_term_planning(persona, new_day):
     # if this is the start of generation (so there is no previous day's 
     # daily requirement, or if we are on a new day, we want to create a new
     # set of daily requirements.
-    persona.scratch.daily_req = generate_first_daily_plan(persona, 
-                                                          wake_up_hour)
-    # persona.scratch.daily_req = generate_first_daily_plan_directed_by_LTP(persona, 
-    #                                                       wake_up_hour, extraprompt="exercise for two hours today.")
+    if maze.planning_cycle == 1:
+      persona.scratch.daily_req = generate_first_daily_plan(persona, 
+                                                            wake_up_hour)
+    else:
+      activity = ""
+      for activity_oneday in persona.scratch.f_stagely_schedule:
+        if persona.scratch.curr_time.strftime('%A %B %d') == activity_oneday[1]:
+          activity = activity_oneday[0]
+          break
+      persona.scratch.daily_req = generate_first_daily_plan_directed_by_LTP(persona, 
+                                                            wake_up_hour, extraprompt=activity)
   elif new_day == "New day":
     revise_identity(persona)#lg: ???
 
@@ -964,9 +971,11 @@ def generate_stagely_plan(persona, maze):#extend planning cycle
 
 def generate_daily_schedule(persona, maze):#extend planning cycle
   activities_everyday = []
+  temp = []
   for i in range(maze.planning_cycle):
     curr_day = (maze.last_planning_day+datetime.timedelta(days=i+1)).strftime('%A %B %d')
-    curr_activity = run_gpt_prompt_generate_daily_schedule()[0]
+    curr_activity = run_gpt_prompt_generate_daily_schedule(persona, curr_day, temp, maze)[0]
+    temp += [curr_activity]
     activities_everyday += [[curr_activity, curr_day]]
   return activities_everyday
 
@@ -993,8 +1002,7 @@ def plan(persona, maze, personas, new_day, retrieved):
     The target action address of the persona (persona.scratch.act_address).
   """ 
   ###extend planning cycle###
-  # if maze.need_stagely_planning:
-  if False:
+  if maze.need_stagely_planning and maze.planning_cycle > 1:
     persona.scratch.stagely_req = generate_stagely_plan(persona, maze)
     persona.scratch.f_stagely_schedule = generate_daily_schedule(persona, maze)
     persona.scratch.f_stagely_schedule_daily_org = (persona.scratch
@@ -1013,11 +1021,13 @@ def plan(persona, maze, personas, new_day, retrieved):
     persona.a_mem.add_thought(created, expiration, s, p, o, 
                               thought, keywords, thought_poignancy, 
                               thought_embedding_pair, None)
+    maze.need_stagely_planning =False
+    maze.last_planning_day = maze.last_planning_day + datetime.timedelta(days=maze.planning_cycle)#extend planning cycle
   ###extend planning cycle###
 
   # PART 1: Generate the hourly schedule. 
   if new_day: 
-    _long_term_planning(persona, new_day)
+    _long_term_planning(persona, new_day, maze)
     #lg: generate_wake_up_hour()
       #lg: run_gpt_prompt_wake_up_hour()
     #lg: generate_first_daily_plan()

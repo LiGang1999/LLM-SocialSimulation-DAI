@@ -95,7 +95,7 @@ class ReverieServer:
                                                 "%B %d, %Y, %H:%M:%S")
     # <sec_per_step> denotes the number of seconds in game time that each 
     # step moves foward. 
-    self.sec_per_step = reverie_meta['sec_per_step']
+    self.sec_per_step = reverie_meta['sec_per_step']#不能大于最大计划周期！！！
     self.sec_per_step = 60#lg#x6#报错
     self.sec_per_step = 600#lg#x10#？？？
     self.sec_per_step = 3600#lg#x6
@@ -181,8 +181,8 @@ class ReverieServer:
       outfile.write(json.dumps(curr_step, indent=2))
     
     self.tag = False#case
-    self.maze.planning_cycle = 2#extend planning cycle
-    self.maze.last_planning_day = None#extend planning cycle
+    self.maze.planning_cycle = 1#extend planning cycle
+    self.maze.last_planning_day = self.curr_time + datetime.timedelta(days=-1)#extend planning cycle
     self.maze.need_stagely_planning = True#extend planning cycle
 
 

@@ -279,12 +279,7 @@ def run_gpt_prompt_generate_hourly_schedule(persona,
                                             intermission2=None,
                                             test_input=None, 
                                             verbose=False): 
-  def create_prompt_input(persona, 
-                          curr_hour_str, 
-                          p_f_ds_hourly_org,
-                          hour_str,
-                          intermission2=None,
-                          test_input=None): 
+  def create_prompt_input(persona, curr_hour_str, p_f_ds_hourly_org, hour_str, intermission2=None, test_input=None): 
     if test_input: return test_input
     schedule_format = ""
     for i in hour_str: 
@@ -401,20 +396,65 @@ def run_gpt_prompt_generate_hourly_schedule(persona,
     
   return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
-def run_gpt_prompt_generate_daily_schedule():#extend planning cycle
-  def create_prompt_input():
-    pass
-  def __func_clean_up():
-    pass
-  def __func_validate():
-    pass
+def run_gpt_prompt_generate_daily_schedule(persona, curr_day_str, p_f_ds_daily_org, maze):#extend planning cycle
+  def create_prompt_input(persona, curr_day_str, p_f_ds_daily_org, maze):
+    schedule_format = ""
+    for i in range(maze.planning_cycle):
+      schedule_format += f"[{(maze.last_planing_day+datetime.timedelta(days=i+1)).strftime('%A %B %d')}]"
+      schedule_format += f" Activity: [Fill in]\n"
+    schedule_format = schedule_format[:-1]
+
+    intermission_str = f"Here the originally intended daily breakdown of"
+    intermission_str +=f" {persona.scratch.get_str_firstname()}'s schedule from {(maze.last_planning_day+datetime.timedelta(days=1)).strftime('%A %B %d')} to {(maze.last_planning_day+datetime.timedelta(days=maze.planning_cycle)).strftime('%A %B %d')}: "
+    for count, i in enumerate(persona.scratch.daily_req):
+      intermission_str += f"{str(count+1)}) {i}, "
+    intermission_str = intermission_str[:-2]
+
+    prior_schedule = ""
+    if p_f_ds_daily_org:
+      prior_schedule = "\n"
+      for count, i in enumerate(p_f_ds_daily_org):
+        prior_schedule += f"[(ID:{get_random_alphanumeric()})"
+        prior_schedule += f" {(maze.last_planing_day+datetime.timedelta(days=count+1)).strftime('%A %B %d')} --"
+        prior_schedule += f" Activity:"
+        prior_schedule += f" {persona.scratch.get_str_firstname()}"
+        prior_schedule += f" intends to {i}\n"#
+    
+    prompt_ending = f"[(ID:{get_random_alphanumeric()})"
+    prompt_ending += f" {curr_day_str}"
+    prompt_ending += f" -- Activity:"
+    prompt_ending += f" {persona.scratch.get_str_firstname()} intends to"#
+
+    prompt_input = []
+    prompt_input += [schedule_format]
+    prompt_input += [persona.scratch.get_str_iss()]
+
+    prompt_input += [prior_schedule + "\n"]
+    prompt_input += [intermission_str]
+    prompt_input += [prompt_ending]
+
+    return prompt_input
+
+  def __func_clean_up(gpt_response, prompt=""):
+    cr = gpt_response.strip()
+    if cr[-1] == ".":
+      cr = cr[:-1]
+    return cr
+  
+  def __func_validate(gpt_response, prompt=""):
+    try: __func_clean_up(gpt_response, prompt="")
+    except: return False
+    return True
+  
   def get_fail_safe():
-    pass
+    fs = "asleep"
+    return fs
+  
   gpt_param = {"engine": "text-davinci-003", "max_tokens": 50, 
                "temperature": 0.5, "top_p": 1, "stream": False,
                "frequency_penalty": 0, "presence_penalty": 0, "stop": ["\n"]}
   prompt_template = "persona/prompt_template/v2/generate_daily_schedule.txt"
-  prompt_input = create_prompt_input()#lg: undercode.
+  prompt_input = create_prompt_input(persona, curr_day_str, p_f_ds_daily_org, maze)
   prompt = generate_prompt(prompt_input, prompt_template)
   fail_safe = get_fail_safe()
   output = safe_generate_response(prompt, gpt_param, 5, fail_safe,
