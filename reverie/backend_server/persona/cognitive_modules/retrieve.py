@@ -290,20 +290,21 @@ def retrieve_dai(persona, perceived):
   """
   # We rerieve events and thoughts separately. 
   retrieved = dict()
-  for event in perceived: 
-    retrieved[event.subject] = dict()
-    retrieved[event.subject]["curr_event"] = event
-    
-    relevant_events = persona.a_mem.retrieve_relevant_events(
-                        event.subject, event.predicate, event.object)
-    # print("pig-------------------------------")
-    # print(len(relevant_events))
-    # retrieved[event.description]["events"] = list(relevant_events)
-
-    relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(
+  for event_name, perceived in perceived.items():
+    for event in perceived: 
+      retrieved[event_name] = dict()
+      retrieved[event_name]["curr_event"] = event
+      
+      relevant_events = persona.a_mem.retrieve_relevant_events(
                           event.subject, event.predicate, event.object)
-    retrieved[event.subject]["events"] = list(relevant_events) + list(relevant_thoughts)
-    retrieved[event.subject]["thoughts"] = list()
+      # print("pig-------------------------------")
+      # print(len(relevant_events))
+      # retrieved[event.description]["events"] = list(relevant_events)
+
+      relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(
+                            event.subject, event.predicate, event.object)
+      retrieved[event_name]["events"] = list(relevant_events) + list(relevant_thoughts)
+      retrieved[event_name]["thoughts"] = list()
     
     
   return retrieved

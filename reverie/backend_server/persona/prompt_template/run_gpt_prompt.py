@@ -1139,6 +1139,51 @@ def run_gpt_prompt_event_triple(action_description, persona, verbose=False):
 
 
 
+# tyn
+def run_gpt_prompt_event_triple_new(action_description, verbose=False):
+  def __func_clean_up(gpt_response, prompt=""):
+    cr = gpt_response.strip()
+    cr = [i.strip() for i in cr.split(")")[0].split(",")]
+    return cr
+
+  def __func_validate(gpt_response, prompt=""):
+    try:
+      gpt_response = __func_clean_up(gpt_response, prompt="")
+      if len(gpt_response) != 3:
+        return False
+    except:
+      return False
+    return True
+
+  def get_fail_safe():
+    fs = ("none", "is", "idle")
+    return fs
+
+  gpt_param = {"engine": "text-davinci-003", "max_tokens": 200,
+               "temperature": 0, "top_p": 1, "stream": False,
+               "frequency_penalty": 0, "presence_penalty": 0, "stop": ["\n"]}
+
+  import os
+
+  # 获取当前工作目录
+  current_path = os.getcwd()
+
+  # 输出当前工作目录
+  print("当前工作目录:", current_path)
+  prompt_template = "persona/prompt_template/v2/generate_event_triple_v2.txt"
+  prompt_input = action_description
+  prompt = generate_prompt(prompt_input, prompt_template)
+  fail_safe = get_fail_safe()  ########
+  output = safe_generate_response(prompt, gpt_param, 5, fail_safe,
+                                  __func_validate, __func_clean_up)
+  output = (output[0], output[1], output[2])
+
+  if debug or verbose:
+    print_run_prompts_new(prompt_template, gpt_param,
+                          prompt_input, prompt, output)
+
+  return output, [output, prompt, gpt_param, prompt_input, fail_safe]
+
 
 
 

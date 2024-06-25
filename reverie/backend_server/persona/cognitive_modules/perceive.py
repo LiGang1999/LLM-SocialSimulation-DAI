@@ -182,29 +182,63 @@ def perceive(persona, maze):
 
 
 def perceive_dai(persona, maze): 
-  memorynodes = maze.get_new_memories()
+  print("开始感知")
+  new_memories = {}
+  perceive_memories = {}
+  all_news = ""
+  for event_name in maze.events:
+    all_news += maze.events[event_name].get_desc(persona.name)
+    print(event_name)
+    print(type(event_name))
+
+    memories = maze.events[event_name].get_memories(persona.name)
+    if memories is None:
+      continue
+    
+    for perceive_node in memories:
+      if perceive_node.name == "public":
+        perceive_memories[event_name] = [perceive_node]
+        
+        
+    if event_name not in persona.read_positions:
+        persona.read_positions[event_name] = 0
+    read_position = persona.read_positions[event_name]
+    unread_memories = memories[read_position:]  # 从上次读取位置开始读取未读评论
+    new_memories[event_name] = []
+    new_memories[event_name].extend(unread_memories)
+    persona.read_positions[event_name] = len(memories)  # 更新智能体的读取位置到最后一个评论
+    
   created = persona.scratch.curr_time
   expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
-  for perceive_node in memorynodes:
-    if perceive_node.name == "public":
-      continue
-    s = perceive_node.subject
-    p = perceive_node.predicate
-    o = perceive_node.object
-    keywords = set([s, p, o])
-    event_poignancy = generate_poig_score(persona,
-                                          "event",
-                                          perceive_node.description)
-    print("正在存放："+perceive_node.name+" said, "+ perceive_node.description)
-    persona.a_mem.add_event(created, expiration, s, p, o, 
-                                perceive_node.name+" said, "+ perceive_node.description, keywords,event_poignancy , 
-                                (perceive_node.description, get_embedding(perceive_node.description)), None)
-    persona.scratch.importance_trigger_curr -= event_poignancy
-    persona.scratch.importance_ele_n += 1
+  
+  for event_name, memorynodes in new_memories.items():
+    print(memorynodes)
+    for perceive_node in memorynodes:
+      if perceive_node.name == "public":
+        continue
+      s = perceive_node.subject
+      p = perceive_node.predicate
+      o = perceive_node.object
+      keywords = set([s, p, o])
+      event_poignancy = generate_poig_score(persona,
+                                            "event",
+                                            perceive_node.description)
+      print("正在存放："+perceive_node.name+" said, "+ perceive_node.description)
+      persona.a_mem.add_event(created, expiration, s, p, o, 
+                                  perceive_node.name+" said, "+ perceive_node.description, keywords,event_poignancy , 
+                                  (perceive_node.description, get_embedding(perceive_node.description)), None)
+      persona.scratch.importance_trigger_curr -= event_poignancy
+      persona.scratch.importance_ele_n += 1
+  
+  # for event_name, memorynodes in new_memories.items():
     
-  for perceive_node in memorynodes:
-    if perceive_node.name == "public":
-      return [perceive_node]
+  #   for perceive_node in memorynodes:
+  #     if perceive_node.name == "public":
+  #       perceive_memories[event_name] = [perceive_node]
+  
+  print("感知结束")
+  
+  return perceive_memories,all_news
 
 
 

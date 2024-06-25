@@ -260,6 +260,7 @@ class DaiPersona(Persona):
     self.name = name
 
     self.workflow = DaiWorkFlow()#
+    self.read_positions = {}  # 存储每个智能体的读取位置
 
     # PERSONA MEMORY 
     # If there is already memory in folder_mem_saved, we load that. Otherwise,

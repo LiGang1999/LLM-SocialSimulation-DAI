@@ -451,9 +451,9 @@ class ReverieServer:
       
       else: # online
         for persona_name, persona in self.personas.items():
-          for node in self.maze.get_memories():
-            if node.name == persona_name:
-              node.new_or_old = False
+          # for node in self.maze.get_memories():
+          #   if node.name == persona_name:
+          #     node.new_or_old = False
           print("\n\n\n★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ "+persona_name+" 第"+str(n)+"轮"+" ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★")
           persona.single_workflow(self.maze, self.curr_time)
                 
@@ -734,23 +734,27 @@ class ReverieServer:
           else:
             print("<---There is no case.--->")
         
-        elif ("call -- load weibo"  # 将事件广播给每个智能体。
+
+        elif ("call -- load online event"  # 将事件广播给每个智能体。
               in sim_command.lower()):
           # tyn
-          # truth = input("Input your content: ")
-          truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
 
-          # s, p, o = generate_action_event_triple_new(truth)
-          s="日本"
-          p="排放"
-          o="核废水"
+          truth = input("Input your content: ")
+          # truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
+
+          s, p, o = generate_action_event_triple_new(truth)
+          # s = "日本"
+          # p = "排放"
+          # o = "核废水"
           description = truth
+          event_id = len(self.maze.events)
+          name = input("Input access name: ")
 
+          # 创建一个memory_node
+          memory_node = MemoryNode("public", s, p, o, description, True)
+          self.maze.add_event(event_id, name)
 
-          #创建一个memory_node
-          memory_node = MemoryNode("public",s, p, o, description, True)         
-
-          self.maze.add_memory(memory_node)
+          self.maze.add_memory_to_event(event_id, memory_node)
 
         print (ret_str)
 

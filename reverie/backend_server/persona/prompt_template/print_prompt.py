@@ -39,3 +39,22 @@ def print_run_prompts(prompt_template=None,
   print (output, "\n") 
   print ("=== END ==========================================================")
   print ("\n\n\n")
+
+
+#tyn
+def print_run_prompts_new(prompt_template=None,
+                      gpt_param=None,
+                      prompt_input=None,
+                      prompt=None,
+                      output=None):
+  print (f"=== {prompt_template}")
+  print ("~~~ gpt_param ----------------------------------------------------")
+  print (gpt_param, "\n")
+  print ("~~~ prompt_input    ----------------------------------------------")
+  print (prompt_input, "\n")
+  print ("~~~ prompt    ----------------------------------------------------")
+  print (prompt, "\n")
+  print ("~~~ output    ----------------------------------------------------")
+  print (output, "\n")
+  print ("=== END ==========================================================")
+  print ("\n\n\n")

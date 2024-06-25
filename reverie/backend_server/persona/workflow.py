@@ -55,12 +55,12 @@ class DaiWorkFlow(WorkFlow):
             new_day = "New day"
         persona.scratch.curr_time = curr_time
 
-        perceived = self.perceive.action(persona, maze)
+        perceived, all_news = self.perceive.action(persona, maze)
         retrieved = self.retrieve.action(persona, perceived)
         plan = self.plan.action(persona, retrieved)
-        if plan[0] == "yes":
-            print("正在调用execute发表评论")
-            self.execute.action(persona, maze, retrieved)
+        # if plan[0] == "yes":
+        #     print("正在调用execute发表评论")
+        self.execute.action(persona, maze, retrieved, plan, all_news)
         self.reflect.action(persona)
 
         return

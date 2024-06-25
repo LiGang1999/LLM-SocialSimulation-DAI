@@ -73,8 +73,8 @@ class DaiExecute(Action):
     def __init__(self):
         pass
 
-    def action(self, persona, maze, retrieved):
-        return execute_dai(persona, maze, retrieved)
+    def action(self, persona, maze, retrieved, plan, all_news):
+        return execute_dai(persona, maze, retrieved, plan, all_news)
 
 class DaiReflect(Action):
     def __init__(self):

@@ -162,15 +162,22 @@ def execute(persona, maze, personas, plan):
   return execution
 
 
-def execute_dai(persona, maze, retrived):
+def execute_dai(persona, maze, retrived, plan, all_news):
   ###如果plan返回yes，则进行评论，判断在reverie里
-  comment = generate_one_utterance_for_comment(persona, retrived)
-  s="日本"
-  p="排放"
-  o="核废水"
-  memory_node = MemoryNode(persona.name, s, p, o, comment, True)
-  maze.add_memory(memory_node)
-  return memory_node
+  for event_name, plan_yes in plan.items():
+    if plan_yes == "yes":
+      sub_retrived = {}
+      sub_retrived[event_name] = retrived[event_name]
+      comment = generate_one_utterance_for_comment(persona, sub_retrived, all_news)
+      s=sub_retrived[event_name]["curr_event"].subject
+      p=sub_retrived[event_name]["curr_event"].predicate
+      o=sub_retrived[event_name]["curr_event"].object
+      memory_node = MemoryNode(persona.name, s, p, o, comment, True)
+      maze.add_memory_to_event(event_name,memory_node)
+    else:
+      pass
+  return
+
 
 
 

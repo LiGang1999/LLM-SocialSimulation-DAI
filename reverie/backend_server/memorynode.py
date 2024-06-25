@@ -9,3 +9,9 @@ class MemoryNode:
 
     def spo_summary(self):
       return (self.subject, self.predicate, self.object)
+  
+    def get_description(self):
+      return (self.description)
+    
+    def get_name(self):
+      return (self.name)

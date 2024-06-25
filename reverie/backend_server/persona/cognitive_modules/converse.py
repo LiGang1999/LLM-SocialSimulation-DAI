@@ -256,6 +256,21 @@ def generate_poig_score(persona, event_type, description):
                            persona.scratch.act_description)[0]
 
 
+def generate_action_event_triple_new(act_desp):
+  """TODO
+
+  INPUT:
+    act_desp: the description of the action (e.g., "sleeping")
+    persona: The Persona class instance
+  OUTPUT:
+    a string of emoji that translates action description.
+  EXAMPLE OUTPUT:
+    "🧈🍞"
+  """
+  if debug: print ("GNS FUNCTION: <generate_action_event_triple>")
+  return run_gpt_prompt_event_triple_new(act_desp)[0]
+
+
 def load_history_via_whisper(personas, whispers):
   for count, row in enumerate(whispers): 
     persona = personas[row[0]]
@@ -313,9 +328,9 @@ def open_convo_session(persona, convo_mode, vbase):
                               thought_embedding_pair, None)
     
 # tyn
-def generate_one_utterance_for_comment(persona, retrieved):
+def generate_one_utterance_for_comment(persona, retrieved, all_news):
   print("正在生成评论，请稍等")
-  x = run_gpt_generate_iterative_comment_utt(persona, retrieved)[0]
+  x = run_gpt_generate_iterative_comment_utt(persona, retrieved, all_news)[0]
   return x["comment"]
 
 
