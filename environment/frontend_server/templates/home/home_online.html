@@ -2,13 +2,77 @@
 {% load staticfiles %}
 
 {% block content %}
+<head>
+	<style>
+        {% comment %} table {
+            border-collapse: collapse;
+            margin: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        } {% endcomment %}
+        td, th {
+            border: 1px solid #ddd;
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 18px;
+            color: #333;
+        }
+        th, td.no-border {
+            border: none;
+        }
+        th {
+            background-color: #f8f8f8;
+        }
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
 <br>
 <br>
 <div>
 	<div id="console-log-div" style="width: 55%; margin: 0 auto; padding: 20px;">
         <textarea id="console-log" class="readonly-textbox" readonly>This is a test line for test.&#13;</textarea>
     </div>
-	<div id="game-container" style="text-align: center;"></div>
+	{% comment %} <div id="game-container" style="text-align: center;"></div> {% endcomment %}
+	<div id="game-container" style="display: flex; justify-content: center; align-items: center;">
+		<table style="background-color:#EEEEEE; border-radius:10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+			<thead>
+				<tr>
+					<th class="no-border"></th>
+					<th><img src="{% static 'assets/characters/profile/Abigail_Chen.png' %}" alt="Avatar" class="avatar" style="width: 35px; height: 35px;"></th>
+					<th><img src="{% static 'assets/characters/profile/Abigail_Chen.png' %}" alt="Avatar" class="avatar" style="width: 35px; height: 35px;"></th>
+					<th><img src="{% static 'assets/characters/profile/Abigail_Chen.png' %}" alt="Avatar" class="avatar" style="width: 35px; height: 35px;"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<th><img src="{% static 'assets/characters/profile/Abigail_Chen.png' %}" alt="Avatar" class="avatar" style="width: 35px; height: 35px;"></th>
+					<td title="Friend">1</td>
+					<td>4</td>
+					<td>3</td>
+				</tr>
+				<tr>
+					<th><img src="{% static 'assets/characters/profile/Abigail_Chen.png' %}" alt="Avatar" class="avatar" style="width: 35px; height: 35px;"></th>
+					<td>2</td>
+					<td>5</td>
+					<td>1</td>
+				</tr>
+				<tr>
+					<th><img src="{% static 'assets/characters/profile/Abigail_Chen.png' %}" alt="Avatar" class="avatar" style="width: 35px; height: 35px;"></th>
+					<td>3</td>
+					<td>2</td>
+					<td>4</td>
+				</tr>
+				<tr>
+				</tr>
+			</tbody>
+		</table>
+	</div>
 
 	<div style="width:55%; margin: 0 auto; margin-top:4.5em">
 		<h3 style="margin-bottom:-0.5em; font-size:1.5em">Current Time:</h3>
@@ -84,7 +148,7 @@
 
 
 <!-- partial -->
-<script src='https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js'></script>
+{% comment %} <script src='https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js'></script> {% endcomment %}
 
 <script>
 	function switch_display() {

@@ -32,27 +32,28 @@ function StartApp() {
         console.log("response2: ", data)
       }
     );
-    window.location.href = "/act";
+    // window.location.href = "/act";
+    window.location.href = "http://10.72.74.13:6533/simulator_home";
   };
   return (
     <div className="flex flex-col items-center justify-center p-10 space-y-6 bg-white">
       <div className="w-full max-w-md space-y-4">
         <div className="flex flex-col space-y-2">
           <label className="text-sm font-medium" htmlFor="model">
-            模拟类型:
+            Simulation Type:
           </label>
           <select
             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             id="model"
           >
             {/* <option>请选择环境</option> */}
-            <option>物理环境</option>
-            <option>线上环境</option>
+            <option>offline</option>
+            <option>online</option>
           </select>
         </div>
         <div className="flex flex-col space-y-2">
           <label className="text-sm font-medium" htmlFor="input1">
-            模拟模板名字:
+            Template:
           </label>
           <input
             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
@@ -63,7 +64,7 @@ function StartApp() {
         </div>
         <div className="flex flex-col space-y-2">
           <label className="text-sm font-medium" htmlFor="input1">
-            新模拟名字:
+            Simulation Name:
           </label>
           <input
             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
@@ -74,7 +75,7 @@ function StartApp() {
         </div>
         <div className="flex flex-col space-y-2">
           <label className="text-sm font-medium" htmlFor="temperature">
-            大语言模型:
+            LLM:
           </label>
           <select
             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
@@ -106,7 +107,7 @@ function StartApp() {
         </div>
         <div className="flex items-center space-x-2">
           <label className="text-sm font-medium" htmlFor="knowledge">
-            专业知识:
+            Knowledge Base:
           </label>
           <div className="flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm">
             <span className="text-sm">knowledge.docx</span>
@@ -124,7 +125,7 @@ function StartApp() {
           type="button"
           onClick={start_sim}
         >
-          开始构建
+          Start
         </button>
       </div>
     </div>

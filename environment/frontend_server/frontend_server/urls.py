@@ -20,7 +20,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from translator import views as translator_views
-from translator import control
 
 urlpatterns = [
     url(r'^$', translator_views.landing, name='landing'),
@@ -32,6 +31,5 @@ urlpatterns = [
     url(r'^update_environment/$', translator_views.update_environment, name='update_environment'),
     url(r'^path_tester/$', translator_views.path_tester, name='path_tester'),
     url(r'^path_tester_update/$', translator_views.path_tester_update, name='path_tester_update'),
-    url(r'^start/$', control.start, name='start'),
     path('admin/', admin.site.urls),
 ]
