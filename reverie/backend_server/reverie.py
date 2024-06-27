@@ -42,7 +42,7 @@ from memorynode import *
 global_rs = None#???
 command_queue = Queue()
 
-global_offline_mode = False ##false means online
+global_offline_mode = True ##false means online
 
 def return_rs():
   global global_rs

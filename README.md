@@ -12,7 +12,7 @@
 
 This repository is originated from [GA](https://github.com/joonspk-research/generative_agents) but covers it. Our simulation instrument is easily scalable and contains offline simulation module (GA) and online simulation module. Besides, we are developing UI (launch, display and interact) for user-friendliness.
 
-## 启动前端
+## 前端
 ### 环境安装
 #### 安装nodejs
 - Linux
@@ -32,35 +32,28 @@ cd dai_agent_fronted
 ```bash
 npm install
 ```
-### 运行前端
-```bash
-npm run dev
-```
-如果前端使用的端口被占用了，可以在dai_agent_fronted/vite.config.js文件中修改：
-```javascript
-export default defineConfig({
-  ...
-  server: {
-    host: '0.0.0.0',
-    port: front_port
-  }
-})
-```
-## 启动后端
-```bash
-# 进入到后端目录
-cd reverie/backend_server
-python manage.py runserver 0.0.0.0:back_port 
-```
-此处back_port代表启动后端服务所使用的端口，如果该端口被占用可以更换为其他端口，且前端对应的端口也需要修改，分别是：
-- dai_agent_fronted/src/App.jsx
-- dai_agent_fronted/src/StartApp.jsx
 
-## 备注
-注意将以下几个文件中的server_ip替换掉：
-- dai_agent_fronted/src/App.jsx
-- dai_agent_fronted/src/StartApp.jsx
-- reverie/backend_server/api/settings.py
+## 修改端口
+将config.yaml中的port1、port2、port3修改为空闲的端口。
+```yaml
+server_ip: 10.72.74.13
+front_port: port1
+front_port2: port2
+back_port: port3
+```
+
+## 启动
+```bash
+bash start.sh
+```
+如果有问题，请检查dai_agent_fronted/stdout.log、environment/frontend_server/stdout.log、reverie/backend_server/stdout.log查看是否端口冲突。
+
+## 关闭
+```bash
+bash shutdown.sh
+```
+
+
 
 ## Acknowledgements
 

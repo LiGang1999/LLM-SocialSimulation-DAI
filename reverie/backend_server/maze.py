@@ -14,7 +14,6 @@ import math
 
 from global_methods import *
 from utils import *
-from event import Event
 
 class Maze: 
   def __init__(self):

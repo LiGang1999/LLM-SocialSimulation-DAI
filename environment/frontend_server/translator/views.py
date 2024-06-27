@@ -8,6 +8,7 @@ import random
 import json
 from os import listdir
 import os
+import yaml
 
 import datetime
 from django.shortcuts import render, redirect, HttpResponseRedirect
@@ -103,6 +104,10 @@ def UIST_Demo(request):
 
 
 def home(request):
+  # read config
+  with open('../../config.yaml', 'r', encoding='utf-8') as f:
+      config_data = yaml.safe_load(f)
+
   f_curr_sim_code = "temp_storage/curr_sim_code.json"
   f_curr_step = "temp_storage/curr_step.json"
 
@@ -117,7 +122,7 @@ def home(request):
   with open(f_curr_step) as json_file:  
     step = json.load(json_file)["step"]
 
-  os.remove(f_curr_step) # TODO：删掉这行代码是否有影响。删掉这行代码是不是就可以随意刷新该网页了
+  # os.remove(f_curr_step) # TODO：删掉这行代码是否有影响。删掉这行代码是不是就可以随意刷新该网页了
 
   persona_names = []
   persona_names_set = set()
@@ -144,7 +149,8 @@ def home(request):
              "step": step, 
              "persona_names": persona_names,
              "persona_init_pos": persona_init_pos,
-             "mode": "simulate"}
+             "mode": "simulate",
+             "config_data": config_data}
   template = "home/home.html"
   return render(request, template, context)
 

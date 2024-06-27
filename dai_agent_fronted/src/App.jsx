@@ -12,13 +12,19 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, DropdownMenu } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import fs from 'fs'
+import yaml from 'js-yaml'
 
 function App() {
+  const config_data = import.meta.env;
+  const server_ip = config_data.VITE_server_ip;
+  const back_port = config_data.VITE_back_port;
   const interact = async () => {
+
     var input = document.getElementById("input").value;
     const params = new URLSearchParams();
     params.append('command', input);
-    var url = "http://server_ip:back_port/command/?" + params.toString();
+    var url = `http://${server_ip}:${back_port}/command/?${params.toString()}`;
     const response = await fetch(url, {
       method: 'GET',
       mode: 'no-cors'

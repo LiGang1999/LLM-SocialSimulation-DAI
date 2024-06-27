@@ -2,6 +2,7 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import yaml
 
 
 def main():
@@ -14,6 +15,17 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
+
+    # read config
+    with open('../../config.yaml', 'r', encoding='utf-8') as f:
+        data = yaml.safe_load(f)
+        back_port = data.get('back_port')
+    if len(sys.argv) > 2:
+        sys.argv[2] = f'0.0.0.0:{back_port}'
+    else:
+        sys.argv.append(f'0.0.0.0:{back_port}')
+    
+    print(sys.argv)
     execute_from_command_line(sys.argv)
 
 

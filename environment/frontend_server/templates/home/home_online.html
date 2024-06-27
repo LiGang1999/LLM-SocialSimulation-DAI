@@ -166,7 +166,7 @@
 		}
 	}
 	function interact() {
-		window.open("http://10.72.74.13:6532/act");
+		window.open("http://{{config_data.server_ip}}:{{config_data.front_port}}/act");
 	}
 	{% comment %} const eventSource = new EventSource('/get-logs/');
 	eventSource.onmessage = function(event) {
@@ -177,7 +177,7 @@
 
 	console.log("socket connecting...")
 	const chatSocket = new WebSocket(
-		"ws://10.72.74.13:5891/ws/log"
+		"ws://{{config_data.server_ip}}:{{config_data.back_port}}/ws/log"
 	);
 	console.log("socket connected")
 	chatSocket.addEventListener("error", function (event) {

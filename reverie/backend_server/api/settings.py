@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import yaml
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +26,13 @@ SECRET_KEY = '+1t7c*i^0hipzh%fgu^jh50zstq(7be^*%4_pn-o=5j50y4_29'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["server_ip"]
+# read config
+with open('../../config.yaml', 'r', encoding='utf-8') as f:
+    data = yaml.safe_load(f)
+    server_ip = data.get('server_ip')
+
+ALLOWED_HOSTS = [server_ip, ]
+print("ALLOWED: ", ALLOWED_HOSTS)
 
 
 # Application definition
@@ -37,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -68,6 +76,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'api.wsgi.application'
+ASGI_APPLICATION = 'api.routing.application'
+
 
 
 # Database

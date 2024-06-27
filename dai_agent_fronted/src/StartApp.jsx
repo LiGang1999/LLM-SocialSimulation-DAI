@@ -1,5 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
+import fs from 'fs'
+import yaml from 'js-yaml'
 
 /**
  * v0 by Vercel.
@@ -7,13 +9,18 @@ import './App.css';
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
 function StartApp() {
+  const config_data = import.meta.env;
+  const server_ip = config_data.VITE_server_ip;
+  const back_port = config_data.VITE_back_port;
+  const front_port2 = config_data.VITE_front_port2;
   const start_sim = async () => {
+
     var fork_name = document.getElementById("fork_sim").value;
     var new_name = document.getElementById("new_sim").value;
     const params = new URLSearchParams();
     params.append('fork', fork_name);
     params.append('new', new_name);
-    var url = "http://server_ip:back_port/start/?" + params.toString();
+    var url = `http://${server_ip}:${back_port}/start/?${params.toString()}`;
     console.log("Request the url to start simulation: ", url);
     const response = await fetch(url, {
       method: 'GET',
@@ -33,7 +40,7 @@ function StartApp() {
       }
     );
     // window.location.href = "/act";
-    window.location.href = "http://10.72.74.13:6533/simulator_home";
+    window.location.href = `http://${server_ip}:${front_port2}/simulator_home`;
   };
   return (
     <div className="flex flex-col items-center justify-center p-10 space-y-6 bg-white">
