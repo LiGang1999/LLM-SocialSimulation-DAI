@@ -12,8 +12,8 @@
 
 This repository is originated from [GA](https://github.com/joonspk-research/generative_agents) but covers it. Our simulation instrument is easily scalable and contains offline simulation module (GA) and online simulation module. Besides, we are developing UI (launch, display and interact) for user-friendliness.
 
-## 前端
-### 环境安装
+## 环境
+### 前端环境安装
 #### 安装nodejs
 - Linux
 ```bash
