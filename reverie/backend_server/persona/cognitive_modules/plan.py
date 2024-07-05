@@ -1127,10 +1127,18 @@ def plan(persona, maze, personas, new_day, retrieved):
 
   return persona.scratch.act_address
 ####wzt
-def plan_dai(persona,retrieved):
+def plan_dai(persona, retrieved):
   retrieved = new_retrieve_dai(persona, retrieved)
-  return run_gpt_prompt_decide_to_comment(persona,retrieved)
 
+  # 使用字典推导式循环取出每个键值对的子字典
+  sub_dicts = [{key: value} for key, value in retrieved.items()]
+
+  plan = dict()
+  for sub_dict in sub_dicts:
+    sub_plan = run_gpt_prompt_decide_to_comment(persona, sub_dict)[0]
+    plan[list(sub_dict.keys())[0]] = sub_plan
+
+  return plan
 
 
 

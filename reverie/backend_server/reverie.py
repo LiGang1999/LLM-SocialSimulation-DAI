@@ -42,7 +42,7 @@ from memorynode import *
 global_rs = None#???
 command_queue = Queue()
 
-global_offline_mode = True ##false means online
+global_offline_mode = False ##false means online
 
 def return_rs():
   global global_rs
@@ -738,17 +738,24 @@ class ReverieServer:
         elif ("call -- load online event"  # 将事件广播给每个智能体。
               in sim_command.lower()):
           # tyn
-
-          truth = input("Input your content: ")
+          print("Input your content: ")
+          # truth = input("Input your content: ")
           # truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
-
-          s, p, o = generate_action_event_triple_new(truth)
+          word_command = command_queue.get()
+          print(word_command)
+          word_command = word_command.strip()
+          s, p, o = generate_action_event_triple_new(word_command)
           # s = "日本"
           # p = "排放"
           # o = "核废水"
-          description = truth
+          description = word_command
           event_id = len(self.maze.events)
-          name = input("Input access name: ")
+          print("Input access name: " )
+
+          # name = input("Input access name: ")
+          name = command_queue.get()
+          print(name)
+          word_command = name.strip()
 
           # 创建一个memory_node
           memory_node = MemoryNode("public", s, p, o, description, True)

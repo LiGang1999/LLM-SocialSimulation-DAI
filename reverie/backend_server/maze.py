@@ -14,6 +14,7 @@ import math
 
 from global_methods import *
 from utils import *
+from event import Event
 
 class Maze: 
   def __init__(self):
@@ -395,7 +396,8 @@ class OnlineMaze(Maze):
     self.maze_height = int(meta_info["maze_height"])
 
     self.relationship_matrix = None
-    self.public_memory = []
+    # self.public_memory = []
+    self.events = {}
 
   def update_relationship():
     pass
@@ -403,15 +405,18 @@ class OnlineMaze(Maze):
   def get_relationship():
     pass
   
-  def add_memory(self, memorynode):
-    self.public_memory.append(memorynode)
+  def add_event(self, event_name, name = ""):
+      if event_name not in self.events:
+          self.events[event_name] = Event(name)
 
-  def get_memories(self):
-    return self.public_memory  
+  def add_memory_to_event(self, event_name, memory_node):
+      if event_name in self.events:
+          self.events[event_name].add_memory(memory_node)
+      else:
+          print(f"Event '{event_name}' does not exist.")
 
-  def get_new_memories(self):
-    new_memories = []
-    for node in self.public_memory:
-        if node.new_or_old:
-            new_memories.append(node)
-    return new_memories
+  def get_event_memories(self, event_name):
+      if event_name in self.events:
+          return self.events[event_name].get_memories()
+      else:
+          print(f"Event '{event_name}' does not exist.")
