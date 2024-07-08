@@ -328,9 +328,9 @@ def open_convo_session(persona, convo_mode, vbase):
                               thought_embedding_pair, None)
     
 # tyn
-def generate_one_utterance_for_comment(persona, retrieved, all_news):
+def generate_one_utterance_for_comment(persona, retrieved, all_news, maze):
   print("正在生成评论，请稍等")
-  x = run_gpt_generate_iterative_comment_utt(persona, retrieved, all_news)[0]
+  x = run_gpt_generate_iterative_comment_utt(persona, retrieved, all_news, maze)[0]
   return x["comment"]
 
 

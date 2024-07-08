@@ -248,7 +248,7 @@ class DaiInstitution(Institution):
         # args.add_argument('--top_p', type=float, default=1.0)
         # args.add_argument('--system_message', type=str, default="")
         # args.add_argument('--model', type=str, default="llama2")
-        args.add_argument('--model', type=str, default="vicuna")
+        args.add_argument('--model', type=str, default="gpt3.5")
         # args.add_argument('--model', type=str, default="gpt3.5")#20231108#3
         args.add_argument('--method', type=str, default='spp')
         args.add_argument('--task', type=str, default='trivia_creative_writing')
