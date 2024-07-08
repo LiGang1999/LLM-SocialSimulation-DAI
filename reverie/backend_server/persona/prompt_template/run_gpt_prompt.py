@@ -3219,8 +3219,8 @@ def run_gpt_generate_iterative_chat_utt(maze, init_persona, target_persona, retr
   return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-###wzt
-def run_gpt_generate_iterative_comment_utt(persona, retrieved, test_input=None, verbose=False):
+### new version--all new
+def run_gpt_generate_iterative_comment_utt(persona, retrieved, all_news, test_input=None, verbose=False):
   def create_prompt_input(persona, retrieved,test_input=None):
     pm = ""
     n , m= 1, 1
@@ -3255,7 +3255,7 @@ def run_gpt_generate_iterative_comment_utt(persona, retrieved, test_input=None, 
 
     ###个人信息概述 (init_iss)：
     init_iss = f"{persona.scratch.get_str_iss()}" #Here is the content and comments about the case, here is a brief description of {persona.scratch.name}.\n
-    prompt_input = [init_iss,pm,persona.scratch.name,retrieved_context,persona.scratch.name,persona.scratch.name,persona.scratch.name]
+    prompt_input = [init_iss,pm,persona.scratch.name,retrieved_context,persona.scratch.name,persona.scratch.name,persona.scratch.name,all_news]
     return prompt_input
 
 
