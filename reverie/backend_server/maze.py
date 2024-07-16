@@ -416,6 +416,8 @@ class OnlineMaze(Maze):
         self.relationship_matrix[i][i] = self.relationship_dict["本人"]
         self.relationship_matrix_chinese[i][i] = "本人"
     self.events = {}
+    
+    self.events_policy = {}
 
   def update_relationship(self, relationships):
       """
@@ -477,3 +479,12 @@ class OnlineMaze(Maze):
           return self.events[event_name].get_memories()
       else:
           print(f"Event '{event_name}' does not exist.")
+          
+  def add_events_policy(self, event_name, policy):
+        self.events_policy[event_name] = policy
+
+  def get_events_policy(self, event_name):
+    if event_name in self.events_policy:
+      return self.events_policy[event_name]
+    else:
+      return None

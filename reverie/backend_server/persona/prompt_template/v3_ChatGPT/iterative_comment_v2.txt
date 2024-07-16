@@ -25,8 +25,6 @@ Here is the memory that is in !<INPUT 2>!'s head:
 Here's everything !<INPUT 2>! knows about the news:
 !<INPUT 7>!
 
-Here are the corresponding policies specified for the news:
-!<INPUT 8>!
 
 Task: If you are !<INPUT 2>!, as a Weibo user, what would you say? Please note that Weibo comments are characterized by being brief and concise. You can present new ideas or rephrase your comments with a new comment.Please always keep the output in English.
 
