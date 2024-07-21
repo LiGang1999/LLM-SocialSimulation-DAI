@@ -671,8 +671,9 @@ class ReverieServer:
           Is_or_Not_Institution = command_queue.get()
           print(Is_or_Not_Institution)
           if Is_or_Not_Institution == 'yes':
-            self.maze.content = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
+            # self.maze.content = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
             # self.maze.policy = run(args, case=self.maze.content)
+            self.maze.content = "Marine biologists at the Oceanic Institute of Marine Sciences made a groundbreaking discovery this week, uncovering a previously unknown species of bioluminescent jellyfish in the depths of the Pacific Ocean. The newly identified species, named Aurelia noctiluca, emits a mesmerizing blue-green glow, illuminating the dark ocean depths where it resides."
             self.maze.policy = self.maze.institution.run(case=self.maze.content)
           else:
             # run(args, case=None)#
@@ -762,6 +763,73 @@ class ReverieServer:
           self.maze.add_event(event_id, name)
 
           self.maze.add_memory_to_event(event_id, memory_node)
+
+        elif ("call -- with policy load online event"  # 将事件广播给每个智能体。
+              in sim_command.lower()):
+          # tyn
+          print("Input your content without policy: ")
+          # truth = input("Input your content: ")
+          # truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
+          word_command = command_queue.get()
+          print(word_command)
+          word_command = word_command.strip()
+          s, p, o = generate_action_event_triple_new(word_command)
+          # s = "日本"
+          # p = "排放"
+          # o = "核废水"
+          description = word_command
+          event_id = len(self.maze.events)
+          print("Input access name: " )
+
+          # name = input("Input access name: ")
+          name = command_queue.get()
+          print(name)
+          word_command = name.strip()
+
+
+          memory_node = MemoryNode("public", s, p, o, description, True)
+          self.maze.add_event(event_id, name)
+          self.maze.add_memory_to_event(event_id, memory_node)
+
+          # 创建一个memory_node
+          print("Input policy: ")
+          policy = command_queue.get()
+          # policy = self.maze.institution.run(case=word_command)
+          self.maze.add_events_policy(event_id, policy)
+          
+        elif ("call -- with websearch load online event"  # 将事件广播给每个智能体。
+              in sim_command.lower()):
+          # tyn
+          print("Input your content: ")
+          # truth = input("Input your content: ")
+          # truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
+          word_command = command_queue.get()
+          print(word_command)
+          word_command = word_command.strip()
+          s, p, o = generate_action_event_triple_new(word_command)
+          # s = "日本"
+          # p = "排放"
+          # o = "核废水"
+          description = word_command
+          event_id = len(self.maze.events)
+          print("Input access name: " )
+
+          # name = input("Input access name: ")
+          name = command_queue.get()
+          print(name)
+          word_command = name.strip()
+
+          # 创建一个memory_node
+          memory_node = MemoryNode("public", s, p, o, description, True)
+          self.maze.add_event(event_id, name)
+          self.maze.add_memory_to_event(event_id, memory_node)
+
+          # 创建一个memory_node
+          print("Input websearch: ")
+          websearch = command_queue.get()
+          # policy = self.maze.institution.run(case=word_command)
+          self.maze.add_events_websearch(event_id, websearch)
+
 
         print (ret_str)
 

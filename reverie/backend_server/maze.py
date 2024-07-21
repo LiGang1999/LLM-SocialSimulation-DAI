@@ -418,6 +418,8 @@ class OnlineMaze(Maze):
     self.events = {}
     
     self.events_policy = {}
+    
+    self.web_search = {}
 
   def update_relationship(self, relationships):
       """
@@ -486,5 +488,14 @@ class OnlineMaze(Maze):
   def get_events_policy(self, event_name):
     if event_name in self.events_policy:
       return self.events_policy[event_name]
+    else:
+      return None
+    
+  def add_events_websearch(self, event_name, websearch):
+        self.web_search[event_name] = websearch
+
+  def get_events_websearch(self, event_name):
+    if event_name in self.web_search:
+      return self.web_search[event_name]
     else:
       return None

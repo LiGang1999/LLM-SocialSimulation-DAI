@@ -1,0 +1,37 @@
+iterative_convo_v1.txt
+
+Variables:
+!<INPUT 0>! -- persona ISS
+!<INPUT 1>! -- public memory
+!<INPUT 2>! -- persona name
+!<INPUT 3>! -- retrieved memory
+!<INPUT 4>! -- persona name
+!<INPUT 5>! -- persona name
+!<INPUT 6>! -- persona name
+<commentblockmarker>###</commentblockmarker>
+Task -- As a Weibo user, given the public event commentary orientation, combined with the subject's personal memory and personality, please determine what the subject would say about the above case and related comments?
+
+PART 1.
+Here is a brief description of !<INPUT 2>!.
+!<INPUT 0>!
+
+PART 2. 
+Here is the content and comment for the case:
+!<INPUT 1>!
+
+Here is the memory that is in !<INPUT 2>!'s head:
+!<INPUT 3>!
+
+Here's everything !<INPUT 2>! knows about the news:
+!<INPUT 7>!
+
+Here are the web searches for this event:
+!<INPUT 8>!
+
+Task: If you are !<INPUT 2>!, as a Weibo user, what would you say? Please note that Weibo comments are characterized by being brief and concise. You can present new ideas or rephrase your comments with a new comment.Please always keep the output in English.
+
+Output format: Output a json of the following format:
+{
+"!<INPUT 5>!": "<!<INPUT 6>!'s utterance>",
+"<json Boolean>"
+}

@@ -169,7 +169,8 @@ def execute_dai(persona, maze, retrived, plan, all_news):
       sub_retrived = {}
       sub_retrived[event_name] = retrived[event_name]
       policy = maze.get_events_policy(event_name)
-      comment = generate_one_utterance_for_comment(persona, sub_retrived, all_news, policy)
+      websearch = maze.get_events_websearch(event_name)
+      comment = generate_one_utterance_for_comment(persona, sub_retrived, all_news, policy, websearch)
       s=sub_retrived[event_name]["curr_event"].subject
       p=sub_retrived[event_name]["curr_event"].predicate
       o=sub_retrived[event_name]["curr_event"].object
