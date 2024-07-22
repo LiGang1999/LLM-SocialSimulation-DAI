@@ -1,5 +1,3 @@
-Here's the translation of your provided text into English:
-
 # Generalized LLM Based Social Simulation Instrument
 
 <!-- <p align="center" width="100%">
