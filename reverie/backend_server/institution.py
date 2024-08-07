@@ -261,5 +261,5 @@ class DaiInstitution(Institution):
         args.add_argument('--top_p', type=float, default=1.0)
         args.add_argument('--system_message', type=str, default="")
         
-        args = args.parse_args()
+        args = args.parse_args(args=[])
         return args
