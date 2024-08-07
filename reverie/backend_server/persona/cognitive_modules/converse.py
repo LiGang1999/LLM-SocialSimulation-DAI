@@ -336,7 +336,10 @@ def generate_one_utterance_for_comment(persona, retrieved, all_news, policy, web
     else: 
       x = run_gpt_generate_iterative_comment_utt_with_websearch(persona, retrieved, all_news, websearch)[0]
   else:
-    x = run_gpt_generate_iterative_comment_utt_with_policy(persona, retrieved, all_news, policy)[0]
+    if websearch is None: 
+      x = run_gpt_generate_iterative_comment_utt_with_policy(persona, retrieved, all_news, policy)[0]
+    else:
+      x = run_gpt_generate_iterative_comment_utt_with_policy_and_websearch(persona, retrieved, all_news, policy, websearch)[0]
   return x["comment"]
 
 
