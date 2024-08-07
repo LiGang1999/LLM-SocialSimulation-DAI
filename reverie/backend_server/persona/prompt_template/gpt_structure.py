@@ -7,123 +7,155 @@ Description: Wrapper functions for calling OpenAI APIs.
 
 import json
 import random
-import openai
+from openai import OpenAI
 import time
 
-from utils import openai_api_base, openai_api_key
+from utils import openai_api_base, openai_api_key, default_model
 
-openai.api_key = openai_api_key
-# openai.api_base = "https://www.aitesla.chat/v1"#20231108#2
-# openai.api_base = "http://47.110.234.71:31788/v1"
-# openai.api_base = "http://localhost:8000/v1"
-# openai.api_base = "http://localhost:8888/v1"
-openai.api_base = openai_api_base
-# openai.api_version = "2023-03-15-preview"#
-
-# openai.api_type = "azure"
-# openai.api_base = "https://zjudai.openai.azure.com/"
-# openai.api_key = "5c09a47bc6a44b44a6094f952882d958"
-# openai.api_version = "2023-05-15"
+client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
 
 
-def temp_sleep(seconds=0.1):
-    time.sleep(seconds)
-
-
-# def ChatGPT_single_request(prompt):
-#   temp_sleep()
-
-#   completion = openai.ChatCompletion.create(
-#     engine="gpt-35-turbo",
-#     messages=[{"role": "user", "content": prompt}]
-#   )
-#   return completion["choices"][0]["message"]["content"]
-
-
-def ChatGPT_single_request(prompt):
-    temp_sleep()
-
-    completion = openai.ChatCompletion.create(
-        # engine="gpt-35-turbo",
-        # model="gpt-3.5-turbo",
-        # model="Llama-2-7b-chat-hf",
-        # model="Llama-2-13b-chat-hf",
-        model="vicuna-13b-v1.5",
-        # model="vicuna-13b-v1.5-16k",
-        # model="vicuna-33b-v1.3",
-        # model="Baichuan-13B-Chat",
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return completion["choices"][0]["message"]["content"]
-
-
-# ============================================================================
-# #####################[SECTION 1: CHATGPT-3 STRUCTURE] ######################
-# ============================================================================
-
-
-def GPT4_request(prompt):
+def gpt_completion_single_request(prompt, gpt_parameters):
     """
-    Given a prompt and a dictionary of GPT parameters, make a request to OpenAI
-    server and returns the response.
+    Make a single GPT completion request using provided parameters.
+
     ARGS:
-      prompt: a str prompt
-      gpt_parameter: a python dictionary with the keys indicating the names of
-                     the parameter and the values indicating the parameter
-                     values.
+      prompt: A string prompt for the GPT model.
+      gpt_parameters: A dictionary with keys for parameter names and values
+                      for parameter values.
+
     RETURNS:
-      a str of GPT-3's response.
+      A string containing the GPT response.
     """
-    temp_sleep()
+
+    # Set the model to use
+    model = gpt_parameters["engine"] if not default_model else default_model
 
     try:
-        completion = openai.ChatCompletion.create(
-            # model="gpt-4",
-            # model="Llama-2-7b-chat-hf",
-            # model="Llama-2-13b-chat-hf",
-            model="vicuna-13b-v1.5",
-            # model="vicuna-13b-v1.5-16k",
-            # model="vicuna-33b-v1.3",
-            # model="Baichuan-13B-Chat",
-            messages=[{"role": "user", "content": prompt}],
+        response = client.completions.create(
+            model=model,
+            prompt=prompt,
+            temperature=gpt_parameters["temperature"],
+            max_tokens=gpt_parameters["max_tokens"],
+            top_p=gpt_parameters["top_p"],
+            frequency_penalty=gpt_parameters["frequency_penalty"],
+            presence_penalty=gpt_parameters["presence_penalty"],
+            stream=gpt_parameters["stream"],
+            stop=gpt_parameters["stop"],
         )
-        return completion["choices"][0]["message"]["content"]
+        return response.choices[0].text.strip()
+    except Exception as e:
+        print(f"Error during GPT request: {e}")
+        return "An error occurred during the request."
 
-    except:
-        print("ChatGPT ERROR")
-        return "ChatGPT ERROR"
 
-
-def ChatGPT_request(prompt):
+def gpt_completion_request(prompt, gpt_parameters, max_retries=3, timeout=10):
     """
-    Given a prompt and a dictionary of GPT parameters, make a request to OpenAI
-    server and returns the response.
+    Make a single GPT completion request with retries and timeout handling.
+
     ARGS:
-      prompt: a str prompt
-      gpt_parameter: a python dictionary with the keys indicating the names of
-                     the parameter and the values indicating the parameter
-                     values.
-    RETURNS:
-      a str of GPT-3's response.
-    """
-    # temp_sleep()
-    try:
-        completion = openai.ChatCompletion.create(
-            # engine="gpt-35-turbo",
-            # model="gpt-3.5-turbo",
-            # model="Llama-2-7b-chat-hf",
-            # model="Llama-2-13b-chat-hf",
-            model="vicuna-13b-v1.5",
-            # model="vicuna-13b-v1.5-16k",
-            # model="vicuna-33b-v1.3",
-            # model="Baichuan-13B-Chat",
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return completion["choices"][0]["message"]["content"]
+      prompt: A string prompt for the GPT model.
+      gpt_parameters: A dictionary with keys for parameter names and values
+                      for parameter values.
+      max_retries: Maximum number of retry attempts.
+      timeout: Maximum time in seconds to wait for a successful response.
 
-    except:
-        print("ChatGPT ERROR")
-        return "ChatGPT ERROR"
+    RETURNS:
+      A string containing the GPT response, or an error message if unsuccessful.
+    """
+    start_time = time.time()
+    tries = 0
+
+    while tries < max_retries:
+        elapsed_time = time.time() - start_time
+        if elapsed_time > timeout:
+            return "Request timed out."
+
+        response = gpt_completion_single_request(prompt, gpt_parameters)
+
+        if response:
+            return response
+
+        tries += 1
+        time.sleep(0.1)  # Optional: Wait before retrying
+
+    return "Request failed after maximum retries."
+
+
+def gpt_chat_single_request(user_prompt, gpt_parameters, system_prompt=""):
+    """
+    Make a single GPT chat request using provided parameters.
+
+    ARGS:
+      prompt: A string prompt for the GPT model.
+      gpt_parameters: A dictionary with keys for parameter names and values
+                      for parameter values.
+
+    RETURNS:
+      A string containing the GPT chat response.
+    """
+
+    # Set the model to use
+    model = gpt_parameters["engine"] if not default_model else default_model
+
+    try:
+        # Prepare the messages as a chat input
+        messages = []
+        if system_prompt is not None and system_prompt != "":
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=gpt_parameters["temperature"],
+            max_tokens=gpt_parameters["max_tokens"],
+            top_p=gpt_parameters["top_p"],
+            frequency_penalty=gpt_parameters["frequency_penalty"],
+            presence_penalty=gpt_parameters["presence_penalty"],
+            stream=gpt_parameters["stream"],
+            stop=gpt_parameters["stop"],
+        )
+        return response.choices[0].message["content"].strip()
+    except Exception as e:
+        print(f"Error during GPT chat request: {e}")
+        return None
+
+
+def gpt_chat_request(
+    prompt, gpt_parameters, system_prompt="", max_retries=3, timeout=10
+):
+    """
+    Make a single GPT chat request with retries and timeout handling, including a system prompt.
+
+    ARGS:
+      prompt: A string prompt for the GPT model.
+      gpt_parameters: A dictionary with keys for parameter names and values
+                      for parameter values.
+      system_prompt: A string prompt to set the system's initial instructions or context.
+      max_retries: Maximum number of retry attempts.
+      timeout: Maximum time in seconds to wait for a successful response.
+
+    RETURNS:
+      A string containing the GPT chat response, or an error message if unsuccessful.
+    """
+    start_time = time.time()
+    tries = 0
+
+    while tries < max_retries:
+        elapsed_time = time.time() - start_time
+        if elapsed_time > timeout:
+            return "Request timed out."
+
+        response = gpt_chat_single_request(prompt, gpt_parameters, system_prompt)
+
+        if response:
+            return response
+
+        tries += 1
+        time.sleep(0.1)  # Optional: Wait before retrying
+
+    return "Request failed after maximum retries."
 
 
 def GPT4_safe_generate_response(
@@ -150,7 +182,7 @@ def GPT4_safe_generate_response(
     for i in range(repeat):
 
         try:
-            curr_gpt_response = GPT4_request(prompt).strip()
+            curr_gpt_response = gpt_chat_request(prompt).strip()
             end_index = curr_gpt_response.rfind("}") + 1
             curr_gpt_response = curr_gpt_response[:end_index]
             curr_gpt_response = json.loads(curr_gpt_response)["output"]
@@ -195,7 +227,7 @@ def ChatGPT_safe_generate_response(
 
         try:
             print("lg: try")  #
-            curr_gpt_response = ChatGPT_request(prompt)
+            curr_gpt_response = gpt_completion_request(prompt)
             print("lg")  #
             print(curr_gpt_response)  #
             print("lg")  #
@@ -256,7 +288,7 @@ def ChatGPT_safe_generate_response_new(
 
         try:
             print("lg: try")  #
-            curr_gpt_response = ChatGPT_request(prompt)
+            curr_gpt_response = gpt_completion_request(prompt)
             print("lg")  #
             print(curr_gpt_response)  #
             print("lg")  #
@@ -290,76 +322,6 @@ def ChatGPT_safe_generate_response_new(
             pass
     print("lg: fail")  #
     return False
-
-
-def ChatGPT_safe_generate_response_OLD(
-    prompt,
-    repeat=3,
-    fail_safe_response="error",
-    func_validate=None,
-    func_clean_up=None,
-    verbose=False,
-):
-    if verbose:
-        print("CHAT GPT PROMPT")
-        print(prompt)
-
-    for i in range(repeat):
-        try:
-            curr_gpt_response = ChatGPT_request(prompt).strip()
-            if func_validate(curr_gpt_response, prompt=prompt):
-                return func_clean_up(curr_gpt_response, prompt=prompt)
-            if verbose:
-                print(f"---- repeat count: {i}")
-                print(curr_gpt_response)
-                print("~~~~")
-
-        except:
-            pass
-    print("FAIL SAFE TRIGGERED")
-    return fail_safe_response
-
-
-# ============================================================================
-# ###################[SECTION 2: ORIGINAL GPT-3 STRUCTURE] ###################
-# ============================================================================
-
-
-def GPT_request(prompt, gpt_parameter):  ##lg##
-    """
-    Given a prompt and a dictionary of GPT parameters, make a request to OpenAI
-    server and returns the response.
-    ARGS:
-      prompt: a str prompt
-      gpt_parameter: a python dictionary with the keys indicating the names of
-                     the parameter and the values indicating the parameter
-                     values.
-    RETURNS:
-      a str of GPT-3's response.
-    """
-    temp_sleep()
-    try:
-        response = openai.Completion.create(
-            # model=gpt_parameter["engine"],
-            # model="Llama-2-7b-chat-hf",
-            # model="Llama-2-13b-chat-hf",
-            model="vicuna-13b-v1.5",
-            # model="vicuna-13b-v1.5-16k",
-            # model="vicuna-33b-v1.3",
-            # model="Baichuan-13B-Chat",
-            prompt=prompt,
-            temperature=gpt_parameter["temperature"],
-            max_tokens=gpt_parameter["max_tokens"],
-            top_p=gpt_parameter["top_p"],
-            frequency_penalty=gpt_parameter["frequency_penalty"],
-            presence_penalty=gpt_parameter["presence_penalty"],
-            stream=gpt_parameter["stream"],
-            stop=gpt_parameter["stop"],
-        )
-        return response.choices[0].text
-    except:
-        print("TOKEN LIMIT EXCEEDED")
-        return "TOKEN LIMIT EXCEEDED"
 
 
 def generate_prompt(curr_input, prompt_lib_file):
@@ -403,7 +365,7 @@ def safe_generate_response(
         print(prompt)
 
     for i in range(repeat):
-        curr_gpt_response = GPT_request(prompt, gpt_parameter)
+        curr_gpt_response = gpt_completion_request(prompt, gpt_parameter)
         if func_validate(curr_gpt_response, prompt=prompt):
             return func_clean_up(curr_gpt_response, prompt=prompt)
         if verbose:
@@ -414,24 +376,13 @@ def safe_generate_response(
 
 
 def get_embedding(text, model="text-embedding-ada-002"):
-    # model = "Llama-2-7b-chat-hf"#
-    # model="Llama-2-13b-chat-hf"
-    model = "vicuna-13b-v1.5"
-    # model="vicuna-13b-v1.5-16k"
-    # model="vicuna-33b-v1.3"
-    # model="Baichuan-13B-Chat"
+
+    model = model if not default_model else default_model
+
     text = text.replace("\n", " ")
     if not text:
         text = "this is blank"
-    return openai.Embedding.create(input=[text], model=model)["data"][0]["embedding"]
-
-
-# def get_embedding(text, model="text-embedding-ada-002"):
-#   text = text.replace("\n", " ")
-#   if not text:
-#     text = "this is blank"
-#   return openai.Embedding.create(
-#           input=[text], engine=model)['data'][0]['embedding']#
+    return client.embeddings.create(input=[text], model=model)["data"][0]["embedding"]
 
 
 if __name__ == "__main__":

@@ -3094,7 +3094,7 @@ def run_gpt_generate_safety_score(persona, comment, test_input=None, verbose=Fal
   prompt = generate_prompt(prompt_input, prompt_template)
   print (prompt)
   fail_safe = get_fail_safe() 
-  output = ChatGPT_safe_generate_response_OLD(prompt, 3, fail_safe,
+  output = ChatGPT_safe_generate_response_new(prompt, 3, fail_safe,
                         __chat_func_validate, __chat_func_clean_up, verbose)
   print (output)
   
@@ -3209,7 +3209,7 @@ def run_gpt_generate_iterative_chat_utt(maze, init_persona, target_persona, retr
   prompt = generate_prompt(prompt_input, prompt_template)
   print (prompt)
   fail_safe = get_fail_safe() 
-  output = ChatGPT_safe_generate_response_OLD(prompt, 3, fail_safe,
+  output = ChatGPT_safe_generate_response_new(prompt, 3, fail_safe,
                         __chat_func_validate, __chat_func_clean_up, verbose)
   print (output)
   
@@ -3295,7 +3295,7 @@ def run_gpt_generate_iterative_comment_utt_with_policy(persona, retrieved, all_n
   print("\n==================================================================")
   print(prompt)
   fail_safe = get_fail_safe()
-  output = ChatGPT_safe_generate_response_OLD(prompt, 3, fail_safe,
+  output = ChatGPT_safe_generate_response_new(prompt, 3, fail_safe,
                                               __chat_func_validate, __chat_func_clean_up, verbose)
   print("\n==================================================================")
   print(output)
@@ -3383,7 +3383,7 @@ def run_gpt_generate_iterative_comment_utt(persona, retrieved, all_news, test_in
   print("\n==================================================================")
   print(prompt)
   fail_safe = get_fail_safe()
-  output = ChatGPT_safe_generate_response_OLD(prompt, 3, fail_safe,
+  output = ChatGPT_safe_generate_response_new(prompt, 3, fail_safe,
                                               __chat_func_validate, __chat_func_clean_up, verbose)
   print("\n==================================================================")
   print(output)
@@ -3470,7 +3470,7 @@ def run_gpt_generate_iterative_comment_utt_with_websearch(persona, retrieved, al
   print("\n==================================================================")
   print(prompt)
   fail_safe = get_fail_safe()
-  output = ChatGPT_safe_generate_response_OLD(prompt, 3, fail_safe,
+  output = ChatGPT_safe_generate_response_new(prompt, 3, fail_safe,
                                               __chat_func_validate, __chat_func_clean_up, verbose)
   print("\n==================================================================")
   print(output)
