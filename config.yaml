@@ -1,4 +1,4 @@
 server_ip: 10.72.74.13
-front_port: port1
-front_port2: port2
-back_port: port3
+front_port: 10086
+front_port2: 10086
+back_port: 10088

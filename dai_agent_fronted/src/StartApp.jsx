@@ -30,9 +30,9 @@ function StartApp() {
       //   job: 'manager',
       // }),
       // headers: {
-        // 'Content-Type': 'application/json',
-        // Accept: 'application/json',
-        // "Access-Control-Allow-Origin": '*'
+      // 'Content-Type': 'application/json',
+      // Accept: 'application/json',
+      // "Access-Control-Allow-Origin": '*'
       // },
     }).then(
       (data) => {
@@ -40,7 +40,7 @@ function StartApp() {
       }
     );
     // window.location.href = "/act";
-    window.location.href = `http://${server_ip}:${front_port2}/simulator_home`;
+    window.location.href = `http://${server_ip}:${front_port2}/act`;
   };
   return (
     <div className="flex flex-col items-center justify-center p-10 space-y-6 bg-white">
@@ -67,11 +67,12 @@ function StartApp() {
             id="fork_sim"
             placeholder=""
             type="text"
+            value="base_the_ville_isabella_maria_klaus"
           />
         </div>
         <div className="flex flex-col space-y-2">
           <label className="text-sm font-medium" htmlFor="input1">
-            Simulation Name:
+            New Simulation Name:
           </label>
           <input
             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
@@ -126,7 +127,7 @@ function StartApp() {
             <PlusIcon className="h-4 w-4" />
           </button>
         </div>
-        
+
         <button
           className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
           type="button"

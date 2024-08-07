@@ -19,17 +19,30 @@ function App() {
   const config_data = import.meta.env;
   const server_ip = config_data.VITE_server_ip;
   const back_port = config_data.VITE_back_port;
-  const interact = async () => {
 
-    var input = document.getElementById("input").value;
+  const [chatType, setChatType] = useState('Command'); // State to manage chat type
+
+  const interact = async () => {
+    const inputElement = document.getElementById("input");
+    const input = inputElement.value;
     const params = new URLSearchParams();
     params.append('command', input);
-    var url = `http://${server_ip}:${back_port}/command/?${params.toString()}`;
+    const url = `http://${server_ip}:${back_port}/command/?${params.toString()}`;
     const response = await fetch(url, {
       method: 'GET',
       mode: 'no-cors'
     });
+
+    // Clear the input
+    inputElement.value = '';
   };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      interact();
+    }
+  };
+
   return (
     <div className="flex h-screen flex-col">
       <div className="flex-1 overflow-auto border-b p-4">
@@ -108,12 +121,13 @@ function App() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="flex-1 justify-between" size="sm" variant="outline">
-                <span>Command</span>
+                <span>{chatType}</span>
                 <ChevronDownIcon className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>Chat</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setChatType('Command')}>Command</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setChatType('Chat')}>Chat</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Label className="font-medium" htmlFor="chat-user">
@@ -134,7 +148,7 @@ function App() {
           </DropdownMenu>
         </div>
         <div className="flex items-center">
-          <Input className="flex-1" id="input" placeholder="Type your message..." />
+          <Input className="flex-1" id="input" placeholder={(chatType === 'Chat' ? 'Please input chat content' : 'Please input your command') + "..."} onKeyDown={handleKeyDown} />
           <Button className="ml-2" size="sm" variant="primary" onClick={interact}>
             <SendIcon className="h-4 w-4" />
           </Button>
@@ -162,7 +176,6 @@ function ChevronDownIcon(props) {
     </svg>
   )
 }
-
 
 function SendIcon(props) {
   return (

@@ -104,3 +104,5 @@ ENV/
 .vscode
 
 vite.config.js.*
+
+curr_sim_code.json
