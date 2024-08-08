@@ -2,6 +2,8 @@
 
 # Generalized LLM based Social Simulation Instrument 
 
+this is xmt branch!
+
 <!-- <p align="center" width="100%">
 <img src="cover.png" alt="Smallville" style="width: 80%; min-width: 300px; display: block; margin: auto;">
 </p> -->
