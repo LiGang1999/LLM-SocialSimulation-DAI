@@ -40,7 +40,7 @@ function StartApp() {
       }
     );
     // window.location.href = "/act";
-    window.location.href = `http://${server_ip}:${front_port2}/act`;
+    window.location.href = `/act`;
   };
   return (
     <div className="flex flex-col items-center justify-center p-10 space-y-6 bg-white">

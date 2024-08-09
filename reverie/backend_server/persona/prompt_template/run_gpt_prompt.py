@@ -3550,7 +3550,7 @@ def run_gpt_generate_safety_score(persona, comment, test_input=None, verbose=Fal
     prompt = generate_prompt(prompt_input, prompt_template)
     print(prompt)
     fail_safe = get_fail_safe()
-    output = chat_safe_generate_response(
+    output = completion_safe_generate_response(
         prompt, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
     )
     print(output)
@@ -3710,7 +3710,7 @@ def run_gpt_generate_iterative_chat_utt(
     prompt = generate_prompt(prompt_input, prompt_template)
     print(prompt)
     fail_safe = get_fail_safe()
-    output = chat_safe_generate_response(
+    output = completion_safe_generate_response(
         prompt, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
     )
     print(output)
@@ -3812,7 +3812,7 @@ def run_gpt_generate_iterative_comment_utt_with_policy(
     print("\n==================================================================")
     print(prompt)
     fail_safe = get_fail_safe()
-    output = chat_safe_generate_response(
+    output = completion_safe_generate_response(
         prompt, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
     )
     print("\n==================================================================")
@@ -3915,7 +3915,7 @@ def run_gpt_generate_iterative_comment_utt(
     print("\n==================================================================")
     print(prompt)
     fail_safe = get_fail_safe()
-    output = chat_safe_generate_response(
+    output = completion_safe_generate_response(
         prompt, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
     )
     print("\n==================================================================")
@@ -4018,7 +4018,7 @@ def run_gpt_generate_iterative_comment_utt_with_websearch(
     print("\n==================================================================")
     print(prompt)
     fail_safe = get_fail_safe()
-    output = chat_safe_generate_response(
+    output = completion_safe_generate_response(
         prompt, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
     )
     print("\n==================================================================")

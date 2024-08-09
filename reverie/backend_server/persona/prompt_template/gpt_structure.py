@@ -249,6 +249,22 @@ def completion_safe_generate_response(
     return fail_safe_response
 
 
+def safe_generate_response(
+    prompt,
+    gpt_param,
+    repeat=5,
+    fail_safe="error",
+    func_validate=None,
+    func_cleanup=None,
+    verbose=False,
+):
+
+    # 暂时使用 completion_request
+    completion_safe_generate_response(
+        prompt, gpt_param, repeat, fail_safe, func_validate, func_cleanup, verbose
+    )
+
+
 def convert_to_json(obj):
     """
     Converts a Python object into a JSON string.
