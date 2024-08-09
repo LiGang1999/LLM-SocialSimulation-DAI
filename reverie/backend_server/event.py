@@ -1,5 +1,5 @@
 class Event:
-    def __init__(self, name = ""):
+    def __init__(self, name=""):
         self.public_memory = []
         self.access_name = name
         self.description = ""
@@ -15,7 +15,7 @@ class Event:
             return self.public_memory
         else:
             return None
-        
+
     def get_desc(self, name):
         print(name)
         if name in self.access_name:

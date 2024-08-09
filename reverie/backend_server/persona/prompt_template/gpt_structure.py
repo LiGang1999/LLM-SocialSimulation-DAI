@@ -15,7 +15,7 @@ from utils import openai_api_base, openai_api_key, default_model
 client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
 
 
-def completion_single_request(prompt, gpt_parameters):
+def completion_single_request(prompt, gpt_parameters, verbose=False):
     """
     Make a single GPT completion request using provided parameters.
 
@@ -49,7 +49,9 @@ def completion_single_request(prompt, gpt_parameters):
         return "An error occurred during the request."
 
 
-def completion_request(prompt, gpt_parameters, max_retries=3, timeout=10):
+def completion_request(
+    prompt, gpt_parameters, max_retries=3, timeout=10, verbose=False
+):
     """
     Make a single GPT completion request with retries and timeout handling.
 
@@ -71,7 +73,7 @@ def completion_request(prompt, gpt_parameters, max_retries=3, timeout=10):
         if elapsed_time > timeout:
             return "Request timed out."
 
-        response = completion_single_request(prompt, gpt_parameters)
+        response = completion_single_request(prompt, gpt_parameters, verbose)
 
         if response:
             return response
@@ -82,7 +84,7 @@ def completion_request(prompt, gpt_parameters, max_retries=3, timeout=10):
     return "Request failed after maximum retries."
 
 
-def chat_single_request(user_prompt, gpt_parameters, system_prompt=""):
+def chat_single_request(user_prompt, gpt_parameters, system_prompt="", verbose=False):
     """
     Make a single GPT chat request using provided parameters.
 
@@ -122,7 +124,9 @@ def chat_single_request(user_prompt, gpt_parameters, system_prompt=""):
         return None
 
 
-def chat_request(prompt, gpt_parameters, system_prompt="", max_retries=3, timeout=10):
+def chat_request(
+    prompt, gpt_parameters, system_prompt="", max_retries=3, timeout=10, verbose=False
+):
     """
     Make a single GPT chat request with retries and timeout handling, including a system prompt.
 
@@ -145,7 +149,7 @@ def chat_request(prompt, gpt_parameters, system_prompt="", max_retries=3, timeou
         if elapsed_time > timeout:
             return "Request timed out."
 
-        response = chat_single_request(prompt, gpt_parameters, system_prompt)
+        response = chat_single_request(prompt, gpt_parameters, system_prompt, verbose)
 
         if response:
             return response
@@ -236,16 +240,19 @@ def completion_safe_generate_response(
     verbose=False,
 ):
     if verbose:
+        print("=============COMPLETION GPT PROMPT=============")
         print(prompt)
+        print("===============================================")
 
     for i in range(repeat):
         curr_gpt_response = completion_request(prompt, gpt_parameter)
-        if func_validate(curr_gpt_response, prompt=prompt):
-            return func_clean_up(curr_gpt_response, prompt=prompt)
         if verbose:
             print("---- repeat count: ", i, curr_gpt_response)
             print(curr_gpt_response)
             print("~~~~")
+        if func_validate(curr_gpt_response, prompt=prompt):
+            return func_clean_up(curr_gpt_response, prompt=prompt)
+
     return fail_safe_response
 
 
@@ -256,11 +263,11 @@ def safe_generate_response(
     fail_safe="error",
     func_validate=None,
     func_cleanup=None,
-    verbose=False,
+    verbose=True,
 ):
 
     # 暂时使用 completion_request
-    completion_safe_generate_response(
+    return completion_safe_generate_response(
         prompt, gpt_param, repeat, fail_safe, func_validate, func_cleanup, verbose
     )
 

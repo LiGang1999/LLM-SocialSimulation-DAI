@@ -1,12 +1,12 @@
-standard_prompt_spymaster = '''Try to find a single word hint that can accurately represent and link the {n} given words: "{target_words}". The key is to select a hint that does not cause confusion with other words from the following list: {word_list}.
+standard_prompt_spymaster = """Try to find a single word hint that can accurately represent and link the {n} given words: "{target_words}". The key is to select a hint that does not cause confusion with other words from the following list: {word_list}.
 
 Your output should be of the following format:
 
 Answer: (a single word here)
 
-'''
+"""
 
-cot_prompt_spymaster = '''Try to find a single word hint that can accurately represent and link the {n} given words: "{target_words}". The key is to select a hint that does not cause confusion with other words from the following list: {word_list}.
+cot_prompt_spymaster = """Try to find a single word hint that can accurately represent and link the {n} given words: "{target_words}". The key is to select a hint that does not cause confusion with other words from the following list: {word_list}.
 
 Solve the task step by step. Your output should be of the following format:
 
@@ -14,9 +14,9 @@ Steps:
 Your steps here.
 
 Answer: (a single word here)
-'''
+"""
 
-spp_prompt_spymaster = '''When faced with a task, begin by identifying the participants who will contribute to solving the task. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
+spp_prompt_spymaster = """When faced with a task, begin by identifying the participants who will contribute to solving the task. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
 
 Here are some examples:
 ---
@@ -92,13 +92,10 @@ Transforming our future, we await.
 Now, identify the participants and collaboratively solve the following task step by step. Remember to provide the final solution with the following format "Final answer: (a single word here).".
 
 Task: Try to find a single word hint that can accurately represent and link the {n} given words: "{target_words}". The key is to select a hint that does not cause confusion with other words from the following list: {word_list}.
-'''
+"""
 
 
-
-
-
-spp_prompt_spymaster_fixed_persona = '''When faced with a task, begin by identifying the participants who will contribute to solving the task. Note that the participants can only be either AI Assistant (you) or Expert. Then, initiate a multi-round collaboration process until a final conclusion is reached.  The Expert will give critical comments and detailed suggestions whenever necessary.  
+spp_prompt_spymaster_fixed_persona = """When faced with a task, begin by identifying the participants who will contribute to solving the task. Note that the participants can only be either AI Assistant (you) or Expert. Then, initiate a multi-round collaboration process until a final conclusion is reached.  The Expert will give critical comments and detailed suggestions whenever necessary.  
  
 Here are some examples:
 ---
@@ -169,13 +166,10 @@ Transforming our future, we await.
 Now, identify the participants and collaboratively solve the following task step by step. Note that the participants can only be either AI Assistant (you) or Expert. Remember to provide the final solution with the following format "Final answer: (a single word here).". 
 
 Task: Try to find a single word hint that can accurately represent and link the {n} given words: "{target_words}". The key is to select a hint that does not cause confusion with other words from the following list: {word_list}.
-'''
+"""
 
 
-
-
-
-spp_prompt_spymaster_profile = '''When faced with a task, begin by identifying the participants who will contribute to solving the task. Provide profiles of the participants, describing their expertise or needs. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
+spp_prompt_spymaster_profile = """When faced with a task, begin by identifying the participants who will contribute to solving the task. Provide profiles of the participants, describing their expertise or needs. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
 
 Here are some examples:
 ---
@@ -261,17 +255,16 @@ Transforming our future, we await.
 Now, identify the participants, provide their profiles, and collaboratively solve the following task step by step. Remember to provide the final solution with the following format "Final answer: (a single word here).".
 
 Task: Try to find a single word hint that can accurately represent and link the {n} given words: "{target_words}". The key is to select a hint that does not cause confusion with other words from the following list: {word_list}.
-'''
+"""
 
 
-
-standard_prompt_guesser = '''Try to identify the {n} words best associated with the word "{hint_word}" from the following list: {word_list}. Your answer should be a comma-separated list of words.
+standard_prompt_guesser = """Try to identify the {n} words best associated with the word "{hint_word}" from the following list: {word_list}. Your answer should be a comma-separated list of words.
 
 Answer:
 (A list of words here).
-'''
+"""
 
-cot_prompt_guesser = '''Try to identify the {n} words best associated with the word "{hint_word}" from the following list: {word_list}. Your answer should be a comma-separated list of words.
+cot_prompt_guesser = """Try to identify the {n} words best associated with the word "{hint_word}" from the following list: {word_list}. Your answer should be a comma-separated list of words.
 
 Solve the task step by step. Your output should be of the following format:
 
@@ -280,9 +273,9 @@ Your steps here.
 
 Answer:
 (A list of words here).
-'''
+"""
 
-spp_prompt_guesser = '''When faced with a task, begin by identifying the participants who will contribute to solving the task. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
+spp_prompt_guesser = """When faced with a task, begin by identifying the participants who will contribute to solving the task. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
 
 Here are some examples:
 ---
@@ -358,12 +351,10 @@ Transforming our future, we await.
 Now, identify the participants and collaboratively solve the following task step by step. Remember to provide the final solution with the following format "Final answer: (a list of words here).".
 
 Task: Try to identify the {n} words best associated with the word "{hint_word}" from the following list: {word_list}. Your answer should be a comma-separated list of words.
-'''
+"""
 
 
-
-
-spp_prompt_guesser_fixed_persona = '''When faced with a task, begin by identifying the participants who will contribute to solving the task. Note that the participants can only be either AI Assistant (you) or Expert. Then, initiate a multi-round collaboration process until a final conclusion is reached.  The Expert will give critical comments and detailed suggestions whenever necessary.  
+spp_prompt_guesser_fixed_persona = """When faced with a task, begin by identifying the participants who will contribute to solving the task. Note that the participants can only be either AI Assistant (you) or Expert. Then, initiate a multi-round collaboration process until a final conclusion is reached.  The Expert will give critical comments and detailed suggestions whenever necessary.  
  
 Here are some examples:
 ---
@@ -434,10 +425,10 @@ Transforming our future, we await.
 Now, identify the participants and collaboratively solve the following task step by step. Note that the participants can only be either AI Assistant (you) or Expert. Remember to provide the final solution with the following format "Final answer: (a list of words here).". 
 
 Task: Try to identify the {n} words best associated with the word "{hint_word}" from the following list: {word_list}. Your answer should be a comma-separated list of words.
-'''
+"""
 
 
-spp_prompt_guesser_profile = '''When faced with a task, begin by identifying the participants who will contribute to solving the task. Provide profiles of the participants, describing their expertise or needs. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
+spp_prompt_guesser_profile = """When faced with a task, begin by identifying the participants who will contribute to solving the task. Provide profiles of the participants, describing their expertise or needs. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
 
 Here are some examples:
 ---
@@ -523,4 +514,4 @@ Transforming our future, we await.
 Now, identify the participants, provide their profiles, and collaboratively solve the following task step by step. Remember to provide the final solution with the following format "Final answer: (a list of words here).".
 
 Task: Try to identify the {n} words best associated with the word "{hint_word}" from the following list: {word_list}. Your answer should be a comma-separated list of words.
-'''
+"""

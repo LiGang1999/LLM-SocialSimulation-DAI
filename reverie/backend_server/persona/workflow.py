@@ -1,6 +1,7 @@
 import sys
 from persona.action import *
-import datetime#extend planning cycle
+import datetime  # extend planning cycle
+
 
 class WorkFlow:
     def __init__(self):
@@ -8,6 +9,7 @@ class WorkFlow:
 
     def work():
         pass
+
 
 class GaWorkFlow(WorkFlow):
     def __init__(self):
@@ -21,12 +23,15 @@ class GaWorkFlow(WorkFlow):
         persona.scratch.curr_tile = curr_tile
 
         new_day = False
-        if not persona.scratch.curr_time: 
+        if not persona.scratch.curr_time:
             new_day = "First day"
-        elif (persona.scratch.curr_time.strftime('%A %B %d')
-            != curr_time.strftime('%A %B %d')):
+        elif persona.scratch.curr_time.strftime("%A %B %d") != curr_time.strftime(
+            "%A %B %d"
+        ):
             new_day = "New day"
-            if curr_time.strftime('%A %B %d') > maze.last_planning_day.strftime('%A %B %d'):#extend planning cycle
+            if curr_time.strftime("%A %B %d") > maze.last_planning_day.strftime(
+                "%A %B %d"
+            ):  # extend planning cycle
                 maze.need_stagely_planning = True
         persona.scratch.curr_time = curr_time
 
@@ -36,6 +41,7 @@ class GaWorkFlow(WorkFlow):
         self.reflect.action(persona)
 
         return self.execute.action(persona, maze, personas, plan)
+
 
 class DaiWorkFlow(WorkFlow):
     def __init__(self):
@@ -48,10 +54,11 @@ class DaiWorkFlow(WorkFlow):
     def work(self, persona, maze, curr_time):
 
         new_day = False
-        if not persona.scratch.curr_time: 
+        if not persona.scratch.curr_time:
             new_day = "First day"
-        elif (persona.scratch.curr_time.strftime('%A %B %d')
-            != curr_time.strftime('%A %B %d')):
+        elif persona.scratch.curr_time.strftime("%A %B %d") != curr_time.strftime(
+            "%A %B %d"
+        ):
             new_day = "New day"
         persona.scratch.curr_time = curr_time
 

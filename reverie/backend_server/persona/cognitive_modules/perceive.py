@@ -270,6 +270,7 @@ def perceive_dai(persona, maze):
             persona.scratch.importance_trigger_curr -= event_poignancy
             persona.scratch.importance_ele_n += 1
 
+    # QUESTION 为什么不把 public_memory 加入到记忆中？这会导致 retrieve 返回空的结果
     # for event_name, memorynodes in new_memories.items():
 
     #   for perceive_node in memorynodes:

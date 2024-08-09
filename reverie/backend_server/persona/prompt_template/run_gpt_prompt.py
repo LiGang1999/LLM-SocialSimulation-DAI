@@ -3550,11 +3550,6 @@ def run_gpt_generate_safety_score(persona, comment, test_input=None, verbose=Fal
     prompt = generate_prompt(prompt_input, prompt_template)
     print(prompt)
     fail_safe = get_fail_safe()
-    output = completion_safe_generate_response(
-        prompt, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
-    )
-    print(output)
-
     gpt_param = {
         "engine": "text-davinci-003",
         "max_tokens": 50,
@@ -3565,6 +3560,18 @@ def run_gpt_generate_safety_score(persona, comment, test_input=None, verbose=Fal
         "presence_penalty": 0,
         "stop": None,
     }
+    output = completion_safe_generate_response(
+        prompt,
+        gpt_param,
+        3,
+        fail_safe,
+        __chat_func_validate,
+        __chat_func_clean_up,
+        verbose,
+    )
+    print(output)
+
+    
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
@@ -3710,11 +3717,6 @@ def run_gpt_generate_iterative_chat_utt(
     prompt = generate_prompt(prompt_input, prompt_template)
     print(prompt)
     fail_safe = get_fail_safe()
-    output = completion_safe_generate_response(
-        prompt, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
-    )
-    print(output)
-
     gpt_param = {
         "engine": "text-davinci-003",
         "max_tokens": 50,
@@ -3725,6 +3727,18 @@ def run_gpt_generate_iterative_chat_utt(
         "presence_penalty": 0,
         "stop": None,
     }
+    output = completion_safe_generate_response(
+        prompt,
+        gpt_param,
+        3,
+        fail_safe,
+        __chat_func_validate,
+        __chat_func_clean_up,
+        verbose,
+    )
+    print(output)
+
+    
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
@@ -3812,13 +3826,6 @@ def run_gpt_generate_iterative_comment_utt_with_policy(
     print("\n==================================================================")
     print(prompt)
     fail_safe = get_fail_safe()
-    output = completion_safe_generate_response(
-        prompt, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
-    )
-    print("\n==================================================================")
-    print(output)
-    print("==================================================================\n")
-
     gpt_param = {
         "engine": "text-davinci-003",
         "max_tokens": 500,
@@ -3829,6 +3836,20 @@ def run_gpt_generate_iterative_comment_utt_with_policy(
         "presence_penalty": 0,
         "stop": None,
     }
+    output = completion_safe_generate_response(
+        prompt,
+        gpt_param,
+        3,
+        fail_safe,
+        __chat_func_validate,
+        __chat_func_clean_up,
+        verbose,
+    )
+    print("\n==================================================================")
+    print(output)
+    print("==================================================================\n")
+
+   
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
@@ -3915,13 +3936,6 @@ def run_gpt_generate_iterative_comment_utt(
     print("\n==================================================================")
     print(prompt)
     fail_safe = get_fail_safe()
-    output = completion_safe_generate_response(
-        prompt, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
-    )
-    print("\n==================================================================")
-    print(output)
-    print("==================================================================\n")
-
     gpt_param = {
         "engine": "text-davinci-003",
         "max_tokens": 500,
@@ -3932,6 +3946,20 @@ def run_gpt_generate_iterative_comment_utt(
         "presence_penalty": 0,
         "stop": None,
     }
+    output = completion_safe_generate_response(
+        prompt,
+        gpt_param,
+        3,
+        fail_safe,
+        __chat_func_validate,
+        __chat_func_clean_up,
+        verbose,
+    )
+    print("\n==================================================================")
+    print(output)
+    print("==================================================================\n")
+
+    
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
@@ -4018,13 +4046,6 @@ def run_gpt_generate_iterative_comment_utt_with_websearch(
     print("\n==================================================================")
     print(prompt)
     fail_safe = get_fail_safe()
-    output = completion_safe_generate_response(
-        prompt, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
-    )
-    print("\n==================================================================")
-    print(output)
-    print("==================================================================\n")
-
     gpt_param = {
         "engine": "text-davinci-003",
         "max_tokens": 500,
@@ -4035,6 +4056,20 @@ def run_gpt_generate_iterative_comment_utt_with_websearch(
         "presence_penalty": 0,
         "stop": None,
     }
+    output = completion_safe_generate_response(
+        prompt,
+        gpt_param,
+        3,
+        fail_safe,
+        __chat_func_validate,
+        __chat_func_clean_up,
+        verbose,
+    )
+    print("\n==================================================================")
+    print(output)
+    print("==================================================================\n")
+
+    
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
