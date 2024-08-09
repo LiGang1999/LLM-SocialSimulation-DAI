@@ -30,6 +30,7 @@ from persona.cognitive_modules.execute import *
 from persona.cognitive_modules.converse import *
 
 from persona.workflow import *
+from log import L
 
 
 class Persona:

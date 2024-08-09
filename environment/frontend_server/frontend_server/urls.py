@@ -30,31 +30,17 @@ urlpatterns = [
         name="demo",
     ),
     re_path(
-        r"^replay/(?P<sim_code>[\w-]+)/(?P<step>[\w-]+)/$",
-        translator_views.replay,
-        name="replay",
+        r"^replay/(?P<sim_code>[\w-]+)/(?P<step>[\w-]+)/$", translator_views.replay, name="replay"
     ),
     re_path(
         r"^replay_persona_state/(?P<sim_code>[\w-]+)/(?P<step>[\w-]+)/(?P<persona_name>[\w-]+)/$",
         translator_views.replay_persona_state,
         name="replay_persona_state",
     ),
-    path(
-        "process_environment/",
-        translator_views.process_environment,
-        name="process_environment",
-    ),
-    path(
-        "update_environment/",
-        translator_views.update_environment,
-        name="update_environment",
-    ),
+    path("process_environment/", translator_views.process_environment, name="process_environment"),
+    path("update_environment/", translator_views.update_environment, name="update_environment"),
     path("path_tester/", translator_views.path_tester, name="path_tester"),
-    path(
-        "path_tester_update/",
-        translator_views.path_tester_update,
-        name="path_tester_update",
-    ),
+    path("path_tester_update/", translator_views.path_tester_update, name="path_tester_update"),
     path("admin/", admin.site.urls),
 ]
 

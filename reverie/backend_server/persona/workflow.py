@@ -1,6 +1,9 @@
 import sys
 from persona.action import *
 import datetime  # extend planning cycle
+import pprint
+
+from log import L
 
 
 class WorkFlow:
@@ -62,12 +65,16 @@ class DaiWorkFlow(WorkFlow):
             new_day = "New day"
         persona.scratch.curr_time = curr_time
 
+        L.debug("Perceive begin")
         perceived, all_news = self.perceive.action(persona, maze)
+        L.debug("Perceive end, Retrieve begin")
         retrieved = self.retrieve.action(persona, perceived)
+        L.debug("Retrieve end, Plan begin")
         plan = self.plan.action(persona, retrieved)
-        # if plan[0] == "yes":
-        #     print("正在调用execute发表评论")
+        L.debug("Plan end, Execute begin")
         self.execute.action(persona, maze, retrieved, plan, all_news)
+        L.debug("Execute end, Reflect begin")
         self.reflect.action(persona)
+        L.debug("Reflect end")
 
         return

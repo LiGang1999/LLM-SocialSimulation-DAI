@@ -13,6 +13,7 @@ from operator import itemgetter
 from global_methods import *
 from persona.prompt_template.gpt_structure import *
 from persona.prompt_template.run_gpt_prompt import *
+from log import L
 
 
 def generate_poig_score(persona, event_type, description):
@@ -207,14 +208,14 @@ def perceive(persona, maze):
 
 
 def perceive_dai(persona, maze):
-    print("开始感知")
+    L.debug("开始感知")
     new_memories = {}
     perceive_memories = {}
     all_news = ""
     for event_name in maze.events:
         all_news += maze.events[event_name].get_desc(persona.name)
-        print(event_name)
-        print(type(event_name))
+        L.debug(event_name)
+        L.debug(type(event_name))
 
         memories = maze.events[event_name].get_memories(persona.name)
         if memories is None:
@@ -238,7 +239,7 @@ def perceive_dai(persona, maze):
     expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
 
     for event_name, memorynodes in new_memories.items():
-        print(memorynodes)
+        L.debug(memorynodes)
         for perceive_node in memorynodes:
             if perceive_node.name == "public":
                 continue
@@ -249,7 +250,7 @@ def perceive_dai(persona, maze):
             event_poignancy = generate_poig_score(
                 persona, "event", perceive_node.description
             )
-            print(
+            L.debug(
                 "正在存放："
                 + perceive_node.name
                 + " said, "
@@ -277,6 +278,6 @@ def perceive_dai(persona, maze):
     #     if perceive_node.name == "public":
     #       perceive_memories[event_name] = [perceive_node]
 
-    print("感知结束")
+    L.debug("感知结束")
 
     return perceive_memories, all_news
