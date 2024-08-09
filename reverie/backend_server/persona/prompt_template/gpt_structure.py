@@ -172,17 +172,25 @@ def chat_safe_generate_response(
     example_output: a python dict, or list, or object that will be provided to the GPT-3 to generate the response
     """
     # prompt = 'GPT-3 Prompt:\n"""\n' + prompt + '\n"""\n'
-    example_output = (
-        '"<your answer>"' if not example_output else convert_to_json(example_output)
-    )
+    example_output_str = ""
+    if example_output is not None:
+        if isinstance(example_output, str):
+            example_output_str = example_output
+
+        else:
+            example_output_str = json.dumps(example_output)
+
+    example_output_str = f"""
+Example for your response:
+
+{{
+"output" : {str(example_output_str)}
+}}
+"""
     system_prompt = f"""
 You are a helpful assistant.You should only output your respone to the user in json format, and you should meet the requirements.
 
-Example for your response:
-
-{
-"output" : {str(example_output)}
-}
+{example_output_str}
 
 Requirements:
 {special_instruction}
@@ -195,8 +203,9 @@ Requirements:
     for i in range(repeat):
         try:
             curr_gpt_response = chat_request(
-                prompt,
-                None,
+                user_prompt,
+                gpt_parameters=gpt_parameters,
+                system_prompt=system_prompt,
             )
             curr_gpt_response = curr_gpt_response.strip()
             end_index = curr_gpt_response.rfind("}") + 1

@@ -6,7 +6,7 @@ import yaml
 
 
 def main():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'api.settings')
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -17,17 +17,18 @@ def main():
         ) from exc
 
     # read config
-    with open('../../config.yaml', 'r', encoding='utf-8') as f:
+    with open("../../config.yaml", "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
-        back_port = data.get('back_port')
-    if len(sys.argv) > 2:
-        sys.argv[2] = f'0.0.0.0:{back_port}'
-    else:
-        sys.argv.append(f'0.0.0.0:{back_port}')
-    
+        back_port = data.get("back_port")
+    if sys.argv[1] != "migrate":
+        if len(sys.argv) > 2:
+            sys.argv[2] = f"0.0.0.0:{back_port}"
+        else:
+            sys.argv.append(f"0.0.0.0:{back_port}")
+
     print(sys.argv)
     execute_from_command_line(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
