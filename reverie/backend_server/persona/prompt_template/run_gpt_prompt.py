@@ -3759,8 +3759,7 @@ def run_gpt_generate_iterative_comment_utt_with_websearch(
 
             for c_node in vals["thoughts"]:
                 description2 += [c_node.description]
-
-            n += 1
+                n += 1
 
         for des in set(description1):
             retrieved_context += str(m) + f". {des}\n"
@@ -3836,6 +3835,113 @@ def run_gpt_generate_iterative_comment_utt_with_websearch(
     print(output)
     print("==================================================================\n")
 
+    
+    return output, [output, prompt, gpt_param, prompt_input, fail_safe]
+
+
+def run_gpt_generate_iterative_comment_utt_with_policy_and_websearch(
+    persona, retrieved, all_news, policy, websearch, test_input=None, verbose=False
+):
+    def create_prompt_input(persona, retrieved, test_input=None):
+        pm = ""
+        n, m = 1, 1
+        ###pm->[memorynode[name,s,p,o,description]]
+        retrieved_context = ""
+        description1 = []
+        description2 = []
+        for key, vals in retrieved.items():
+
+            pm_node = str(n) + "."
+            pm_node += vals["curr_event"].name
+            pm_node += " said, "
+            pm_node += vals["curr_event"].description + "\n"
+            pm += pm_node
+
+            for c_node in vals["events"]:
+                description1 += [c_node.description]
+
+            for c_node in vals["thoughts"]:
+                description2 += [c_node.description]
+
+            n += 1
+
+        for des in set(description1):
+            retrieved_context += str(m) + f". {des}\n"
+            m += 1
+
+        for des in set(description2):
+            retrieved_context += str(m) + f". {des}\n"
+            m += 1
+
+        ###个人信息概述 (init_iss)：
+        init_iss = f"{persona.scratch.get_str_iss()}"  # Here is the content and comments about the case, here is a brief description of {persona.scratch.name}.\n
+        prompt_input = [
+            init_iss,
+            pm,
+            persona.scratch.name,
+            retrieved_context,
+            persona.scratch.name,
+            persona.scratch.name,
+            persona.scratch.name,
+            all_news,
+            policy,
+            websearch,
+        ]
+        return prompt_input
+
+    def __chat_func_clean_up(gpt_response, prompt=""):
+        gpt_response = extract_first_json_dict(gpt_response)
+        cleaned_dict = dict()
+        cleaned = []
+        for key, val in gpt_response.items():
+            cleaned += [val]
+        cleaned_dict["comment"] = cleaned[0]
+        return cleaned_dict
+
+    def __chat_func_validate(gpt_response, prompt=""):
+        print("ugh...")
+        try:
+            # print ("debug 1")
+            # print (gpt_response)
+            # print ("debug 2")
+
+            print(extract_first_json_dict(gpt_response))
+            # print ("debug 3")
+            return True
+        except:
+            return False
+
+    def get_fail_safe():
+        cleaned_dict = dict()
+        cleaned_dict["utterance"] = "..."
+        return cleaned_dict
+
+    print("正在wzt-run_gpt_generate_iterative_comment_utt")
+    prompt_template = "persona/prompt_template/v3_ChatGPT/iterative_comment_v4.txt"
+    prompt_input = create_prompt_input(persona, retrieved)
+    prompt = generate_prompt(prompt_input, prompt_template)
+    print("\n==================================================================")
+    print(prompt)
+    fail_safe = get_fail_safe()
+    gpt_param = {
+        "engine": "text-davinci-003",
+        "max_tokens": 500,
+        "temperature": 0,
+        "top_p": 1,
+        "stream": False,
+        "frequency_penalty": 0,
+        "presence_penalty": 0,
+        "stop": None,
+    }
+
+    output = completion_safe_generate_response(
+        prompt, gpt_param, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
+    )
+    print("\n==================================================================")
+    print(output)
+    print("==================================================================\n")
+
+    
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
