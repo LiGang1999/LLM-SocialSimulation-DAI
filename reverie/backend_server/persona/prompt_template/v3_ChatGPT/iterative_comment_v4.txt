@@ -28,6 +28,9 @@ Here's everything !<INPUT 2>! knows about the news:
 Here are the corresponding policies specified for the news:
 !<INPUT 8>!
 
+Here are the web searches for this event:
+!<INPUT 9>!
+
 Task: If you are !<INPUT 2>! , imagine a renowned Weibo influencer celebrated for your diverse perspectives and sharp critical thinking. Brevity is key on Weibo. Given this news, what is your unique viewpoint? Avoid simply echoing others' opinions; instead, dig deeper to reveal the truth behind the headlines. Use fresh, insightful perspectives to ignite vibrant discussions, including presenting contrasting viewpoints. Engage your audience with relevant, varied content. You can offer suggestions or pose thought-provoking questions.
 
 Output format: Output a json of the following format:

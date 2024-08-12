@@ -14,6 +14,7 @@ import math
 
 from global_methods import *
 from utils import *
+from event import Event
 
 class Maze: 
   def __init__(self):
@@ -395,23 +396,106 @@ class OnlineMaze(Maze):
     self.maze_height = int(meta_info["maze_height"])
 
     self.relationship_matrix = None
-    self.public_memory = []
+    # 定义关系中文名称和数值的对应关系
+    self.relationship_dict = {
+        "家人": 8,
+        "同事": 5,
+        "朋友": 7,
+        "师生": 6,
+        "陌生人": 0,  # 添加陌生人的对应关系
+        "本人": 10    # 添加本人的对应关系
+    }
 
-  def update_relationship():
-    pass
+    # 初始化关系矩阵为“陌生人”
+    self.user_count = 3
+    self.relationship_matrix = [[self.relationship_dict["陌生人"]]*3 for _ in range(3)]
+    self.relationship_matrix_chinese = [["陌生人"]*3 for _ in range(3)]
 
-  def get_relationship():
-    pass
+    # 设置对角线为“本人”
+    for i in range(3):
+        self.relationship_matrix[i][i] = self.relationship_dict["本人"]
+        self.relationship_matrix_chinese[i][i] = "本人"
+    self.events = {}
+    
+    self.events_policy = {}
+    
+    self.web_search = {}
+
+  def update_relationship(self, relationships):
+      """
+      更新关系矩阵
+      relationships: list of tuples, 每个tuple包含 (user1, user2, relationship_chinese)
+      例如: [(0, 1, "朋友"), (1, 2, "家人")]
+      """
+      for user1, user2, relationship_chinese in relationships:
+          if relationship_chinese in self.relationship_dict:
+              value = self.relationship_dict[relationship_chinese]
+              self.relationship_matrix[user1][user2] = value
+              self.relationship_matrix[user2][user1] = value
+              self.relationship_matrix_chinese[user1][user2] = relationship_chinese
+              self.relationship_matrix_chinese[user2][user1] = relationship_chinese
+          else:
+              raise ValueError(f"未知的关系类型: {relationship_chinese}")
+
+  def get_relationship(self):
+      return self.relationship_matrix, self.relationship_matrix_chinese
+
+  def expand_relationships(self, n):
+      """
+      扩展关系矩阵
+      n: 新增用户的数量
+      """
+      new_user_count = self.user_count + n
+
+      # 扩展 relationship_matrix
+      for row in self.relationship_matrix:
+          row.extend([self.relationship_dict["陌生人"]] * n)
+      for _ in range(n):
+          self.relationship_matrix.append([self.relationship_dict["陌生人"]] * new_user_count)
+      
+      # 扩展 relationship_matrix_chinese
+      for row in self.relationship_matrix_chinese:
+          row.extend(["陌生人"] * n)
+      for _ in range(n):
+          self.relationship_matrix_chinese.append(["陌生人"] * new_user_count)
+      
+      # 设置新用户的对角线为“本人”
+      for i in range(self.user_count, new_user_count):
+          self.relationship_matrix[i][i] = self.relationship_dict["本人"]
+          self.relationship_matrix_chinese[i][i] = "本人"
+      
+      self.user_count = new_user_count
   
-  def add_memory(self, memorynode):
-    self.public_memory.append(memorynode)
+  def add_event(self, event_name, name = ""):
+      if event_name not in self.events:
+          self.events[event_name] = Event(name)
 
-  def get_memories(self):
-    return self.public_memory  
+  def add_memory_to_event(self, event_name, memory_node):
+      if event_name in self.events:
+          self.events[event_name].add_memory(memory_node)
+      else:
+          print(f"Event '{event_name}' does not exist.")
 
-  def get_new_memories(self):
-    new_memories = []
-    for node in self.public_memory:
-        if node.new_or_old:
-            new_memories.append(node)
-    return new_memories
+  def get_event_memories(self, event_name):
+      if event_name in self.events:
+          return self.events[event_name].get_memories()
+      else:
+          print(f"Event '{event_name}' does not exist.")
+          
+  def add_events_policy(self, event_name, policy):
+        self.events_policy[event_name] = policy
+
+  def get_events_policy(self, event_name):
+    if event_name in self.events_policy:
+      return self.events_policy[event_name]
+    else:
+      return None
+    
+  def add_events_websearch(self, event_name, websearch):
+        self.web_search[event_name] = websearch
+
+  def get_events_websearch(self, event_name):
+    if event_name in self.web_search:
+      return self.web_search[event_name]
+    else:
+      return None

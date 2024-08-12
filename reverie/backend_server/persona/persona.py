@@ -60,7 +60,7 @@ class GaPersona(Persona):
     self.scratch = Scratch(scratch_saved)
 
   def single_workflow(self, maze, personas, curr_tile, curr_time):
-    self.workflow.work(self, maze, personas, curr_tile, curr_time)
+    return self.workflow.work(self, maze, personas, curr_tile, curr_time)
 
   def save(self, save_folder): 
     """
