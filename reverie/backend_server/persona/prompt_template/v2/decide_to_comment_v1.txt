@@ -35,6 +35,6 @@ Public memory: !<INPUT 0>!
 Context: !<INPUT 1>!
 Right now, it is !<INPUT 2>!.
 
-Question:  Would <INPUT 3>! comment for the case?
+Question:  Would !<INPUT 3>! comment for the case?
 
 Reasoning: Let's think step by step.

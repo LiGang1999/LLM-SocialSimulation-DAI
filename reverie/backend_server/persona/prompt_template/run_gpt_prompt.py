@@ -3379,25 +3379,46 @@ def run_gpt_generate_safety_score(persona, comment, test_input=None, verbose=Fal
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
+def has_json_content(unstructured_string):
+    # Check whether a string contains json content
+    json_pattern = re.compile(r"(\{.*?\}|\[.*?\])", flags=re.DOTALL)
+    json_strings = json_pattern.findall(unstructured_string)
+
+    for json_str in json_strings:
+        try:
+            # Try to load the JSON to ensure it's valid
+            json_obj = json.loads(json_str)
+            return True
+
+        except json.JSONDecodeError:
+            continue
+
+    return False
+
+
 def extract_first_json_dict(data_str):
-    # Find the first occurrence of a JSON object within the string
-    start_idx = data_str.find("{")
-    end_idx = data_str.find("}", start_idx) + 1
+    # Find the largest json from a unstructured string
+    # Regular expression to find JSON objects or arrays in the string
+    json_pattern = re.compile(r"(\{.*?\}|\[.*?\])", flags=re.DOTALL)
+    json_strings = json_pattern.findall(data_str)
 
-    # Check if both start and end indices were found
-    if start_idx == -1 or end_idx == 0:
-        return None
+    largest_json_str = None
+    largest_json_length = 0
 
-    # Extract the first JSON dictionary
-    json_str = data_str[start_idx:end_idx]
+    for json_str in json_strings:
+        try:
+            # Try to load the JSON to ensure it's valid
+            json_obj = json.loads(json_str)
+            json_length = len(json_str)
 
-    try:
-        # Attempt to parse the JSON data
-        json_dict = json.loads(json_str)
-        return json_dict
-    except json.JSONDecodeError:
-        # If parsing fails, return None
-        return None
+            if json_length > largest_json_length:
+                largest_json_length = json_length
+                largest_json_str = json_str
+
+        except json.JSONDecodeError:
+            continue
+
+    return largest_json_str
 
 
 def run_gpt_generate_iterative_chat_utt(
@@ -3483,18 +3504,7 @@ def run_gpt_generate_iterative_chat_utt(
         return cleaned_dict
 
     def __chat_func_validate(gpt_response, prompt=""):
-        print("ugh...")
-        try:
-            # print ("debug 1")
-            # print (gpt_response)
-            # print ("debug 2")
-
-            print(extract_first_json_dict(gpt_response))
-            # print ("debug 3")
-
-            return True
-        except:
-            return False
+        return has_json_content(gpt_response)
 
     def get_fail_safe():
         cleaned_dict = dict()
@@ -3589,14 +3599,8 @@ def run_gpt_generate_iterative_comment_utt_with_policy(
         return cleaned_dict
 
     def __chat_func_validate(gpt_response, prompt=""):
-        print("ugh...")
         try:
-            # print ("debug 1")
-            # print (gpt_response)
-            # print ("debug 2")
-
             print(extract_first_json_dict(gpt_response))
-            # print ("debug 3")
             return True
         except:
             return False
@@ -3692,17 +3696,7 @@ def run_gpt_generate_iterative_comment_utt(
         return cleaned_dict
 
     def __chat_func_validate(gpt_response, prompt=""):
-        print("ugh...")
-        try:
-            # print ("debug 1")
-            # print (gpt_response)
-            # print ("debug 2")
-
-            print(extract_first_json_dict(gpt_response))
-            # print ("debug 3")
-            return True
-        except:
-            return False
+        return has_json_content(gpt_response)
 
     def get_fail_safe():
         cleaned_dict = dict()
@@ -3794,17 +3788,7 @@ def run_gpt_generate_iterative_comment_utt_with_websearch(
         return cleaned_dict
 
     def __chat_func_validate(gpt_response, prompt=""):
-        print("ugh...")
-        try:
-            # print ("debug 1")
-            # print (gpt_response)
-            # print ("debug 2")
-
-            print(extract_first_json_dict(gpt_response))
-            # print ("debug 3")
-            return True
-        except:
-            return False
+        return has_json_content(gpt_response)
 
     def get_fail_safe():
         cleaned_dict = dict()
@@ -3835,7 +3819,6 @@ def run_gpt_generate_iterative_comment_utt_with_websearch(
     print(output)
     print("==================================================================\n")
 
-    
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
@@ -3899,17 +3882,7 @@ def run_gpt_generate_iterative_comment_utt_with_policy_and_websearch(
         return cleaned_dict
 
     def __chat_func_validate(gpt_response, prompt=""):
-        print("ugh...")
-        try:
-            # print ("debug 1")
-            # print (gpt_response)
-            # print ("debug 2")
-
-            print(extract_first_json_dict(gpt_response))
-            # print ("debug 3")
-            return True
-        except:
-            return False
+        return has_json_content(gpt_response)
 
     def get_fail_safe():
         cleaned_dict = dict()
@@ -3941,7 +3914,6 @@ def run_gpt_generate_iterative_comment_utt_with_policy_and_websearch(
     print(output)
     print("==================================================================\n")
 
-    
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
@@ -3986,18 +3958,25 @@ def run_gpt_prompt_decide_to_comment(persona, retrieved, test_input=None, verbos
         prompt_input += [persona.name]
         init_iss = f"{persona.scratch.get_str_iss()}"  # Here is the content and comments about the case, here is a brief description of {persona.scratch.name}.\n
         prompt_input += [init_iss]
+        L.debug("Prompt input:")
+        L.debug(str(prompt_input))
         return prompt_input
 
     def __func_validate(gpt_response, prompt=""):
         try:
-            if gpt_response.split("Answer in yes or no:")[-1].strip().lower() in ["yes", "no"]:
+            pattern = r"answer in yes or no: (yes|no)"
+            matches = re.findall(pattern, gpt_response.strip().lower())
+            if matches:
                 return True
+            L.error("GPT response validation failed", exc_info=True)
             return False
         except:
             return False
 
     def __func_clean_up(gpt_response, prompt=""):
-        return gpt_response.split("Answer in yes or no:")[-1].strip().lower()
+        pattern = r"answer in yes or no: (yes|no)"
+        matches = re.findall(pattern, gpt_response.strip().lower())
+        return matches[-1]
 
     def get_fail_safe():
         fs = "yes"
@@ -4005,7 +3984,7 @@ def run_gpt_prompt_decide_to_comment(persona, retrieved, test_input=None, verbos
 
     gpt_param = {
         "engine": "text-davinci-003",
-        "max_tokens": 20,
+        "max_tokens": 200,
         "temperature": 0,
         "top_p": 1,
         "stream": False,
@@ -4013,7 +3992,7 @@ def run_gpt_prompt_decide_to_comment(persona, retrieved, test_input=None, verbos
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/decide_to_comment_v2.txt"
+    prompt_template = "persona/prompt_template/v2/decide_to_comment_v1.txt"
     prompt_input = create_prompt_input(persona, retrieved, test_input)
 
     prompt = generate_prompt(prompt_input, prompt_template)

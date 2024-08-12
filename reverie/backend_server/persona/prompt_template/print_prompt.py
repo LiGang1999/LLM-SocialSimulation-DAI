@@ -26,6 +26,8 @@ from utils import *
 def print_run_prompts(
     prompt_template=None, persona=None, gpt_param=None, prompt_input=None, prompt=None, output=None
 ):
+    # Deprecated. Use logging instead.
+    return
     print(f"=== {prompt_template}")
     print("~~~ persona    ---------------------------------------------------")
     print(persona.name, "\n")
@@ -45,6 +47,8 @@ def print_run_prompts(
 def print_run_prompts_new(
     prompt_template=None, gpt_param=None, prompt_input=None, prompt=None, output=None
 ):
+    # Deprecated. Use logging instead.
+    return
     print(f"=== {prompt_template}")
     print("~~~ gpt_param ----------------------------------------------------")
     print(gpt_param, "\n")

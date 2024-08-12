@@ -8,11 +8,19 @@ def get_log_level(default="DEBUG"):
     return getattr(logging, level, logging.INFO)
 
 
+def is_default_enabled():
+    """
+    By default, logging is enabled for the whole project.However, sometimes we want that only specified debug logs are printed.
+    This can be achieved by setting LOG_ENABLED environment variable to false, and passing enabled=True to the log function we want to enable.
+    """
+    return os.getenv("LOG_ENABLED", "true").lower() == "true"
+
+
 # Create a handler
-handler = colorlog.StreamHandler()
+_handler = colorlog.StreamHandler()
 
 # Define a formatter with colors for different log levels
-formatter = colorlog.ColoredFormatter(
+_formatter = colorlog.ColoredFormatter(
     "%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
     log_colors={
@@ -25,14 +33,50 @@ formatter = colorlog.ColoredFormatter(
 )
 
 # Set the formatter for the handler
-handler.setFormatter(formatter)
+_handler.setFormatter(_formatter)
 
-root_logger = logging.getLogger()
-if root_logger.hasHandlers():
-    root_logger.handlers.clear()
+_root_logger = logging.getLogger()
+if _root_logger.hasHandlers():
+    _root_logger.handlers.clear()
 
 # Create a logger instance and set its level
-L = colorlog.getLogger("GLOBAL")
-L.addHandler(handler)
-L.setLevel(get_log_level())
-L.propagate = False
+_logger = colorlog.getLogger("GLOBAL")
+_logger.addHandler(_handler)
+_logger.setLevel(get_log_level())
+_logger.propagate = False
+
+
+class L:
+    @staticmethod
+    def info(msg, *args, enabled=False, **kwargs):
+        if enabled or is_default_enabled():
+            _logger.info(msg, *args, **kwargs)
+
+    @staticmethod
+    def warn(msg, *args, enabled=False, **kwargs):
+        if enabled or is_default_enabled():
+            _logger.warning(msg, *args, **kwargs)
+
+    @staticmethod
+    def debug(msg, *args, enabled=False, **kwargs):
+        if enabled or is_default_enabled():
+            _logger.debug(msg, *args, **kwargs)
+
+    @staticmethod
+    def error(msg, *args, enabled=False, **kwargs):
+        if enabled or is_default_enabled():
+            _logger.error(msg, *args, **kwargs)
+
+    @staticmethod
+    def critical(msg, *args, enabled=False, **kwargs):
+        if enabled or is_default_enabled():
+            _logger.critical(msg, *args, **kwargs)
+
+    @staticmethod
+    def exception(msg, *args, enabled=False, **kwargs):
+        if enabled or is_default_enabled():
+            _logger.exception(msg, *args, **kwargs)
+
+    @staticmethod
+    def set_level(level):
+        _logger.setLevel(level)

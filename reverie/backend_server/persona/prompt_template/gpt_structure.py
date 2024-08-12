@@ -9,11 +9,24 @@ import json
 import random
 from openai import OpenAI
 import time
-
+import re
 from utils import openai_api_base, openai_api_key, default_model
 from log import L
 
 client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
+
+
+def unescape_markdown(text):
+    """
+    Sometimes the model gives markdown escaped results. So we need to unescape them.
+    """
+    # 使用正则表达式去除反斜杠前缀
+    temp_text = text.replace("\\\\", "TEMP_DOUBLE_BACKSLASH")
+    unescaped_text = re.sub(r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text)
+
+    # 恢复原有的双反斜杠
+    unescaped_text = unescaped_text.replace("TEMP_DOUBLE_BACKSLASH", "\\\\")
+    return unescaped_text
 
 
 def completion_single_request(prompt, gpt_parameters, verbose=False):
@@ -44,9 +57,10 @@ def completion_single_request(prompt, gpt_parameters, verbose=False):
             stream=gpt_parameters["stream"],
             stop=gpt_parameters["stop"],
         )
-        return response.choices[0].text.strip()
+        ret = response.choices[0].text.strip()
+        return unescape_markdown(ret)
     except Exception as e:
-        print(f"Error during GPT request: {e}")
+        L.warning(f"GPT Request failed. Retry scheduled.", exc_info=True)
         return "An error occurred during the request."
 
 
@@ -70,6 +84,7 @@ def completion_request(prompt, gpt_parameters, max_retries=3, timeout=10, verbos
     while tries < max_retries:
         elapsed_time = time.time() - start_time
         if elapsed_time > timeout:
+            L.warning("GPT Request time out")
             return "Request timed out."
 
         response = completion_single_request(prompt, gpt_parameters, verbose)
@@ -80,6 +95,7 @@ def completion_request(prompt, gpt_parameters, max_retries=3, timeout=10, verbos
         tries += 1
         time.sleep(0.1)  # Optional: Wait before retrying
 
+    L.error("GPT Request failed after maximum retries.")
     return "Request failed after maximum retries."
 
 
@@ -117,7 +133,8 @@ def chat_single_request(user_prompt, gpt_parameters, system_prompt="", verbose=F
             stream=gpt_parameters["stream"],
             stop=gpt_parameters["stop"],
         )
-        return response.choices[0].message["content"].strip()
+        ret = response.choices[0].message["content"].strip()
+        return unescape_markdown(ret)
     except Exception as e:
         print(f"Error during GPT chat request: {e}")
         return None
@@ -200,9 +217,8 @@ Requirements:
 """
     user_prompt = prompt
 
-    if verbose:
-        print("CHAT GPT PROMPT")
-        print(prompt)
+    L.debug("GPT PROMPT")
+    L.debug(prompt)
     for i in range(repeat):
         try:
             curr_gpt_response = chat_request(
@@ -236,18 +252,18 @@ def completion_safe_generate_response(
     func_clean_up=None,
     verbose=False,
 ):
-    L.debug("=============COMPLETION GPT PROMPT=============")
+    L.debug("GPT PROMPT")
     L.debug(prompt)
-    L.debug("===============================================")
 
     for i in range(repeat):
         curr_gpt_response = completion_request(prompt, gpt_parameter)
-        L.debug("---- repeat count: " + str(i) + "\n" + str(curr_gpt_response))
+        L.debug("current repeat count: " + str(i))
+        L.debug("GPT_RESPONSE:")
         L.debug(curr_gpt_response)
-        L.debug("~~~~")
         if func_validate(curr_gpt_response, prompt=prompt):
             return func_clean_up(curr_gpt_response, prompt=prompt)
 
+    L.error("GPT Request Failed", exc_info=True)
     return fail_safe_response
 
 
