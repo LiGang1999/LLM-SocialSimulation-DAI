@@ -1,0 +1,52 @@
+{
+  "persona": {
+    "Isabella Rodriguez": {
+      "movement": [
+        77,
+        25
+      ],
+      "pronunciatio": "\ud83d\udcac",
+      "description": "conversing about Klaus declines Isabella's invitation for coffee or breakfast and informs her that he is heading to the library. @ <persona> Klaus Mueller",
+      "chat": [
+        [
+          "Isabella Rodriguez",
+          "Good morning Klaus, how are you doing today? Would you like to come in and have a coffee or breakfast with us at the cafe?"
+        ],
+        [
+          "Klaus Mueller",
+          "No, thank you Isabella, I'm good. I'm actually heading to the library now. But I appreciate the offer."
+        ]
+      ]
+    },
+    "Maria Lopez": {
+      "movement": [
+        123,
+        54
+      ],
+      "pronunciatio": "\ud83d\ude34\ud83d\udca4",
+      "description": "sleeping @ the Ville:Dorm for Oak Hill College:Maria Lopez's room:closet",
+      "chat": null
+    },
+    "Klaus Mueller": {
+      "movement": [
+        76,
+        25
+      ],
+      "pronunciatio": "\ud83d\udcac",
+      "description": "conversing about Klaus declines Isabella's invitation for coffee or breakfast and informs her that he is heading to the library. @ <persona> Isabella Rodriguez",
+      "chat": [
+        [
+          "Isabella Rodriguez",
+          "Good morning Klaus, how are you doing today? Would you like to come in and have a coffee or breakfast with us at the cafe?"
+        ],
+        [
+          "Klaus Mueller",
+          "No, thank you Isabella, I'm good. I'm actually heading to the library now. But I appreciate the offer."
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "curr_time": "February 13, 2023, 08:21:00"
+  }
+}
