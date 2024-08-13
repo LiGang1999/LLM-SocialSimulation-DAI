@@ -5,9 +5,10 @@ from asgiref.sync import async_to_sync
 import asyncio
 import subprocess
 
+
 class LogConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_name = 'console_log'
+        self.room_name = "console_log"
         print("connecting..")
         await self.accept()
         # self.watch_log_and_send()
@@ -18,9 +19,7 @@ class LogConsumer(AsyncWebsocketConsumer):
         # )
         print("connected")
         self.proc = await asyncio.create_subprocess_exec(
-            'tail', '-f', 'stdout.log',
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            "tail", "-f", "stdout.log", stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
         await self.watch_log_and_send()
         # print("watch log and send")
@@ -38,11 +37,11 @@ class LogConsumer(AsyncWebsocketConsumer):
         #         'message': none
         #     }
         # )
-        # self.task = asyncio.create_task(self.watch_log_and_send()) 
+        # self.task = asyncio.create_task(self.watch_log_and_send())
         # while True:
         #     a = 2 + 8
-            # self.send(text_data=json.dumps({"text": "Hey, slow it down"}, ensure_ascii=False))
-    
+        # self.send(text_data=json.dumps({"text": "Hey, slow it down"}, ensure_ascii=False))
+
     async def watch_log_and_send(self):
         print("watch log and send")
         # self.proc = subprocess.Popen(['tail', '-f', 'stdout.log'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -52,7 +51,7 @@ class LogConsumer(AsyncWebsocketConsumer):
             # print("line: ", line)
             if not line:
                 break
-            await self.send(text_data=json.dumps({'message': line.decode('utf-8')}))
+            await self.send(text_data=json.dumps({"message": line.decode("utf-8")}))
             # print("send success")
 
     async def disconnect(self, close_code):
@@ -61,7 +60,7 @@ class LogConsumer(AsyncWebsocketConsumer):
         #     self.room_group_name,
         #     self.channel_name
         # )
-    
+
     # async def send_message(self, event):
     #     print("send_message: ", event["message"])
     #     await self.send(text_data=json.dumps({

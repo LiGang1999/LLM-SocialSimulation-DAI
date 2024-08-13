@@ -1,15 +1,15 @@
 decide_to_comment_v1.txt
 
 <commentblockmarker>###</commentblockmarker>
-Task -- given the public memory and the context, determine whether the subject will comment for a case.
+Task -- given the public memory and the context, determine whether the subject comment for a case.
 
 Public memory:public,Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters.
 Context: Sam is an environmentalist.Sam often takes part in some environmental protection activities. Sam and Sarah exchanged a conversation about protecting environment at 11pm, October 24, 2022.
 Right now, it is 12:40 pm, October 25, 2022.
 
-Question: Would Sam will comment for the case?
+Question: Would Sam comment for the case?
 
-Reasoning: Let's think step by step. Sam is an environmentalist and he has the expertise. Also, he likes to participate in environmental protection activities and likes to talk about environmental protection related topics. Sam is very passionate about environmental protection, so Sam will comment on this case.
+Reasoning: Let's think step by step. Sam is an environmentalist and he has the expertise. Also, he likes to participate in environmental protection activities and likes to talk about environmental protection related topics. Sam is very passionate about environmental protection, so Sam comment on this case.
 
 Answer in yes or no: Yes
 ---
@@ -17,7 +17,7 @@ Public memory:The news reported,Recently, the Fukushima Daiichi Nuclear Power Pl
 Context:Liz is a physicist who studies nuclear reactions. Liz and Jerry had a discussion about government.
 Right now, it is 5:00 pm, October 25, 2022.
 
-Question: Would Liz will comment for the case?
+Question: Would Liz comment for the case?
 
 Reasoning: Let's think step by step.Although Liz studies nuclear reactions, she does not study nuclear pollution. Secondly, although Liz and Jane have discussed the topic of government management, it is not directly related to the events reported by the news, so Liz will not make comments.
 Answer in yes or no: No
@@ -26,7 +26,7 @@ Public memory:The news reported,Recently, the Fukushima Daiichi Nuclear Power Pl
 Context: Lily is a government official. Lily is also an environmentalist and enjoys participating in environmental activities. Lily and Tim are talking about what measures the government should take to help protect the environment.Lily said,As someone deeply concerned about environmental issues, the ongoing discharge of contaminated water from the Fukushima Daiichi Nuclear Power Plant is extremely troubling.Not only does it pose immediate risks to marine life in the Pacific Ocean, but it also raises long-term concerns about the health of our oceans and the safety of seafood.
 Right now, it is 07:09 am, October 25, 2022.
 
-Question: Would Lily will comment for the case?
+Question: Would Lily comment for the case?
 
 Reasoning: Let's think step by step.Lily is very interested in environmental protection, and she has made comments on this topic. Meanwhile, as a government official, Lily hopes that the government will take measures to help protect the environment, which is related to Jane's comments, so Lily will make comments on some environmental protection measures and policies.
 Answer in yes or no: Yes
@@ -35,6 +35,6 @@ Public memory: !<INPUT 0>!
 Context: !<INPUT 1>!
 Right now, it is !<INPUT 2>!.
 
-Question:  Would <INPUT 3>! will comment for the case?
+Question:  Would !<INPUT 3>! comment for the case?
 
 Reasoning: Let's think step by step.

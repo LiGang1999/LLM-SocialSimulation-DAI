@@ -14,6 +14,6 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from .routing import websocket_urlpatterns
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'api.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.settings")
 
 application = get_wsgi_application()

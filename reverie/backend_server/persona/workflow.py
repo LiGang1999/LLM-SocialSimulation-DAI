@@ -1,6 +1,10 @@
 import sys
 from persona.action import *
-import datetime#extend planning cycle
+import datetime  # extend planning cycle
+import pprint
+
+from log import L
+
 
 class WorkFlow:
     def __init__(self):
@@ -8,6 +12,7 @@ class WorkFlow:
 
     def work():
         pass
+
 
 class GaWorkFlow(WorkFlow):
     def __init__(self):
@@ -21,12 +26,15 @@ class GaWorkFlow(WorkFlow):
         persona.scratch.curr_tile = curr_tile
 
         new_day = False
-        if not persona.scratch.curr_time: 
+        if not persona.scratch.curr_time:
             new_day = "First day"
-        elif (persona.scratch.curr_time.strftime('%A %B %d')
-            != curr_time.strftime('%A %B %d')):
+        elif persona.scratch.curr_time.strftime("%A %B %d") != curr_time.strftime(
+            "%A %B %d"
+        ):
             new_day = "New day"
-            if curr_time.strftime('%A %B %d') > maze.last_planning_day.strftime('%A %B %d'):#extend planning cycle
+            if curr_time.strftime("%A %B %d") > maze.last_planning_day.strftime(
+                "%A %B %d"
+            ):  # extend planning cycle
                 maze.need_stagely_planning = True
         persona.scratch.curr_time = curr_time
 
@@ -36,6 +44,7 @@ class GaWorkFlow(WorkFlow):
         self.reflect.action(persona)
 
         return self.execute.action(persona, maze, personas, plan)
+
 
 class DaiWorkFlow(WorkFlow):
     def __init__(self):
@@ -48,19 +57,24 @@ class DaiWorkFlow(WorkFlow):
     def work(self, persona, maze, curr_time):
 
         new_day = False
-        if not persona.scratch.curr_time: 
+        if not persona.scratch.curr_time:
             new_day = "First day"
-        elif (persona.scratch.curr_time.strftime('%A %B %d')
-            != curr_time.strftime('%A %B %d')):
+        elif persona.scratch.curr_time.strftime("%A %B %d") != curr_time.strftime(
+            "%A %B %d"
+        ):
             new_day = "New day"
         persona.scratch.curr_time = curr_time
 
+        L.debug("Perceive begin")
         perceived, all_news = self.perceive.action(persona, maze)
+        L.debug("Perceive end, Retrieve begin")
         retrieved = self.retrieve.action(persona, perceived)
+        L.debug("Retrieve end, Plan begin")
         plan = self.plan.action(persona, retrieved)
-        # if plan[0] == "yes":
-        #     print("正在调用execute发表评论")
+        L.debug("Plan end, Execute begin")
         self.execute.action(persona, maze, retrieved, plan, all_news)
+        L.debug("Execute end, Reflect begin")
         self.reflect.action(persona)
+        L.debug("Reflect end")
 
         return
