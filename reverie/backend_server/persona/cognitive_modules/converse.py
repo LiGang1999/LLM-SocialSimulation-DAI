@@ -24,7 +24,9 @@ from persona.cognitive_modules.base_sentiment import *  #
 # from reverie import return_rs#
 
 
-def generate_agent_chat_summarize_ideas(init_persona, target_persona, retrieved, curr_context):
+def generate_agent_chat_summarize_ideas(
+    init_persona, target_persona, retrieved, curr_context
+):
     all_embedding_keys = list()
     for key, val in retrieved.items():
         for i in val:
@@ -61,7 +63,12 @@ def generate_agent_chat(
     maze, init_persona, target_persona, curr_context, init_summ_idea, target_summ_idea
 ):
     summarized_idea = run_gpt_prompt_agent_chat(
-        maze, init_persona, target_persona, curr_context, init_summ_idea, target_summ_idea
+        maze,
+        init_persona,
+        target_persona,
+        curr_context,
+        init_summ_idea,
+        target_summ_idea,
     )[0]
     for i in summarized_idea:
         print(i)
@@ -89,13 +96,23 @@ def agent_chat_v1(maze, init_persona, target_persona):
         focal_points = [f"{p_2.scratch.name}"]
         retrieved = new_retrieve(p_1, focal_points, 50)
         relationship = generate_summarize_agent_relationship(p_1, p_2, retrieved)
-        focal_points = [f"{relationship}", f"{p_2.scratch.name} is {p_2.scratch.act_description}"]
+        focal_points = [
+            f"{relationship}",
+            f"{p_2.scratch.name} is {p_2.scratch.act_description}",
+        ]
         retrieved = new_retrieve(p_1, focal_points, 25)
-        summarized_idea = generate_agent_chat_summarize_ideas(p_1, p_2, retrieved, curr_context)
+        summarized_idea = generate_agent_chat_summarize_ideas(
+            p_1, p_2, retrieved, curr_context
+        )
         summarized_ideas += [summarized_idea]
 
     return generate_agent_chat(
-        maze, init_persona, target_persona, curr_context, summarized_ideas[0], summarized_ideas[1]
+        maze,
+        init_persona,
+        target_persona,
+        curr_context,
+        summarized_ideas[0],
+        summarized_ideas[1],
     )
 
 
@@ -152,7 +169,9 @@ def agent_chat_v2(maze, init_persona, target_persona):
                 f"{target_persona.scratch.name} is {target_persona.scratch.act_description}",
             ]
         retrieved = new_retrieve(init_persona, focal_points, 15)
-        utt, end = generate_one_utterance(maze, init_persona, target_persona, retrieved, curr_chat)
+        utt, end = generate_one_utterance(
+            maze, init_persona, target_persona, retrieved, curr_chat
+        )
 
         curr_chat += [[init_persona.scratch.name, utt]]
         if end:
@@ -179,7 +198,9 @@ def agent_chat_v2(maze, init_persona, target_persona):
                 f"{init_persona.scratch.name} is {init_persona.scratch.act_description}",
             ]
         retrieved = new_retrieve(target_persona, focal_points, 15)
-        utt, end = generate_one_utterance(maze, target_persona, init_persona, retrieved, curr_chat)
+        utt, end = generate_one_utterance(
+            maze, target_persona, init_persona, retrieved, curr_chat
+        )
 
         curr_chat += [[target_persona.scratch.name, utt]]
         if end:
@@ -220,9 +241,13 @@ def generate_next_line(persona, interlocutor_desc, curr_convo, summarized_idea, 
     print("################################")  #
     print(domain_knowledge)  #
     print("################################")  #
-    insert_content = "\nThe above is an sentiment analysis of the following content.\n\n"
+    insert_content = (
+        "\nThe above is an sentiment analysis of the following content.\n\n"
+    )
     # prev_convo = res_sentiment + insert_content + prev_convo
-    transitional_content = "\nThe above is some domain knowledge of the following content.\n\n"
+    transitional_content = (
+        "\nThe above is some domain knowledge of the following content.\n\n"
+    )
     # prev_convo = domain_knowledge + transitional_content + prev_convo#
     ###lg###
     next_line = run_gpt_prompt_generate_next_convo_line(
@@ -262,7 +287,9 @@ def generate_poig_score(persona, event_type, description):
     if event_type == "event" or event_type == "thought":
         return run_gpt_prompt_event_poignancy(persona, description)[0]
     elif event_type == "chat":
-        return run_gpt_prompt_chat_poignancy(persona, persona.scratch.act_description)[0]
+        return run_gpt_prompt_chat_poignancy(persona, persona.scratch.act_description)[
+            0
+        ]
 
 
 def generate_action_event_triple_new(act_desp):
@@ -365,7 +392,7 @@ def generate_one_utterance_for_comment(persona, retrieved, all_news, policy, web
     print("正在生成评论，请稍等")
     if policy is None:
         if websearch is None:
-            x = run_gpt_generate_iterative_comment_utt(persona, retrieved, all_news)[0]
+            x = run_gpt_generate_iterative_comment_utt_new(persona, retrieved, all_news)
         else:
             x = run_gpt_generate_iterative_comment_utt_with_websearch(
                 persona, retrieved, all_news, websearch

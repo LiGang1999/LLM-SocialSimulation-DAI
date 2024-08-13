@@ -53,7 +53,7 @@ class L:
             _logger.info(msg, *args, **kwargs)
 
     @staticmethod
-    def warn(msg, *args, enabled=False, **kwargs):
+    def warning(msg, *args, enabled=False, **kwargs):
         if enabled or is_default_enabled():
             _logger.warning(msg, *args, **kwargs)
 

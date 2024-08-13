@@ -10,10 +10,54 @@ import random
 from openai import OpenAI
 import time
 import re
-from utils import openai_api_base, openai_api_key, default_model
+from utils import openai_api_base, openai_api_key, override_model, override_gpt_param
 from log import L
 
+
 client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
+
+
+def extract_largest_jsno_dict(data_str):
+    # Find the largest json from a unstructured string
+    # Regular expression to find JSON objects or arrays in the string
+    json_pattern = re.compile(r"(\{.*?\}|\[.*?\])", flags=re.DOTALL)
+    json_strings = json_pattern.findall(data_str)
+
+    largest_json_str = None
+    largest_json_length = 0
+
+    for json_str in json_strings:
+        try:
+            # Try to load the JSON to ensure it's valid
+            json_obj = json.loads(json_str)
+            json_length = len(json_str)
+
+            if json_length > largest_json_length:
+                largest_json_length = json_length
+                largest_json_str = json_str
+
+        except json.JSONDecodeError:
+            continue
+
+    return json.loads(largest_json_str) if largest_json_str else None
+
+
+def extract_first_json_dict(data_str):
+    # Find the largest json from a unstructured string
+    # Regular expression to find JSON objects or arrays in the string
+    json_pattern = re.compile(r"(\{.*?\}|\[.*?\])", flags=re.DOTALL)
+    json_strings = json_pattern.findall(data_str)
+
+    for json_str in json_strings:
+        try:
+            # Try to load the JSON to ensure it's valid
+            json_obj = json.loads(json_str)
+            return json_obj
+
+        except json.JSONDecodeError:
+            continue
+
+    return None
 
 
 def unescape_markdown(text):
@@ -31,244 +75,117 @@ def unescape_markdown(text):
     return unescaped_text
 
 
-def completion_single_request(prompt, gpt_parameters, verbose=False):
-    """
-    Make a single GPT completion request using provided parameters.
-
-    ARGS:
-      prompt: A string prompt for the GPT model.
-      gpt_parameters: A dictionary with keys for parameter names and values
-                      for parameter values.
-
-    RETURNS:
-      A string containing the GPT response.
-    """
-
-    # Set the model to use
-    model = gpt_parameters["engine"] if not default_model else default_model
-
-    try:
-        response = client.completions.create(
-            model=model,
-            prompt=prompt,
-            temperature=gpt_parameters["temperature"],
-            max_tokens=gpt_parameters["max_tokens"],
-            top_p=gpt_parameters["top_p"],
-            frequency_penalty=gpt_parameters["frequency_penalty"],
-            presence_penalty=gpt_parameters["presence_penalty"],
-            stream=gpt_parameters["stream"],
-            stop=gpt_parameters["stop"],
-        )
-        ret = response.choices[0].text.strip()
-        return unescape_markdown(ret)
-    except Exception as e:
-        L.warning(f"GPT Request failed. Retry scheduled.", exc_info=True)
-        return "An error occurred during the request."
-
-
-def completion_request(
-    prompt, gpt_parameters, max_retries=3, timeout=10, verbose=False
-):
-    """
-    Make a single GPT completion request with retries and timeout handling.
-
-    ARGS:
-      prompt: A string prompt for the GPT model.
-      gpt_parameters: A dictionary with keys for parameter names and values
-                      for parameter values.
-      max_retries: Maximum number of retry attempts.
-      timeout: Maximum time in seconds to wait for a successful response.
-
-    RETURNS:
-      A string containing the GPT response, or an error message if unsuccessful.
-    """
-    start_time = time.time()
-    tries = 0
-
-    while tries < max_retries:
-        elapsed_time = time.time() - start_time
-        if elapsed_time > timeout:
-            L.warning("GPT Request time out")
-            return "Request timed out."
-
-        response = completion_single_request(prompt, gpt_parameters, verbose)
-
-        if response:
-            return response
-
-        tries += 1
-        time.sleep(0.1)  # Optional: Wait before retrying
-
-    L.error("GPT Request failed after maximum retries.")
-    return "Request failed after maximum retries."
-
-
-def chat_single_request(user_prompt, gpt_parameters, system_prompt="", verbose=False):
-    """
-    Make a single GPT chat request using provided parameters.
-
-    ARGS:
-      prompt: A string prompt for the GPT model.
-      gpt_parameters: A dictionary with keys for parameter names and values
-                      for parameter values.
-
-    RETURNS:
-      A string containing the GPT chat response.
-    """
-
-    # Set the model to use
-    model = gpt_parameters["engine"] if not default_model else default_model
-
-    try:
-        # Prepare the messages as a chat input
-        messages = []
-        if system_prompt is not None and system_prompt != "":
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": user_prompt})
-
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            temperature=gpt_parameters["temperature"],
-            max_tokens=gpt_parameters["max_tokens"],
-            top_p=gpt_parameters["top_p"],
-            frequency_penalty=gpt_parameters["frequency_penalty"],
-            presence_penalty=gpt_parameters["presence_penalty"],
-            stream=gpt_parameters["stream"],
-            stop=gpt_parameters["stop"],
-        )
-        ret = response.choices[0].message.content.strip()
-        return unescape_markdown(ret)
-    except Exception as e:
-        L.debug(ret)
-        L.error(f"Error during GPT chat request: {e}")
-        return None
-
-
-def chat_request(
-    prompt, gpt_parameters, system_prompt="", max_retries=3, timeout=10, verbose=False
-):
-    """
-    Make a single GPT chat request with retries and timeout handling, including a system prompt.
-
-    ARGS:
-      prompt: A string prompt for the GPT model.
-      gpt_parameters: A dictionary with keys for parameter names and values
-                      for parameter values.
-      system_prompt: A string prompt to set the system's initial instructions or context.
-      max_retries: Maximum number of retry attempts.
-      timeout: Maximum time in seconds to wait for a successful response.
-
-    RETURNS:
-      A string containing the GPT chat response, or an error message if unsuccessful.
-    """
-    start_time = time.time()
-    tries = 0
-
-    while tries < max_retries:
-        elapsed_time = time.time() - start_time
-        if elapsed_time > timeout:
-            return "Request timed out."
-
-        response = chat_single_request(prompt, gpt_parameters, system_prompt, verbose)
-
-        if response:
-            return response
-
-        tries += 1
-        time.sleep(0.1)  # Optional: Wait before retrying
-
-    return "Request failed after maximum retries."
-
-
-def chat_safe_generate_response(
-    prompt,
-    example_output,
-    special_instruction,
-    gpt_parameters,
-    repeat=3,
+def generate_gpt_response(
+    prompt: str,
+    gpt_parameters: dict,
+    max_retries=3,
     fail_safe_response="error",
     func_validate=None,
     func_clean_up=None,
-    verbose=False,
+    is_chat=True,
+    example_output=None,
+    special_instruction=None,
 ):
     """
-    special_instruction: a string that contains the special instruction for the prompt
-    example_output: a python dict, or list, or object that will be provided to the GPT-3 to generate the response
+    Safely generate a GPT response (chat or completion) with retries, validation, and cleanup.
+
+    ARGS:
+      prompt: A string prompt for the GPT model.
+      gpt_parameters: A dictionary with keys for parameter names and values for parameter values.
+      max_retries: Maximum number of retry attempts.
+      fail_safe_response: A response to return in case of failure.
+      func_validate: A function to validate the GPT response.
+      func_clean_up: A function to clean up the GPT response.
+      is_chat: If true, uses the chat model, otherwise uses the completion model.
+      example_output: (Optional) A Python dict, list, or string for example output in chat mode.
+      special_instruction: (Optional) A string containing special instructions for chat mode.
+
+    RETURNS:
+      A string containing the GPT response, or the fail_safe_response if unsuccessful.
     """
-    # prompt = 'GPT-3 Prompt:\n"""\n' + prompt + '\n"""\n'
-    example_output_str = ""
-    if example_output is not None:
-        if isinstance(example_output, str):
-            example_output_str = example_output
+    tries = 0
 
-        else:
-            example_output_str = json.dumps(example_output)
+    if override_gpt_param:
+        gpt_parameters.update(override_gpt_param)
+    while tries < max_retries:
+        try:
+            model = gpt_parameters["engine"]
+            if is_chat:
+                # Prepare system prompt if in chat mode
+                example_output_str = (
+                    example_output
+                    if isinstance(example_output, str)
+                    else json.dumps(example_output)
+                )
+                system_prompt = f"""
+You are a helpful assistant. You should only output your response to the user in JSON format, and you should meet the requirements.
 
-    example_output_str = f"""
 Example for your response:
 
 {{
-"output" : {str(example_output_str)}
+"output" : {example_output_str}
 }}
-"""
-    system_prompt = f"""
-You are a helpful assistant.You should only output your respone to the user in json format, and you should meet the requirements.
-
-{example_output_str}
 
 Requirements:
 {special_instruction}
 """
-    user_prompt = prompt
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
+                ]
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=gpt_parameters["temperature"],
+                    max_tokens=gpt_parameters["max_tokens"],
+                    top_p=gpt_parameters["top_p"],
+                    frequency_penalty=gpt_parameters["frequency_penalty"],
+                    presence_penalty=gpt_parameters["presence_penalty"],
+                    stream=gpt_parameters["stream"],
+                    stop=gpt_parameters["stop"],
+                )
+                curr_gpt_response = str(
+                    extract_first_json_dict(
+                        response.choices[0].message.content.strip()
+                    )["output"]
+                )
+            else:
+                # Directly use completion API
+                response = client.completions.create(
+                    model=model,
+                    prompt=prompt,
+                    temperature=gpt_parameters["temperature"],
+                    max_tokens=gpt_parameters["max_tokens"],
+                    top_p=gpt_parameters["top_p"],
+                    frequency_penalty=gpt_parameters["frequency_penalty"],
+                    presence_penalty=gpt_parameters["presence_penalty"],
+                    stream=gpt_parameters["stream"],
+                    stop=gpt_parameters["stop"],
+                )
+                curr_gpt_response = response.choices[0].text.strip()
 
-    L.debug("GPT PROMPT")
-    L.debug(prompt)
-    for i in range(repeat):
-        try:
-            curr_gpt_response = chat_request(
-                user_prompt, gpt_parameters=gpt_parameters, system_prompt=system_prompt
-            )
-            curr_gpt_response = curr_gpt_response.strip()
-            end_index = curr_gpt_response.rfind("}") + 1
-            begin_index = curr_gpt_response.find("{")
-            curr_gpt_response = curr_gpt_response[begin_index:end_index]
-            curr_gpt_response = json.loads(curr_gpt_response)["output"]
-            curr_gpt_response = str(curr_gpt_response)
-            if func_validate(curr_gpt_response, prompt=prompt):
-                return func_clean_up(curr_gpt_response, prompt=prompt)
+            L.debug(f"GPT_RESPONSE:\n{curr_gpt_response}")
 
-            if verbose:
-                print("---- repeat count: \n", i, curr_gpt_response)
-                print(curr_gpt_response)
-                print("~~~~")
+            if func_validate:
+                if func_validate(curr_gpt_response, prompt=prompt):
+                    return (
+                        func_clean_up(
+                            unescape_markdown(curr_gpt_response), prompt=prompt
+                        )
+                        if func_clean_up
+                        else unescape_markdown(curr_gpt_response)
+                    )
+                else:
+                    return unescape_markdown(curr_gpt_response)
 
-        except:
-            pass
-    return False
+        except Exception as e:
+            L.warning(f"Error during GPT request: {e}", exc_info=True)
 
+        tries += 1
+        time.sleep(0.1)  # Optional: Wait before retrying
+        L.debug(f"Attempt {tries+1}/{max_retries} failed.")
 
-def completion_safe_generate_response(
-    prompt,
-    gpt_parameter,
-    repeat=5,
-    fail_safe_response="error",
-    func_validate=None,
-    func_clean_up=None,
-    verbose=False,
-):
-    L.debug("GPT PROMPT")
-    L.debug(prompt)
-
-    for i in range(repeat):
-        curr_gpt_response = completion_request(prompt, gpt_parameter)
-        L.debug("current repeat count: " + str(i))
-        L.debug("GPT_RESPONSE:")
-        L.debug(curr_gpt_response)
-        if func_validate(curr_gpt_response, prompt=prompt):
-            return func_clean_up(curr_gpt_response, prompt=prompt)
-
-    L.error("GPT Request Failed", exc_info=True)
+    L.error("GPT Request failed after all attempts", exc_info=True)
     return fail_safe_response
 
 
@@ -279,12 +196,52 @@ def safe_generate_response(
     fail_safe="error",
     func_validate=None,
     func_cleanup=None,
-    verbose=True,
+    verbose=False,
 ):
 
     # 暂时使用 completion_request
-    return completion_safe_generate_response(
-        prompt, gpt_param, repeat, fail_safe, func_validate, func_cleanup, verbose
+    return generate_gpt_response(
+        prompt, gpt_param, repeat, fail_safe, func_validate, func_cleanup, is_chat=False
+    )
+
+
+def completion_safe_generate_response(
+    prompt,
+    gpt_param,
+    repeat=5,
+    fail_safe="error",
+    func_validate=None,
+    func_cleanup=None,
+    verbose=False,
+):
+
+    # 暂时使用 completion_request
+    return generate_gpt_response(
+        prompt, gpt_param, repeat, fail_safe, func_validate, func_cleanup, is_chat=False
+    )
+
+
+def chat_safe_generate_response(
+    prompt,
+    example_output,
+    special_instruction,
+    gpt_param,
+    repeat=5,
+    fail_safe="error",
+    func_validate=None,
+    func_cleanup=None,
+    verbose=False,
+):
+    return generate_gpt_response(
+        prompt,
+        gpt_param,
+        repeat,
+        fail_safe,
+        func_validate,
+        func_cleanup,
+        is_chat=True,
+        special_instruction=special_instruction,
+        example_output=example_output,
     )
 
 
@@ -334,7 +291,7 @@ def generate_prompt(curr_input, prompt_lib_file):
 
 def get_embedding(text, model="text-embedding-ada-002"):
 
-    model = model if not default_model else default_model
+    model = model if not override_model else override_model
 
     text = text.replace("\n", " ")
     if not text:

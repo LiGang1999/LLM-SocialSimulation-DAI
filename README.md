@@ -52,7 +52,7 @@ Create `utils.py` under `reverie/backend_server`. Here is a template:
 # Copy and paste your OpenAI API Key
 openai_api_base = "https://api.openai.com/v1"
 openai_api_key = "<Your OpenAI API>"
-default_model = "<Your Model Name>" # if default_model is set to non-empty string, all api calls will be overrided to this model
+override_model = "<Your Model Name>" # if override_model is set to non-empty string, all api calls will be overrided to this model
 
 # model_name="gpt-3.5-turbo",
 # model_name="Llama-2-7b-chat-hf",

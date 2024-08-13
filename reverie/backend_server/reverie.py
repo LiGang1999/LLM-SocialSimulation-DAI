@@ -804,7 +804,18 @@ class ReverieServer:
                         load_history_via_whisper(self.personas, clean_whispers)
                     else:
                         print("<---There is no case.--->")
-
+                elif "call -- zjy test 1" in sim_command.lower():
+                    commands = [
+                        "call -- load online event",
+                        "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters.",
+                        "Isabella Rodriguez",
+                        "call -- load online event",
+                        "Marine biologists at the Oceanic Institute of Marine Sciences made a groundbreaking discovery this week, uncovering a previously unknown species of bioluminescent jellyfish in the depths of the Pacific Ocean. The newly identified species, named Aurelia noctiluca, emits a mesmerizing blue-green glow, illuminating the dark ocean depths where it resides.",
+                        "Isabella Rodriguez",
+                        "run 2",
+                    ]
+                    for cmd in commands:
+                        command_queue.put(cmd)
                 elif (
                     "call -- load online event"  # 将事件广播给每个智能体。
                     in sim_command.lower()
