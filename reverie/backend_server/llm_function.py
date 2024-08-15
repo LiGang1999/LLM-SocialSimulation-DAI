@@ -8,10 +8,7 @@ import os
 import time
 from utils import openai_api_base, openai_api_key, override_gpt_param, override_model
 
-default_client = openai.Client(
-    api_key=openai_api_key,
-    base_url=openai_api_base,
-)
+default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
 
 default_llm_config = override_gpt_param
 
@@ -19,31 +16,30 @@ default_llm_config = override_gpt_param
 def unescape_markdown(text):
     # 使用正则表达式去除反斜杠前缀
     temp_text = text.replace("\\\\", "TEMP_DOUBLE_BACKSLASH")
-    unescaped_text = re.sub(
-        r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text
-    )
+    unescaped_text = re.sub(r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text)
 
     # 恢复原有的双反斜杠
     unescaped_text = unescaped_text.replace("TEMP_DOUBLE_BACKSLASH", "\\\\")
     return unescaped_text
 
+
 def extract_sections_with_content(md_content):
     # Regular expression to match markdown headers (e.g., # Header)
-    header_pattern = re.compile(r'^(#+)\s+(.*)')
+    header_pattern = re.compile(r"^(#+)\s+(.*)")
 
     # Dictionary to store the sections
     sections = {}
-    
+
     current_header = None
     current_content = []
-    
+
     for line in md_content.splitlines():
         header_match = header_pattern.match(line)
         if header_match:
             # If there's an ongoing section, save it before starting a new one
             if current_header:
-                sections[current_header] = '\n'.join(current_content).strip()
-            
+                sections[current_header] = "\n".join(current_content).strip()
+
             # Start a new section
             current_header = header_match.group(2)
             current_content = []
@@ -54,9 +50,10 @@ def extract_sections_with_content(md_content):
 
     # Save the last section
     if current_header:
-        sections[current_header] = '\n'.join(current_content).strip()
-    
+        sections[current_header] = "\n".join(current_content).strip()
+
     return sections
+
 
 def load_prompt_file(prompt_file, prompt_storage="prompt_templates"):
     cwd = os.getcwd()
@@ -67,7 +64,6 @@ def load_prompt_file(prompt_file, prompt_storage="prompt_templates"):
         system_prompt = unescape_markdown(sections.get("System Prompt", "").strip())
         user_prompt = unescape_markdown(sections.get("User Prompt", "").strip())
     return user_prompt, system_prompt
-
 
 
 def llm_request(
@@ -105,12 +101,8 @@ def llm_request(
     temperature = llm_config.get("temperature", 1.0)  # Default temperature
     max_tokens = llm_config.get("max_tokens", 150)  # Default max tokens
     top_p = llm_config.get("top_p", 1.0)  # Default top_p
-    frequency_penalty = llm_config.get(
-        "frequency_penalty", 0.0
-    )  # Default frequency penalty
-    presence_penalty = llm_config.get(
-        "presence_penalty", 0.0
-    )  # Default presence penalty
+    frequency_penalty = llm_config.get("frequency_penalty", 0.0)  # Default frequency penalty
+    presence_penalty = llm_config.get("presence_penalty", 0.0)  # Default presence penalty
     stop = llm_config.get("stop", None)  # Default stop sequence
     model = override_model if override_model else llm_config["engine"]
 
@@ -126,7 +118,7 @@ def llm_request(
                     {"role": "system", "content": sys_prompt},
                     {"role": "user", "content": usr_prompt},
                 ]
-                L.debug(f"Prompt:{str(messages)}")
+                # L.debug(f"Prompt:{str(messages)}")
                 response = default_client.chat.completions.create(
                     model=model,
                     messages=messages,
@@ -142,7 +134,7 @@ def llm_request(
                 # result = response["choices"][0]["message"]["content"]
             else:
                 # Standard completion mode
-                L.debug(f"Prompt:{str(sys_prompt + "\n" + usr_prompt)}")
+                # L.debug(f"Prompt:{str(sys_prompt + "\n" + usr_prompt)}")
                 response = default_client.completions.create(
                     model=model,
                     prompt=sys_prompt + "\n" + usr_prompt,
@@ -202,9 +194,7 @@ def types_match(actual, example):
     if isinstance(example, dict):
         if not isinstance(actual, dict):
             return False
-        return all(
-            k in actual and types_match(actual[k], v) for k, v in example.items()
-        )
+        return all(k in actual and types_match(actual[k], v) for k, v in example.items())
     elif isinstance(example, list):
         if not isinstance(actual, list):
             return False
@@ -252,9 +242,6 @@ def extract_largest_json(unstructured_string):
             continue
 
     return largest_json_str
-
-
-
 
 
 def llm_function(
@@ -333,6 +320,12 @@ def llm_function(
             if stop:
                 _llm_config["stop"] = stop
             kwargs = dict(bound_args.arguments)
+            if prompt_file:
+                L.debug(
+                    f"Sending LLM Request at {desc_func.__name__}. Arguments: {repr(kwargs)}; Prompt file: {prompt_file}"
+                )
+            else:
+                L.debug(f"Sending LLM Request at {desc_func.__name__}. Arguments: {repr(kwargs)}; ")
 
             usr_prompt = user_prompt.strip()
             sys_prompt = system_prompt.strip()
@@ -342,13 +335,7 @@ def llm_function(
                 sys_prompt, kwargs
             )
             result = llm_request(
-                usr_prompt,
-                sys_prompt,
-                _llm_config,
-                _validate_fn,
-                _cleanup_fn,
-                _failsafe_fn,
-                kwargs,
+                usr_prompt, sys_prompt, _llm_config, _validate_fn, _cleanup_fn, _failsafe_fn, kwargs
             )
             return result
 
