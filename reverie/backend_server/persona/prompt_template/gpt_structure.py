@@ -66,9 +66,7 @@ def unescape_markdown(text):
     """
     # 使用正则表达式去除反斜杠前缀
     temp_text = text.replace("\\\\", "TEMP_DOUBLE_BACKSLASH")
-    unescaped_text = re.sub(
-        r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text
-    )
+    unescaped_text = re.sub(r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text)
 
     # 恢复原有的双反斜杠
     unescaped_text = unescaped_text.replace("TEMP_DOUBLE_BACKSLASH", "\\\\")
@@ -145,9 +143,7 @@ Requirements:
                     stop=gpt_parameters["stop"],
                 )
                 curr_gpt_response = str(
-                    extract_first_json_dict(
-                        response.choices[0].message.content.strip()
-                    )["output"]
+                    extract_first_json_dict(response.choices[0].message.content.strip())["output"]
                 )
             else:
                 # Directly use completion API
@@ -169,9 +165,7 @@ Requirements:
             if func_validate:
                 if func_validate(curr_gpt_response, prompt=prompt):
                     return (
-                        func_clean_up(
-                            unescape_markdown(curr_gpt_response), prompt=prompt
-                        )
+                        func_clean_up(unescape_markdown(curr_gpt_response), prompt=prompt)
                         if func_clean_up
                         else unescape_markdown(curr_gpt_response)
                     )
@@ -296,7 +290,7 @@ def get_embedding(text, model="text-embedding-ada-002"):
     text = text.replace("\n", " ")
     if not text:
         text = "this is blank"
-    return client.embeddings.create(input=[text], model=model)["data"][0]["embedding"]
+    return client.embeddings.create(input=[text], model=model).data[0].embedding
 
 
 if __name__ == "__main__":

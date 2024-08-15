@@ -158,12 +158,13 @@ def llm_request(
                 # result = response["choices"][0]["text"]
 
             result = unescape_markdown(result)
+            L.debug(f"Response: {repr(result)}")
             if validate_fn(result, kwargs):
-                L.debug(f"Request successful: {repr(result)}")
+                L.debug(f"Request successful.")
                 return cleanup_fn(result, kwargs)
             else:
-                L.warning("Response validation failed, using failsafe result")
-                return failsafe_fn(result, kwargs)
+                L.warning("Response validation failed, retry scheduled")
+                continue
 
         except Exception as e:
             # Log the error
@@ -177,7 +178,7 @@ def llm_request(
                 L.error("Max retries exceeded. Request failed.")
                 raise e
 
-    return None
+    return failsafe_fn(result, kwargs)
 
 
 def insert_prompt_args(prompt: str, kwargs):
@@ -261,6 +262,7 @@ def llm_function(
     system_prompt: str = None,
     prompt_file: str = None,
     is_chat: bool = False,
+    stop: str = "",
     llm_config={},
     cleanup_fn=None,
     failsafe_fn=None,
@@ -328,6 +330,8 @@ def llm_function(
             _llm_config.update(llm_config)
             if is_chat:
                 _llm_config["chat"] = True
+            if stop:
+                _llm_config["stop"] = stop
             kwargs = dict(bound_args.arguments)
 
             usr_prompt = user_prompt.strip()
