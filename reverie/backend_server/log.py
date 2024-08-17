@@ -1,6 +1,7 @@
 import logging
 import colorlog
 import os
+import io
 
 
 def get_log_level(default="DEBUG"):
@@ -17,7 +18,9 @@ def is_default_enabled():
 
 
 # Create a handler
-_handler = colorlog.StreamHandler()
+_color_handler = colorlog.StreamHandler()
+log_stream = io.StringIO()
+_stream_handler = logging.StreamHandler(log_stream)
 
 # Define a formatter with colors for different log levels
 _formatter = colorlog.ColoredFormatter(
@@ -33,7 +36,7 @@ _formatter = colorlog.ColoredFormatter(
 )
 
 # Set the formatter for the handler
-_handler.setFormatter(_formatter)
+_color_handler.setFormatter(_formatter)
 
 _root_logger = logging.getLogger()
 if _root_logger.hasHandlers():
@@ -41,7 +44,8 @@ if _root_logger.hasHandlers():
 
 # Create a logger instance and set its level
 _logger = colorlog.getLogger("GLOBAL")
-_logger.addHandler(_handler)
+_logger.addHandler(_color_handler)
+_logger.addHandler(_stream_handler)
 _logger.setLevel(get_log_level())
 _logger.propagate = False
 

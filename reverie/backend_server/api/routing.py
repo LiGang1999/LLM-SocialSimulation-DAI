@@ -15,18 +15,13 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import re_path
 import consumers
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 
 websocket_urlpatterns = [
-    path("ws/log", consumers.LogConsumer),
+    re_path(
+        r"ws/log/?$", consumers.LogConsumer.as_asgi()
+    )  # Use regex to ensure proper URL matching
 ]
-
-application = ProtocolTypeRouter(
-    {
-        # (http->django views is added by default)
-        "websocket": AuthMiddlewareStack(URLRouter(websocket_urlpatterns)),
-    }
-)

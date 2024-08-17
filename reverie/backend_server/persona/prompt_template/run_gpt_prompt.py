@@ -38,9 +38,34 @@ def get_random_alphanumeric(i=6, j=6):
 ##############################################################################
 # CHAPTER 1: Run GPT Prompt
 ##############################################################################
-
-
 def run_gpt_prompt_wake_up_hour(persona, test_input=None, verbose=False):
+    """
+    Given the persona, returns an integer that indicates the hour when the
+    persona wakes up.
+
+    INPUT:
+      persona: The Persona class instance
+    OUTPUT:
+      integer for the wake up hour.
+    """
+    persona_iss = persona.scratch.get_str_iss()
+    lifestyle = persona.scratch.get_str_lifestyle()
+    firstname = persona.scratch.get_str_firstname()
+
+    @llm_function(is_chat=True, prompt_file="wake_up_hour.md")
+    def get_wake_up_hour(persona_iss, lifestyle, firstname):
+        # LLM function wrapper
+        return {"time": "06:30"}
+
+    try:
+        time_str = get_wake_up_hour(persona_iss, lifestyle, firstname)["time"]
+        hour, _ = time_str.split(":")
+        return [int(hour)]
+    except:
+        return [6]
+
+
+def run_gpt_prompt_wake_up_hour_old(persona, test_input=None, verbose=False):
     """
     Given the persona, returns an integer that indicates the hour when the
     persona wakes up.
@@ -335,6 +360,50 @@ def run_gpt_prompt_generate_hourly_schedule(
     test_input=None,
     verbose=False,
 ):
+    intended_schedule = ""
+    for count, i in enumerate(persona.scratch.daily_req):
+        intended_schedule += f"{str(count+1)}) {i}, "
+    intended_schedule = intended_schedule[:-2]
+
+    prior_schedule = ""
+    if p_f_ds_hourly_org:
+        prior_schedule = "\n"
+        for count, i in enumerate(p_f_ds_hourly_org):
+            prior_schedule += f"["
+            prior_schedule += f" {persona.scratch.get_str_curr_date_str()} --"
+            prior_schedule += f" {hour_str[count]}] Activity:"
+            prior_schedule += f" {persona.scratch.get_str_firstname()}"
+            prior_schedule += f" is {i}\n"
+
+    @llm_function(
+        is_chat=True, prompt_file="generate_hourly_schedule.md", failsafe={"activity": "asleep"}
+    )
+    def llm_generate_hourly_schedule(
+        prior_sched, current_hour, intended_schedule, persona_iss, persona_name
+    ):
+
+        # example return value
+        return {"activity": "doing something"}
+
+    output = llm_generate_hourly_schedule(
+        prior_schedule,
+        curr_hour_str,
+        intended_schedule,
+        persona.scratch.get_str_iss(),
+        persona.scratch.get_str_firstname(),
+    )
+    return [output["activity"]]
+
+
+def run_gpt_prompt_generate_hourly_schedule_old(
+    persona,
+    curr_hour_str,
+    p_f_ds_hourly_org,
+    hour_str,
+    intermission2=None,
+    test_input=None,
+    verbose=False,
+):
     def create_prompt_input(
         persona, curr_hour_str, p_f_ds_hourly_org, hour_str, intermission2=None, test_input=None
     ):
@@ -436,13 +505,13 @@ def run_gpt_prompt_generate_hourly_schedule(
 
     gpt_param = {
         "engine": "text-davinci-003",
-        "max_tokens": 50,
+        "max_tokens": 100,
         "temperature": 0.5,
         "top_p": 1,
         "stream": False,
         "frequency_penalty": 0,
         "presence_penalty": 0,
-        "stop": ["\n"],
+        "stop": "---",
     }
     prompt_template = "persona/prompt_template/v2/generate_hourly_schedule_v2.txt"
     prompt_input = create_prompt_input(
@@ -542,11 +611,104 @@ def run_gpt_prompt_generate_daily_schedule(
 
 
 def run_gpt_prompt_task_decomp(persona, task, duration, test_input=None, verbose=False):
+    curr_f_org_index = persona.scratch.get_f_daily_schedule_hourly_org_index()
+    all_indices = []
+    all_indices += [curr_f_org_index]
+    if curr_f_org_index + 1 <= len(persona.scratch.f_daily_schedule_hourly_org):
+        all_indices += [curr_f_org_index + 1]
+    if curr_f_org_index + 2 <= len(persona.scratch.f_daily_schedule_hourly_org):
+        all_indices += [curr_f_org_index + 2]
+
+    curr_time_range = ""
+
+    summ_str = f'Today is {persona.scratch.curr_time.strftime("%B %d, %Y")}. '
+    summ_str += f"From "
+    for index in all_indices:
+        if index < len(persona.scratch.f_daily_schedule_hourly_org):
+            start_min = 0
+            for i in range(index):
+                start_min += persona.scratch.f_daily_schedule_hourly_org[i][1]
+            end_min = start_min + persona.scratch.f_daily_schedule_hourly_org[index][1]
+            start_time = datetime.datetime.strptime("00:00:00", "%H:%M:%S") + datetime.timedelta(
+                minutes=start_min
+            )
+            end_time = datetime.datetime.strptime("00:00:00", "%H:%M:%S") + datetime.timedelta(
+                minutes=end_min
+            )
+            start_time_str = start_time.strftime("%H:%M%p")
+            end_time_str = end_time.strftime("%H:%M%p")
+            summ_str += f"{start_time_str} ~ {end_time_str}, {persona.name} is planning on {persona.scratch.f_daily_schedule_hourly_org[index][0]}, "
+            if curr_f_org_index + 1 == index:
+                curr_time_range = f"{start_time_str} ~ {end_time_str}"
+    summ_str = summ_str[:-2] + "."
+
+    @llm_function(is_chat=True, prompt_file="task_decomp.md")
+    def llm_task_decomp(
+        commonset, surrounding_sched, first_name, curr_action, curr_time_range, cur_action_dur
+    ):
+        # TODO where to put the examples?
+        return [
+            {
+                "subtask": "reviewing the kindergarten curriculum standards.",
+                "duration": 15,
+                "remaining": 165,
+            },
+            {
+                "subtask": "brainstorming ideas for the lesson.",
+                "duration": 30,
+                "remaining": 135,
+            },
+            {"subtask": "creating the lesson plan.", "duration": 30, "remaining": 105},
+            {"subtask": "creating materials for the lesson.", "duration": 30, "remaining": 75},
+            {"subtask": "taking a break.", "duration": 15, "remaining": 60},
+            {"subtask": "reviewing the lesson plan.", "duration": 30, "remaining": 30},
+            {
+                "subtask": "making final changes to the lesson plan.",
+                "duration": 15,
+                "remaining": 15,
+            },
+            {"subtask": "printing the lesson plan.", "duration": 10, "remaining": 5},
+            {"subtask": "putting the lesson plan in her bag.", "duration": 5, "remaining": 0},
+        ]
+
+    output = llm_task_decomp(
+        persona.scratch.get_str_iss(),
+        summ_str,
+        persona.scratch.get_str_firstname(),
+        task,
+        curr_time_range,
+        duration,
+    )
+
+    output = [(item["subtask"], item["duration"]) for item in output]
+    fin_output = []
+    time_sum = 0
+    for i_task, i_duration in output:
+        time_sum += i_duration
+        if time_sum <= duration:
+            fin_output += [[i_task, i_duration]]
+        else:
+            break
+    ftime_sum = 0
+    for fi_task, fi_duration in fin_output:
+        ftime_sum += fi_duration
+
+    fin_output[-1][1] += duration - ftime_sum
+    output = fin_output
+
+    task_decomp = output
+    ret = []
+    for decomp_task, duration in task_decomp:
+        ret += [[f"{task} ({decomp_task})", duration]]
+    return [ret]
+
+
+def run_gpt_prompt_task_decomp_old(persona, task, duration, test_input=None, verbose=False):
     def create_prompt_input(persona, task, duration, test_input=None):
         """
         Today is Saturday June 25. From 00:00 ~ 06:00am, Maeve is
         planning on sleeping, 06:00 ~ 07:00am, Maeve is
-        planning on waking up and doing her morning routine,
+        planning on waking up and doing her morning routinse,
         and from 07:00am ~08:00am, Maeve is planning on having breakfast.
         """
 

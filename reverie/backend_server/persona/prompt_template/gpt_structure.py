@@ -131,6 +131,7 @@ Requirements:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt},
                 ]
+                L.debug(f"SYSTEM_PROMPT:{repr(system_prompt)};USER_PROMPT:{repr(prompt)}")
                 response = client.chat.completions.create(
                     model=model,
                     messages=messages,
@@ -147,6 +148,7 @@ Requirements:
                 )
             else:
                 # Directly use completion API
+                L.debug(f"USER_PROMPT:{repr(prompt)}")
                 response = client.completions.create(
                     model=model,
                     prompt=prompt,
@@ -160,7 +162,7 @@ Requirements:
                 )
                 curr_gpt_response = response.choices[0].text.strip()
 
-            L.debug(f"GPT_RESPONSE:\n{curr_gpt_response}")
+            L.debug(f"GPT_RESPONSE:{repr(curr_gpt_response)}")
 
             if func_validate:
                 if func_validate(curr_gpt_response, prompt=prompt):

@@ -12,6 +12,15 @@ default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
 
 default_llm_config = override_gpt_param
 
+print_raw_log = True
+
+
+def llm_logging_repr(object):
+    if print_raw_log:
+        return str(object)
+    else:
+        return repr(object)
+
 
 def unescape_markdown(text):
     # 使用正则表达式去除反斜杠前缀
@@ -38,7 +47,7 @@ def extract_sections_with_content(md_content):
         if header_match:
             # If there's an ongoing section, save it before starting a new one
             if current_header:
-                sections[current_header] = "\n".join(current_content).strip()
+                sections[current_header.lower().strip()] = "\n".join(current_content).strip()
 
             # Start a new section
             current_header = header_match.group(2)
@@ -50,7 +59,7 @@ def extract_sections_with_content(md_content):
 
     # Save the last section
     if current_header:
-        sections[current_header] = "\n".join(current_content).strip()
+        sections[current_header.lower().strip()] = "\n".join(current_content).strip()
 
     return sections
 
@@ -61,8 +70,8 @@ def load_prompt_file(prompt_file, prompt_storage="prompt_templates"):
     with open(fullpath, "r") as f:
         file_content = f.read()
         sections = extract_sections_with_content(file_content)
-        system_prompt = unescape_markdown(sections.get("System Prompt", "").strip())
-        user_prompt = unescape_markdown(sections.get("User Prompt", "").strip())
+        system_prompt = unescape_markdown(sections.get("system prompt").strip())
+        user_prompt = unescape_markdown(sections.get("user prompt").strip())
     return user_prompt, system_prompt
 
 
@@ -74,6 +83,7 @@ def llm_request(
     cleanup_fn,
     failsafe_fn,
     kwargs,
+    func_name="",
     max_retries=3,
     retry_delay=0.5,
 ):
@@ -107,6 +117,9 @@ def llm_request(
     model = override_model if override_model else llm_config["engine"]
 
     attempt = 0
+    L.debug(
+        f"LLM REQUEST: {func_name}; KIND: {'chat' if llm_config['chat'] else 'completion'}; USER_PROMPT:{llm_logging_repr(usr_prompt)}; SYSTEM_PROMPT:{llm_logging_repr(sys_prompt)}"
+    )
     while attempt < max_retries:
         try:
             L.debug(
@@ -150,12 +163,12 @@ def llm_request(
                 # result = response["choices"][0]["text"]
 
             result = unescape_markdown(result)
-            L.debug(f"Response: {repr(result)}")
+            L.debug(f"LLM RESPONSE: {llm_logging_repr(result)}")
             if validate_fn(result, kwargs):
-                L.debug(f"Request successful.")
+                L.debug(f"LLM Request succeeded.")
                 return cleanup_fn(result, kwargs)
             else:
-                L.warning("Response validation failed, retry scheduled")
+                L.warning("LLM Response validation failed, retry scheduled")
                 continue
 
         except Exception as e:
@@ -178,12 +191,18 @@ def insert_prompt_args(prompt: str, kwargs):
     return formatted_prompt
 
 
-def response_format_prompt(example_retval):
+def example_output_format(example_kwargs: dict, example_retval):
+    prompt = f"""
+Here is the example user input and the answer:
+
+{'\n'.join([ f"{key}: {value}" for key, value in example_kwargs.items()])}"""
+    # TODO shoud we include the example inputs and outputs here?
     prompt = f"""\n
-You should reply the answer in the following json format:
+
+You should reply the answer in the following json format (the contents are for reference only):
 {json.dumps(example_retval, indent=4)}
 
-You should not reply anything else. Just reply the json format answer.
+You should not reply anything else. Just reply the json answer.
 """
 
     return prompt
@@ -253,6 +272,7 @@ def llm_function(
     llm_config={},
     cleanup_fn=None,
     failsafe_fn=None,
+    failsafe=None,
     validate_fn=None,
 ):
     # load prompt files if necessary
@@ -301,7 +321,10 @@ def llm_function(
                 return False
 
         def default_failsafe_fn(result, kwargs):
-            return example_result
+            if failsafe:
+                return failsafe
+            else:
+                return example_result
 
         def default_cleanup_fn(result, kwargs):
             return json.loads(extract_largest_json(result))
@@ -314,28 +337,32 @@ def llm_function(
         def wrapper(*args, _llm_config=default_llm_config, **kwargs):
             bound_args = signature.bind(*args, **kwargs)
             bound_args.apply_defaults()
+            bound_example_args = signature.bind(*example_args)
+            bound_example_args.apply_defaults()
+            example_kwargs = dict(bound_example_args.arguments)
             _llm_config.update(llm_config)
             if is_chat:
                 _llm_config["chat"] = True
             if stop:
                 _llm_config["stop"] = stop
             kwargs = dict(bound_args.arguments)
-            if prompt_file:
-                L.debug(
-                    f"Sending LLM Request at {desc_func.__name__}. Arguments: {repr(kwargs)}; Prompt file: {prompt_file}"
-                )
-            else:
-                L.debug(f"Sending LLM Request at {desc_func.__name__}. Arguments: {repr(kwargs)}; ")
 
             usr_prompt = user_prompt.strip()
             sys_prompt = system_prompt.strip()
 
             usr_prompt = insert_prompt_args(usr_prompt, kwargs)
-            sys_prompt = response_format_prompt(example_result) + insert_prompt_args(
-                sys_prompt, kwargs
+            sys_prompt = insert_prompt_args(sys_prompt, kwargs) + example_output_format(
+                example_kwargs, example_result
             )
             result = llm_request(
-                usr_prompt, sys_prompt, _llm_config, _validate_fn, _cleanup_fn, _failsafe_fn, kwargs
+                usr_prompt,
+                sys_prompt,
+                _llm_config,
+                _validate_fn,
+                _cleanup_fn,
+                _failsafe_fn,
+                kwargs,
+                desc_func.__name__,
             )
             return result
 

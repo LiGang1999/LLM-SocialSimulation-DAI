@@ -1,68 +1,40 @@
 # consumers.py
 import json
-from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
-from asgiref.sync import async_to_sync
+from channels.generic.websocket import AsyncWebsocketConsumer
 import asyncio
-import subprocess
+import io
+from log import L, log_stream
 
 
 class LogConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = "console_log"
-        print("connecting..")
+        L.info("Websockets connecting...")
         await self.accept()
-        # self.watch_log_and_send()
-        # 启动一个进程来监听日志输出，并将其发送到 WebSocket 连接
-        # async_to_sync(self.channel_layer.group_add)(
-        #     self.room_name,
-        #     self.channel_name
-        # )
-        print("connected")
-        self.proc = await asyncio.create_subprocess_exec(
-            "tail", "-f", "stdout.log", stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        await self.watch_log_and_send()
-        # print("watch log and send")
-        # self.proc = subprocess.Popen(['tail', '-f', 'stdout.log'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # while True:
-        #     line = self.proc.stdout.readline().decode('utf-8')
-        #     print("line: ", line)
-        #     if not line:
-        #         break
-        #     self.send(text_data=json.dumps({'message': line}))
-        # async_to_sync(self.channel_layer.group_send)(
-        #     self.room_group_name,
-        #     {
-        #         'type': 'watch_log_and_send',
-        #         'message': none
-        #     }
-        # )
-        # self.task = asyncio.create_task(self.watch_log_and_send())
-        # while True:
-        #     a = 2 + 8
-        # self.send(text_data=json.dumps({"text": "Hey, slow it down"}, ensure_ascii=False))
 
-    async def watch_log_and_send(self):
-        print("watch log and send")
-        # self.proc = subprocess.Popen(['tail', '-f', 'stdout.log'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        while True:
-            # line = self.proc.stdout.readline().decode('utf-8')
-            line = await self.proc.stdout.readline()
-            # print("line: ", line)
-            if not line:
-                break
-            await self.send(text_data=json.dumps({"message": line.decode("utf-8")}))
-            # print("send success")
+        L.info("Websockets connected")
+
+        try:
+            last_position = 0  # Initialize to track the last read position in the log_stream
+
+            while True:
+                # Get the current position in the stream and check if there's new content
+                current_position = log_stream.tell()
+
+                if current_position > last_position:
+                    log_stream.seek(last_position)
+                    new_content = log_stream.read()
+                    last_position = log_stream.tell()
+
+                    # Send the new content to the WebSocket client
+                    await self.send(text_data=new_content)
+
+                await asyncio.sleep(0.5)  # Small sleep to prevent a tight loop
+
+        except asyncio.CancelledError:
+            L.info("Websockets disconnected due to cancelled task.")
+        except Exception as e:
+            L.error(f"Error in Websockets log streaming: {e}")
 
     async def disconnect(self, close_code):
-        pass
-        # async_to_sync(self.channel_layer.group_discard)(
-        #     self.room_group_name,
-        #     self.channel_name
-        # )
-
-    # async def send_message(self, event):
-    #     print("send_message: ", event["message"])
-    #     await self.send(text_data=json.dumps({
-    #         "message": event["message"]
-    #     }))
+        L.info(f"Websockets disconnected with code: {close_code}")

@@ -69,7 +69,7 @@
 
 	// <timer_max> determines how frequently our update function will query the 
 	// frontend server. If it's higher, we wait longer cycles. 
-	let timer_max = 0;
+	let timer_max = 0.5;
 	let timer = timer_max;
 
 	// <phase> -- there are three phases: "process," "update," and "execute."
@@ -331,27 +331,39 @@
 			// We do this by continuously asking the backend server if it is ready. 
 			// The backend server is ready when it returns a json that has a key-val
 			// pair with "<move>": true.
-			// Note that we do not want to overburden the backend too much by 
+			// Note that we do not want to overburden the backend too much by s
 			// over-querying; so, we have a timer set so we only query it once every
 			// timer_max cycles. 
-			if (timer <= 0) {
+
+			// Function to send an update request to the backend
+			function sendUpdateRequest() {
 				var update_xobj = new XMLHttpRequest();
 				update_xobj.overrideMimeType("application/json");
 				update_xobj.open('POST', "{% url 'update_environment' %}", true);
+		
 				update_xobj.addEventListener("load", function () {
 					if (this.readyState === 4) {
 						if (update_xobj.status === 200) {
-							if (JSON.parse(update_xobj.responseText)["<step>"] == step) {
-								execute_movement = JSON.parse(update_xobj.responseText)
+							var response = JSON.parse(update_xobj.responseText);
+							if (response["<step>"] == step) {
+								execute_movement = response;
 								phase = "execute";
+							} else {
+								// Retry after the specified delay if the backend is not ready
+								setTimeout(sendUpdateRequest, timer_max * 1000); // Convert timer_max to milliseconds
 							}
-							timer = timer_max;
+						} else {
+							// Retry after the specified delay if the request fails
+							setTimeout(sendUpdateRequest, timer_max * 1000); // Convert timer_max to milliseconds
 						}
 					}
 				});
+		
 				update_xobj.send(JSON.stringify({ "step": step, "sim_code": sim_code }));
 			}
-			timer = timer - 1;
+		
+			// Start the process by sending the first request
+			sendUpdateRequest();
 		}
 
 		else {

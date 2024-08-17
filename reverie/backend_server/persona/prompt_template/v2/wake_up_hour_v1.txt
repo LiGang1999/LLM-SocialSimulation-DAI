@@ -3,7 +3,7 @@ wake_up_hour_v1.txt
 Variables: 
 !<INPUT 0>! -- Identity Stable Set
 !<INPUT 1>! -- Lifestyle
-!<INPUT 2>! -- Persona first names
+!<INPUT 2>! -- Persona first names  
 
 <commentblockmarker>###</commentblockmarker>
 !<INPUT 0>!

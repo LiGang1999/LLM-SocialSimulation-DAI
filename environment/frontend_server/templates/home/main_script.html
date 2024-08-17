@@ -117,8 +117,23 @@
 
 	// <timer_max> determines how frequently our update function will query the 
 	// frontend server. If it's higher, we wait longer cycles. 
-	let timer_max = 0;
+	let timer_max = 5;
 	let timer = timer_max;
+
+	function decreaseTimer() {
+		// Convert interval to milliseconds (e.g., decrease every 100ms)
+		let interval = 100;
+		setInterval(() => {
+			if (timer > 0) {
+				timer -= 1;  // Decrease timer by the interval in seconds
+				// Ensure timer does not go below 0
+				if (timer < 0) timer = 0;
+			}
+		}, interval);
+	}
+	
+	// Start the timer decrease
+	decreaseTimer();
 
 	// <phase> -- there are three phases: "process," "update," and "execute."
 	let phase = "update"; // or "update" or "execute"
@@ -411,7 +426,6 @@
 			// to wait until the backend determines what the personas will do next. 
 			phase = "update";
 		}
-
 		else if (phase == "update") {
 			// Update is where we * wait * for the backend server to finish 
 			// computing about what the personas will do next given their current 
@@ -439,7 +453,6 @@
 				});
 				update_xobj.send(JSON.stringify({ "step": step, "sim_code": sim_code }));
 			}
-			timer = timer - 1;
 		}
 
 		else {
