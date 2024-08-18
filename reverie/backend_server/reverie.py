@@ -300,7 +300,9 @@ class ReverieServer:
                                     s_mem[world][i_det["sector"]] = dict()
                             if i_det["arena"] != "":
                                 if i_det["arena"] not in s_mem[world][i_det["sector"]]:
-                                    s_mem[world][i_det["sector"]][i_det["arena"]] = list()
+                                    s_mem[world][i_det["sector"]][
+                                        i_det["arena"]
+                                    ] = list()
                             if i_det["game_object"] != "":
                                 if (
                                     i_det["game_object"]
@@ -388,11 +390,16 @@ class ReverieServer:
                             curr_tile = self.personas_tile[persona_name]
                             # <new_tile> is the tile that the persona will move to right now,
                             # during this cycle.
-                            new_tile = (new_env[persona_name]["x"], new_env[persona_name]["y"])
+                            new_tile = (
+                                new_env[persona_name]["x"],
+                                new_env[persona_name]["y"],
+                            )
 
                             # We actually move the persona on the backend tile map here.
                             self.personas_tile[persona_name] = new_tile
-                            self.maze.remove_subject_events_from_tile(persona.name, curr_tile)
+                            self.maze.remove_subject_events_from_tile(
+                                persona.name, curr_tile
+                            )
                             self.maze.add_event_from_tile(
                                 persona.scratch.get_curr_event_and_desc(), new_tile
                             )
@@ -402,11 +409,12 @@ class ReverieServer:
                             if not persona.scratch.planned_path:
                                 # We add that new object action event to the backend tile map.
                                 # At its creation, it is stored in the persona's backend.
-                                game_obj_cleanup[persona.scratch.get_curr_obj_event_and_desc()] = (
-                                    new_tile
-                                )
+                                game_obj_cleanup[
+                                    persona.scratch.get_curr_obj_event_and_desc()
+                                ] = new_tile
                                 self.maze.add_event_from_tile(
-                                    persona.scratch.get_curr_obj_event_and_desc(), new_tile
+                                    persona.scratch.get_curr_obj_event_and_desc(),
+                                    new_tile,
                                 )
                                 # We also need to remove the temporary blank action for the
                                 # object that is currently taking the action.
@@ -430,17 +438,25 @@ class ReverieServer:
                             #   writing her next novel (editing her novel)
                             #   @ double studio:double studio:common room:sofa
                             # next_tile, pronunciatio, description = persona.move(
-                            next_tile, pronunciatio, description = persona.single_workflow(
-                                self.maze,
-                                self.personas,
-                                self.personas_tile[persona_name],
-                                self.curr_time,
+                            next_tile, pronunciatio, description = (
+                                persona.single_workflow(
+                                    self.maze,
+                                    self.personas,
+                                    self.personas_tile[persona_name],
+                                    self.curr_time,
+                                )
                             )
                             movements["persona"][persona_name] = {}
                             movements["persona"][persona_name]["movement"] = next_tile
-                            movements["persona"][persona_name]["pronunciatio"] = pronunciatio
-                            movements["persona"][persona_name]["description"] = description
-                            movements["persona"][persona_name]["chat"] = persona.scratch.chat
+                            movements["persona"][persona_name][
+                                "pronunciatio"
+                            ] = pronunciatio
+                            movements["persona"][persona_name][
+                                "description"
+                            ] = description
+                            movements["persona"][persona_name][
+                                "chat"
+                            ] = persona.scratch.chat
 
                         # Include the meta information about the current stage in the
                         # movements dictionary.
@@ -488,7 +504,9 @@ class ReverieServer:
                 n += 1
                 self.step += 1
                 self.curr_time += datetime.timedelta(seconds=self.sec_per_step)
-                print("❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ next step ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤")
+                print(
+                    "❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ next step ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤"
+                )
                 int_counter -= 1
 
             # Sleep so we don't burn our machines.
@@ -566,7 +584,9 @@ class ReverieServer:
                     # Example: print all persona schedule
                     for persona_name, persona in self.personas.items():
                         ret_str += f"{persona_name}\n"
-                        ret_str += f"{persona.scratch.get_str_daily_schedule_summary()}\n"
+                        ret_str += (
+                            f"{persona.scratch.get_str_daily_schedule_summary()}\n"
+                        )
                         ret_str += f"---\n"
 
                 elif "print hourly org persona schedule" in sim_command.lower():
@@ -582,8 +602,10 @@ class ReverieServer:
                     # Print the x y tile coordinate of the persona specified in the
                     # prompt.
                     # Ex: print persona current tile Isabella Rodriguez
-                    ret_str += str(
-                        self.personas[" ".join(sim_command.split()[-2:])].scratch.curr_tile
+                    persona = self.personas[" ".join(sim_command.split()[-2:])]
+                    ret_str += str(persona.scratch.curr_tile)
+                    ret_str += "\n" + repr(
+                        self.maze.access_tile(persona.scratch.curr_tile)["sector"]
                     )
 
                 elif "print persona chatting with buffer" in sim_command.lower():
@@ -603,7 +625,9 @@ class ReverieServer:
                         " ".join(sim_command.split()[-2:])
                     ].a_mem.get_str_seq_events()
 
-                elif "print persona associative memory (thought)" in sim_command.lower():
+                elif (
+                    "print persona associative memory (thought)" in sim_command.lower()
+                ):
                     # Print the associative memory (thought) of the persona specified in
                     # the prompt
                     # Ex: print persona associative memory (thought) Isabella Rodriguez
@@ -660,11 +684,15 @@ class ReverieServer:
 
                 elif "call -- load history" in sim_command.lower():
                     curr_file = (
-                        maze_assets_loc + "/" + sim_command[len("call -- load history") :].strip()
+                        maze_assets_loc
+                        + "/"
+                        + sim_command[len("call -- load history") :].strip()
                     )
                     # call -- load history the_ville/agent_history_init_n3.csv #必须要在run之后执行
 
-                    rows = read_file_to_list(curr_file, header=True, strip_trail=True)[1]
+                    rows = read_file_to_list(curr_file, header=True, strip_trail=True)[
+                        1
+                    ]
                     clean_whispers = []
                     for row in rows:
                         agent_name = row[0].strip()
@@ -698,7 +726,9 @@ class ReverieServer:
                         # self.maze.content = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
                         # self.maze.policy = run(args, case=self.maze.content)
                         self.maze.content = "Marine biologists at the Oceanic Institute of Marine Sciences made a groundbreaking discovery this week, uncovering a previously unknown species of bioluminescent jellyfish in the depths of the Pacific Ocean. The newly identified species, named Aurelia noctiluca, emits a mesmerizing blue-green glow, illuminating the dark ocean depths where it resides."
-                        self.maze.policy = self.maze.institution.run(case=self.maze.content)
+                        self.maze.policy = self.maze.institution.run(
+                            case=self.maze.content
+                        )
                     else:
                         # run(args, case=None)#
                         self.maze.institution.run(case=None)  #
@@ -714,13 +744,19 @@ class ReverieServer:
                     print(texts)
                     print("################################")
 
-                elif "call -- load case" in sim_command.lower():  # 将事件广播给每个智能体。
+                elif (
+                    "call -- load case" in sim_command.lower()
+                ):  # 将事件广播给每个智能体。
                     curr_file = (
-                        maze_assets_loc + "/" + sim_command[len("call -- load case") :].strip()
+                        maze_assets_loc
+                        + "/"
+                        + sim_command[len("call -- load case") :].strip()
                     )
                     # call -- load case the_ville/agent_history_init_n3.csv
 
-                    rows = read_file_to_list(curr_file, header=True, strip_trail=True)[1]
+                    rows = read_file_to_list(curr_file, header=True, strip_trail=True)[
+                        1
+                    ]
                     clean_whispers = []
                     # Your_content = input("Input your content: ")
                     print("Input your content: ")
@@ -740,7 +776,9 @@ class ReverieServer:
                     load_history_via_whisper(self.personas, clean_whispers)
                     self.tag = True  # case
 
-                elif "call -- release policy" in sim_command.lower():  # 将政策发布到所有智能体。
+                elif (
+                    "call -- release policy" in sim_command.lower()
+                ):  # 将政策发布到所有智能体。
                     if self.tag == True:
                         curr_file = (
                             maze_assets_loc
@@ -749,7 +787,9 @@ class ReverieServer:
                         )
                         # call -- release policy the_ville/agent_history_init_n3.csv
 
-                        rows = read_file_to_list(curr_file, header=True, strip_trail=True)[1]
+                        rows = read_file_to_list(
+                            curr_file, header=True, strip_trail=True
+                        )[1]
                         clean_whispers = []
                         policy = "The policy is as follows: " + self.maze.policy[0]
                         for row in rows:
@@ -775,7 +815,9 @@ class ReverieServer:
                     ]
                     for cmd in commands:
                         command_queue.put(cmd)
-                elif "call -- load online event" in sim_command.lower():  # 将事件广播给每个智能体。
+                elif (
+                    "call -- load online event" in sim_command.lower()
+                ):  # 将事件广播给每个智能体。
                     # tyn
                     print("Input your content: ")
                     # truth = input("Input your content: ")

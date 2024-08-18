@@ -25,7 +25,9 @@ def llm_logging_repr(object):
 def unescape_markdown(text):
     # 使用正则表达式去除反斜杠前缀
     temp_text = text.replace("\\\\", "TEMP_DOUBLE_BACKSLASH")
-    unescaped_text = re.sub(r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text)
+    unescaped_text = re.sub(
+        r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text
+    )
 
     # 恢复原有的双反斜杠
     unescaped_text = unescaped_text.replace("TEMP_DOUBLE_BACKSLASH", "\\\\")
@@ -47,7 +49,9 @@ def extract_sections_with_content(md_content):
         if header_match:
             # If there's an ongoing section, save it before starting a new one
             if current_header:
-                sections[current_header.lower().strip()] = "\n".join(current_content).strip()
+                sections[current_header.lower().strip()] = "\n".join(
+                    current_content
+                ).strip()
 
             # Start a new section
             current_header = header_match.group(2)
@@ -111,8 +115,12 @@ def llm_request(
     temperature = llm_config.get("temperature", 1.0)  # Default temperature
     max_tokens = llm_config.get("max_tokens", 150)  # Default max tokens
     top_p = llm_config.get("top_p", 1.0)  # Default top_p
-    frequency_penalty = llm_config.get("frequency_penalty", 0.0)  # Default frequency penalty
-    presence_penalty = llm_config.get("presence_penalty", 0.0)  # Default presence penalty
+    frequency_penalty = llm_config.get(
+        "frequency_penalty", 0.0
+    )  # Default frequency penalty
+    presence_penalty = llm_config.get(
+        "presence_penalty", 0.0
+    )  # Default presence penalty
     stop = llm_config.get("stop", None)  # Default stop sequence
     model = override_model if override_model else llm_config["engine"]
 
@@ -199,10 +207,11 @@ Here is the example user input and the answer:
     # TODO shoud we include the example inputs and outputs here?
     prompt = f"""\n
 
-You should reply the answer in the following json format (the contents are for reference only):
+You MUST reply the answer in the following json format (the contents are for reference only):
 {json.dumps(example_retval, indent=4)}
 
-You should not reply anything else. Just reply the json answer.
+You should not give any explanation unless it is required in your answer.
+You MUST not reply anything else. Just reply the json answer.
 """
 
     return prompt
@@ -213,7 +222,9 @@ def types_match(actual, example):
     if isinstance(example, dict):
         if not isinstance(actual, dict):
             return False
-        return all(k in actual and types_match(actual[k], v) for k, v in example.items())
+        return all(
+            k in actual and types_match(actual[k], v) for k, v in example.items()
+        )
     elif isinstance(example, list):
         if not isinstance(actual, list):
             return False

@@ -15,6 +15,7 @@ from utils import *
 from global_methods import *
 
 from persona.memory_structures.memory import *
+from log import L
 
 
 class MemoryTree(Memory):
