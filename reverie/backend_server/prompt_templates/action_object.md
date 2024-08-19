@@ -14,28 +14,28 @@ Here are some examples (you should refer to its content rather than format):
 
 ---
 Current activity: sleep in bed
-Objects available: {bed, easel, closet, painting}
+Objects available: {{bed, easel, closet, painting}}
 Pick ONE most relevant object from the objects available: bed
 ---
 Current activity: painting
-Objects available: {easel, closet, sink, microwave}
+Objects available: {{easel, closet, sink, microwave}}
 Pick ONE most relevant object from the objects available: easel
 ---
 Current activity: cooking
-Objects available: {stove, sink, fridge, counter}
+Objects available: {{stove, sink, fridge, counter}}
 Pick ONE most relevant object from the objects available: stove
 ---
 Current activity: watch TV
-Objects available: {couch, TV, remote, coffee table}
+Objects available: {{couch, TV, remote, coffee table}}
 Pick ONE most relevant object from the objects available: TV
 ---
 Current activity: study
-Objects available: {desk, computer, chair, bookshelf}
+Objects available: {{desk, computer, chair, bookshelf}}
 Pick ONE most relevant object from the objects available: desk
 ---
 
 ## user prompt
 
 Current activity: {action}
-Objects avaliable: {objects}
+Objects avaliable: {{ {objects} }}
 Pick ONE most relevant object from the objects available.
