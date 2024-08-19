@@ -13,14 +13,17 @@ You will be given a sentence that describes an activity on an object. Your task 
 
 Here are some examples:
 ---
-Activity: Sam Johnson is eating breakfast at the oven.  
-State: oven is being heated to cook breakfast.
+Activity: Sam Johnson is eating breakfast at the oven. 
+Object: oven 
+State: is being heated to cook breakfast.
 ---
 Activity: Michael Bernstein is writing an email at the computer.  
-State: computer is being used to write an email.
+object: computer
+State: is being used to write an email.
 ---
-Activity: Tom Kane is washing his face at the sink.  
-State: sink is running with water.
+Activity: Tom Kane is washing his face at the sink. 
+Object: sink 
+State: is running with water.
 
 ## user prompt
 

@@ -25,9 +25,7 @@ def llm_logging_repr(object):
 def unescape_markdown(text):
     # 使用正则表达式去除反斜杠前缀
     temp_text = text.replace("\\\\", "TEMP_DOUBLE_BACKSLASH")
-    unescaped_text = re.sub(
-        r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text
-    )
+    unescaped_text = re.sub(r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text)
 
     # 恢复原有的双反斜杠
     unescaped_text = unescaped_text.replace("TEMP_DOUBLE_BACKSLASH", "\\\\")
@@ -49,9 +47,7 @@ def extract_sections_with_content(md_content):
         if header_match:
             # If there's an ongoing section, save it before starting a new one
             if current_header:
-                sections[current_header.lower().strip()] = "\n".join(
-                    current_content
-                ).strip()
+                sections[current_header.lower().strip()] = "\n".join(current_content).strip()
 
             # Start a new section
             current_header = header_match.group(2)
@@ -115,12 +111,8 @@ def llm_request(
     temperature = llm_config.get("temperature", 1.0)  # Default temperature
     max_tokens = llm_config.get("max_tokens", 150)  # Default max tokens
     top_p = llm_config.get("top_p", 1.0)  # Default top_p
-    frequency_penalty = llm_config.get(
-        "frequency_penalty", 0.0
-    )  # Default frequency penalty
-    presence_penalty = llm_config.get(
-        "presence_penalty", 0.0
-    )  # Default presence penalty
+    frequency_penalty = llm_config.get("frequency_penalty", 0.0)  # Default frequency penalty
+    presence_penalty = llm_config.get("presence_penalty", 0.0)  # Default presence penalty
     stop = llm_config.get("stop", None)  # Default stop sequence
     model = override_model if override_model else llm_config["engine"]
 
@@ -133,6 +125,7 @@ def llm_request(
             L.debug(
                 f"Attempt {attempt + 1}: Sending LLM request. Model: {llm_config['engine']}, Chat: {llm_config['chat']}"
             )
+            start_time = time.time()
             if llm_config["chat"]:
                 # Chat mode implementation
                 messages = [
@@ -169,10 +162,19 @@ def llm_request(
                 )
                 result = response.choices[0].text
                 # result = response["choices"][0]["text"]
-
+            valid = validate_fn(result, kwargs)
+            L.stats(
+                function_name=func_name,
+                model=model,
+                is_chat=llm_config["chat"],
+                duration=time.time() - start_time,
+                request_tokens=response.usage.prompt_tokens,
+                response_tokens=response.usage.completion_tokens,
+                valid=valid,
+            )
             result = unescape_markdown(result)
             L.debug(f"LLM RESPONSE: {llm_logging_repr(result)}")
-            if validate_fn(result, kwargs):
+            if valid:
                 L.debug(f"LLM Request succeeded.")
                 return cleanup_fn(result, kwargs)
             else:
@@ -222,9 +224,7 @@ def types_match(actual, example):
     if isinstance(example, dict):
         if not isinstance(actual, dict):
             return False
-        return all(
-            k in actual and types_match(actual[k], v) for k, v in example.items()
-        )
+        return all(k in actual and types_match(actual[k], v) for k, v in example.items())
     elif isinstance(example, list):
         if not isinstance(actual, list):
             return False

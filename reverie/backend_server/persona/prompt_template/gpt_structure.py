@@ -11,7 +11,7 @@ from openai import OpenAI
 import time
 import re
 from utils import openai_api_base, openai_api_key, override_model, override_gpt_param
-from log import L
+from log import L, get_outer_caller
 
 
 client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
@@ -108,6 +108,8 @@ def generate_gpt_response(
     while tries < max_retries:
         try:
             model = gpt_parameters["engine"]
+            start_time = time.time()
+
             if is_chat:
                 # Prepare system prompt if in chat mode
                 example_output_str = (
@@ -164,15 +166,24 @@ Requirements:
 
             L.debug(f"GPT_RESPONSE:{repr(curr_gpt_response)}")
 
-            if func_validate:
-                if func_validate(curr_gpt_response, prompt=prompt):
-                    return (
-                        func_clean_up(unescape_markdown(curr_gpt_response), prompt=prompt)
-                        if func_clean_up
-                        else unescape_markdown(curr_gpt_response)
-                    )
-                else:
-                    return unescape_markdown(curr_gpt_response)
+            valid = func_validate(curr_gpt_response, prompt=prompt)
+            L.stats(
+                get_outer_caller(__name__),
+                model=model,
+                is_chat=is_chat,
+                valid=valid,
+                duration=time.time() - start_time,
+                request_tokens=response.usage.prompt_tokens,
+                response_tokens=response.usage.completion_tokens,
+            )
+            if valid:
+                return (
+                    func_clean_up(unescape_markdown(curr_gpt_response), prompt=prompt)
+                    if func_clean_up
+                    else unescape_markdown(curr_gpt_response)
+                )
+            else:
+                return unescape_markdown(curr_gpt_response)
 
         except Exception as e:
             L.warning(f"Error during GPT request: {e}", exc_info=True)
