@@ -3418,7 +3418,7 @@ def extract_first_json_dict(data_str):
         except json.JSONDecodeError:
             continue
 
-    return largest_json_str
+    return json.loads(largest_json_str)
 
 
 def run_gpt_generate_iterative_chat_utt(

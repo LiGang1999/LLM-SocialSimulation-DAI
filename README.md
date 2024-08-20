@@ -89,6 +89,14 @@ python start.py
 # python start.py --help to show helps
 ```
 
+如果`Django` 提示你需要 `migrate`，输入下面命令：
+```bash
+cd reverie/backend_server && python manage.py migrate
+```
+
+```bash
+cd environment/frontend_server && python manage.py migrate
+```
 
 ## Debugging
 

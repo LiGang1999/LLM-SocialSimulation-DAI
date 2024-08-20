@@ -22,7 +22,9 @@ def unescape_markdown(text):
     """
     # 使用正则表达式去除反斜杠前缀
     temp_text = text.replace("\\\\", "TEMP_DOUBLE_BACKSLASH")
-    unescaped_text = re.sub(r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text)
+    unescaped_text = re.sub(
+        r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text
+    )
 
     # 恢复原有的双反斜杠
     unescaped_text = unescaped_text.replace("TEMP_DOUBLE_BACKSLASH", "\\\\")
@@ -64,7 +66,9 @@ def completion_single_request(prompt, gpt_parameters, verbose=False):
         return "An error occurred during the request."
 
 
-def completion_request(prompt, gpt_parameters, max_retries=3, timeout=10, verbose=False):
+def completion_request(
+    prompt, gpt_parameters, max_retries=3, timeout=10, verbose=False
+):
     """
     Make a single GPT completion request with retries and timeout handling.
 
@@ -120,7 +124,7 @@ def chat_single_request(user_prompt, gpt_parameters, system_prompt="", verbose=F
         messages = []
         if system_prompt is not None and system_prompt != "":
             messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
+        messages.append({"role": "user", "content": user_prompt})
 
         response = client.chat.completions.create(
             model=model,
@@ -133,10 +137,11 @@ def chat_single_request(user_prompt, gpt_parameters, system_prompt="", verbose=F
             stream=gpt_parameters["stream"],
             stop=gpt_parameters["stop"],
         )
-        ret = response.choices[0].message["content"].strip()
+        ret = response.choices[0].message.content.strip()
         return unescape_markdown(ret)
     except Exception as e:
-        print(f"Error during GPT chat request: {e}")
+        L.debug(ret)
+        L.error(f"Error during GPT chat request: {e}")
         return None
 
 
