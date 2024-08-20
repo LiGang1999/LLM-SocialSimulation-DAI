@@ -52,14 +52,9 @@ def execute(persona, maze, personas, plan):
 
         if "<persona>" in plan:
             # Executing persona-persona interaction.
-            target_p_tile = personas[
-                plan.split("<persona>")[-1].strip()
-            ].scratch.curr_tile
+            target_p_tile = personas[plan.split("<persona>")[-1].strip()].scratch.curr_tile
             potential_path = path_finder(
-                maze.collision_maze,
-                persona.scratch.curr_tile,
-                target_p_tile,
-                collision_block_id,
+                maze.collision_maze, persona.scratch.curr_tile, target_p_tile, collision_block_id
             )
             if len(potential_path) <= 2:
                 target_tiles = [potential_path[0]]
@@ -141,9 +136,7 @@ def execute(persona, maze, personas, plan):
             # an input, and returns a list of coordinate tuples that becomes the
             # path.
             # e.g., [(0, 1), (1, 1), (1, 2), (1, 3), (1, 4)...]
-            curr_path = path_finder(
-                maze.collision_maze, curr_tile, i, collision_block_id
-            )
+            curr_path = path_finder(maze.collision_maze, curr_tile, i, collision_block_id)
             if not closest_target_tile:
                 closest_target_tile = i
                 path = curr_path

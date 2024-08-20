@@ -4439,4 +4439,4 @@ def run_gpt_prompt_decide_to_comment(
         }
 
     output = decide_to_comment(pm, curr_time, retrieved_context, persona.name, init_iss)
-    return output["answer"].lower()
+    return [ output["answer"].lower() ]

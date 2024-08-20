@@ -156,21 +156,17 @@ def get_row_len(curr_file):
         return False
 
 
-def check_if_dir_exists(dir):
+def check_if_dir_exists(directory):
     """
-    Checks if a directory exists
+    Checks if a directory exists.
+
     ARGS:
-      dir: path to the current directory.
+      directory (str): Path to the directory.
+
     RETURNS:
-      True if the directory exists
-      False if the directory does not exist
+      bool: True if the directory exists, False otherwise.
     """
-    try:
-        with open(dir) as f_analysis_file:
-            pass
-        return True
-    except:
-        return False
+    return os.path.isdir(directory)
 
 
 def check_if_file_exists(curr_file):

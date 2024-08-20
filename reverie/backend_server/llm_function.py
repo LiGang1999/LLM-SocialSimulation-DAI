@@ -128,7 +128,10 @@ def llm_request(
             start_time = time.time()
             if llm_config["chat"]:
                 # Chat mode implementation
-                messages = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": usr_prompt}]
+                messages = [
+                    {"role": "system", "content": sys_prompt},
+                    {"role": "user", "content": usr_prompt},
+                ]
                 # L.debug(f"Prompt:{str(messages)}")
                 response = default_client.chat.completions.create(
                     model=model,
@@ -314,33 +317,6 @@ def llm_function(
                 else:
                     example_args.append(None)  # Default for unknown types
 
-        example_result = desc_func(*example_args)
-
-        def default_validate_fn(result, kwargs):
-            """
-            Default validation function for llm returned results.
-            It will try to parse the result as json and compare it with the example result. If they have the same nested types, the function returns True.
-            """
-            try:
-                largest_json = extract_largest_json(result)
-                json_result = json.loads(largest_json)
-                return types_match(json_result, example_result)
-            except:
-                return False
-
-        def default_failsafe_fn(result, kwargs):
-            if failsafe:
-                return failsafe
-            else:
-                return example_result
-
-        def default_cleanup_fn(result, kwargs):
-            return json.loads(extract_largest_json(result))
-
-        _validate_fn = validate_fn if validate_fn is not None else default_validate_fn
-        _failsafe_fn = failsafe_fn if failsafe_fn is not None else default_failsafe_fn
-        _cleanup_fn = cleanup_fn if cleanup_fn is not None else default_cleanup_fn
-
         @functools.wraps(desc_func)
         def wrapper(*args, _llm_config=default_llm_config, **kwargs):
             bound_args = signature.bind(*args, **kwargs)
@@ -359,9 +335,46 @@ def llm_function(
             sys_prompt = system_prompt.strip()
 
             usr_prompt = insert_prompt_args(usr_prompt, kwargs)
-            sys_prompt = insert_prompt_args(sys_prompt, kwargs) + example_output_format(example_kwargs, example_result)
+            example_result = desc_func(**example_kwargs)
+
+            sys_prompt = insert_prompt_args(sys_prompt, kwargs) + example_output_format(
+                example_kwargs, example_result
+            )
+
+            def default_validate_fn(result, kwargs):
+                """
+                Default validation function for llm returned results.
+                It will try to parse the result as json and compare it with the example result. If they have the same nested types, the function returns True.
+                """
+                try:
+                    largest_json = extract_largest_json(result)
+                    json_result = json.loads(largest_json)
+                    return types_match(json_result, example_result)
+                except:
+                    return False
+
+            def default_failsafe_fn(result, kwargs):
+                if failsafe:
+                    return failsafe
+                else:
+                    return desc_func(**kwargs)
+
+            def default_cleanup_fn(result, kwargs):
+                return json.loads(extract_largest_json(result))
+
+            _validate_fn = validate_fn if validate_fn is not None else default_validate_fn
+            _failsafe_fn = failsafe_fn if failsafe_fn is not None else default_failsafe_fn
+            _cleanup_fn = cleanup_fn if cleanup_fn is not None else default_cleanup_fn
+
             result = llm_request(
-                usr_prompt, sys_prompt, _llm_config, _validate_fn, _cleanup_fn, _failsafe_fn, kwargs, desc_func.__name__
+                usr_prompt,
+                sys_prompt,
+                _llm_config,
+                _validate_fn,
+                _cleanup_fn,
+                _failsafe_fn,
+                kwargs,
+                desc_func.__name__,
             )
             return result
 

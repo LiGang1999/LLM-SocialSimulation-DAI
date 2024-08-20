@@ -75,6 +75,7 @@ class ReverieServer:
         self.sim_code = sim_code
         sim_folder = f"{fs_storage}/{self.sim_code}"
         if check_if_dir_exists(sim_folder):
+            L.warning(f"Simulation {sim_folder} exists. It will be overwritten by the new environment.")
             removeanything(sim_folder)
         copyanything(fork_folder, sim_folder)
 
