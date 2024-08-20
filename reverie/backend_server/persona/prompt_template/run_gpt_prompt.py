@@ -121,7 +121,9 @@ def run_gpt_prompt_wake_up_hour_old(persona, test_input=None, verbose=False):
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -198,10 +200,14 @@ def run_gpt_prompt_daily_plan(persona, wake_up_hour, test_input=None, verbose=Fa
     output = safe_generate_response(
         prompt, gpt_param, 5, fail_safe, __func_validate, __func_clean_up
     )
-    output = [f"wake up and complete the morning routine at {wake_up_hour}:00 am"] + output
+    output = [
+        f"wake up and complete the morning routine at {wake_up_hour}:00 am"
+    ] + output
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -226,7 +232,9 @@ def run_gpt_prompt_daily_plan_directed_by_LTP(
       a list of daily actions in broad strokes.
     """
 
-    def create_prompt_input(persona, wake_up_hour, extraprompt=extraprompt, test_input=None):
+    def create_prompt_input(
+        persona, wake_up_hour, extraprompt=extraprompt, test_input=None
+    ):
         if test_input:
             return test_input
         prompt_input = []
@@ -286,10 +294,14 @@ def run_gpt_prompt_daily_plan_directed_by_LTP(
     output = safe_generate_response(
         prompt, gpt_param, 5, fail_safe, __func_validate, __func_clean_up
     )
-    output = [f"wake up and complete the morning routine at {wake_up_hour}:00 am"] + output
+    output = [
+        f"wake up and complete the morning routine at {wake_up_hour}:00 am"
+    ] + output
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -299,11 +311,13 @@ def run_gpt_prompt_stagely_plan(persona, maze):  # extend planning cycle
         prompt_input = []
         prompt_input += [persona.scratch.get_str_iss()]
         prompt_input += [persona.scratch.get_str_firstname()]
-        prompt_input += [(maze.last_planning_day + datetime.timedelta(days=1)).strftime("%A %B %d")]
         prompt_input += [
-            (maze.last_planning_day + datetime.timedelta(days=maze.planning_cycle)).strftime(
-                "%A %B %d"
-            )
+            (maze.last_planning_day + datetime.timedelta(days=1)).strftime("%A %B %d")
+        ]
+        prompt_input += [
+            (
+                maze.last_planning_day + datetime.timedelta(days=maze.planning_cycle)
+            ).strftime("%A %B %d")
         ]
         return prompt_input
 
@@ -376,7 +390,9 @@ def run_gpt_prompt_generate_hourly_schedule(
             prior_schedule += f" is {i}\n"
 
     @llm_function(
-        is_chat=True, prompt_file="generate_hourly_schedule.md", failsafe={"activity": "asleep"}
+        is_chat=True,
+        prompt_file="generate_hourly_schedule.md",
+        failsafe={"activity": "asleep"},
     )
     def llm_generate_hourly_schedule(
         prior_sched, current_hour, intended_schedule, persona_iss, persona_name
@@ -405,7 +421,12 @@ def run_gpt_prompt_generate_hourly_schedule_old(
     verbose=False,
 ):
     def create_prompt_input(
-        persona, curr_hour_str, p_f_ds_hourly_org, hour_str, intermission2=None, test_input=None
+        persona,
+        curr_hour_str,
+        p_f_ds_hourly_org,
+        hour_str,
+        intermission2=None,
+        test_input=None,
     ):
         if test_input:
             return test_input
@@ -525,7 +546,9 @@ def run_gpt_prompt_generate_hourly_schedule_old(
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -536,9 +559,7 @@ def run_gpt_prompt_generate_daily_schedule(
     def create_prompt_input(persona, curr_day_str, p_f_ds_daily_org, maze):
         schedule_format = ""
         for i in range(maze.planning_cycle):
-            schedule_format += (
-                f"[{(maze.last_planing_day+datetime.timedelta(days=i+1)).strftime('%A %B %d')}]"
-            )
+            schedule_format += f"[{(maze.last_planing_day+datetime.timedelta(days=i+1)).strftime('%A %B %d')}]"
             schedule_format += f" Activity: [Fill in]\n"
         schedule_format = schedule_format[:-1]
 
@@ -629,12 +650,12 @@ def run_gpt_prompt_task_decomp(persona, task, duration, test_input=None, verbose
             for i in range(index):
                 start_min += persona.scratch.f_daily_schedule_hourly_org[i][1]
             end_min = start_min + persona.scratch.f_daily_schedule_hourly_org[index][1]
-            start_time = datetime.datetime.strptime("00:00:00", "%H:%M:%S") + datetime.timedelta(
-                minutes=start_min
-            )
-            end_time = datetime.datetime.strptime("00:00:00", "%H:%M:%S") + datetime.timedelta(
-                minutes=end_min
-            )
+            start_time = datetime.datetime.strptime(
+                "00:00:00", "%H:%M:%S"
+            ) + datetime.timedelta(minutes=start_min)
+            end_time = datetime.datetime.strptime(
+                "00:00:00", "%H:%M:%S"
+            ) + datetime.timedelta(minutes=end_min)
             start_time_str = start_time.strftime("%H:%M%p")
             end_time_str = end_time.strftime("%H:%M%p")
             summ_str += f"{start_time_str} ~ {end_time_str}, {persona.name} is planning on {persona.scratch.f_daily_schedule_hourly_org[index][0]}, "
@@ -644,7 +665,12 @@ def run_gpt_prompt_task_decomp(persona, task, duration, test_input=None, verbose
 
     @llm_function(is_chat=True, prompt_file="task_decomp.md")
     def llm_task_decomp(
-        commonset, surrounding_sched, first_name, curr_action, curr_time_range, cur_action_dur
+        commonset,
+        surrounding_sched,
+        first_name,
+        curr_action,
+        curr_time_range,
+        cur_action_dur,
     ):
         # TODO where to put the examples?
         return [
@@ -653,9 +679,17 @@ def run_gpt_prompt_task_decomp(persona, task, duration, test_input=None, verbose
                 "duration": 15,
                 "remaining": 165,
             },
-            {"subtask": "brainstorming ideas for the lesson.", "duration": 30, "remaining": 135},
+            {
+                "subtask": "brainstorming ideas for the lesson.",
+                "duration": 30,
+                "remaining": 135,
+            },
             {"subtask": "creating the lesson plan.", "duration": 30, "remaining": 105},
-            {"subtask": "creating materials for the lesson.", "duration": 30, "remaining": 75},
+            {
+                "subtask": "creating materials for the lesson.",
+                "duration": 30,
+                "remaining": 75,
+            },
             {"subtask": "taking a break.", "duration": 15, "remaining": 60},
             {"subtask": "reviewing the lesson plan.", "duration": 30, "remaining": 30},
             {
@@ -664,7 +698,11 @@ def run_gpt_prompt_task_decomp(persona, task, duration, test_input=None, verbose
                 "remaining": 15,
             },
             {"subtask": "printing the lesson plan.", "duration": 10, "remaining": 5},
-            {"subtask": "putting the lesson plan in her bag.", "duration": 5, "remaining": 0},
+            {
+                "subtask": "putting the lesson plan in her bag.",
+                "duration": 5,
+                "remaining": 0,
+            },
         ]
 
     output = llm_task_decomp(
@@ -699,7 +737,9 @@ def run_gpt_prompt_task_decomp(persona, task, duration, test_input=None, verbose
     return [ret]
 
 
-def run_gpt_prompt_task_decomp_old(persona, task, duration, test_input=None, verbose=False):
+def run_gpt_prompt_task_decomp_old(
+    persona, task, duration, test_input=None, verbose=False
+):
     def create_prompt_input(persona, task, duration, test_input=None):
         """
         Today is Saturday June 25. From 00:00 ~ 06:00am, Maeve is
@@ -732,13 +772,15 @@ def run_gpt_prompt_task_decomp_old(persona, task, duration, test_input=None, ver
                 start_min = 0
                 for i in range(index):
                     start_min += persona.scratch.f_daily_schedule_hourly_org[i][1]
-                end_min = start_min + persona.scratch.f_daily_schedule_hourly_org[index][1]
+                end_min = (
+                    start_min + persona.scratch.f_daily_schedule_hourly_org[index][1]
+                )
                 start_time = datetime.datetime.strptime(
                     "00:00:00", "%H:%M:%S"
                 ) + datetime.timedelta(minutes=start_min)
-                end_time = datetime.datetime.strptime("00:00:00", "%H:%M:%S") + datetime.timedelta(
-                    minutes=end_min
-                )
+                end_time = datetime.datetime.strptime(
+                    "00:00:00", "%H:%M:%S"
+                ) + datetime.timedelta(minutes=end_min)
                 start_time_str = start_time.strftime("%H:%M%p")
                 end_time_str = end_time.strftime("%H:%M%p")
                 summ_str += f"{start_time_str} ~ {end_time_str}, {persona.name} is planning on {persona.scratch.f_daily_schedule_hourly_org[index][0]}, "
@@ -907,12 +949,16 @@ def run_gpt_prompt_task_decomp_old(persona, task, duration, test_input=None, ver
     output = ret
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-def run_gpt_prompt_action_sector(action_description, persona, maze, test_input=None, verbose=False):
+def run_gpt_prompt_action_sector(
+    action_description, persona, maze, test_input=None, verbose=False
+):
     act_world = f"{maze.access_tile(persona.scratch.curr_tile)['world']}"
 
     x1 = f"{act_world}:{persona.scratch.living_area.split(':')[1]}"
@@ -1100,13 +1146,21 @@ def run_gpt_prompt_action_sector_old(
     print("DEBUG", random.choice(x), "------", output)
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
 def run_gpt_prompt_action_arena(
-    action_description, persona, maze, act_world, act_sector, test_input=None, verbose=False
+    action_description,
+    persona,
+    maze,
+    act_world,
+    act_sector,
+    test_input=None,
+    verbose=False,
 ):
     # Firstly, the action_sector is generated via prompt. So we do not need the 'current action sector' thing.
     prompt_input = []
@@ -1155,7 +1209,13 @@ def run_gpt_prompt_action_arena(
 
 
 def run_gpt_prompt_action_arena_old(
-    action_description, persona, maze, act_world, act_sector, test_input=None, verbose=False
+    action_description,
+    persona,
+    maze,
+    act_world,
+    act_sector,
+    test_input=None,
+    verbose=False,
 ):
     def create_prompt_input(
         action_description, persona, maze, act_world, act_sector, test_input=None
@@ -1232,7 +1292,9 @@ def run_gpt_prompt_action_arena_old(
         "stop": None,
     }
     prompt_template = "persona/prompt_template/v1/action_location_object_vMar11.txt"
-    prompt_input = create_prompt_input(action_description, persona, maze, act_world, act_sector)
+    prompt_input = create_prompt_input(
+        action_description, persona, maze, act_world, act_sector
+    )
     prompt = generate_prompt(prompt_input, prompt_template)
 
     fail_safe = get_fail_safe()
@@ -1246,7 +1308,9 @@ def run_gpt_prompt_action_arena_old(
     #   output = random.choice(x)
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -1268,7 +1332,9 @@ def run_gpt_prompt_action_game_object(
     output = output["object"]
     x = [
         i.strip()
-        for i in persona.s_mem.get_str_accessible_arena_game_objects(temp_address).split(",")
+        for i in persona.s_mem.get_str_accessible_arena_game_objects(
+            temp_address
+        ).split(",")
     ]
     if output not in x:
         output = random.choice(x)
@@ -1284,7 +1350,9 @@ def run_gpt_prompt_action_game_object_old(
             action_description = action_description.split("(")[-1][:-1]
 
         prompt_input += [action_description]
-        prompt_input += [persona.s_mem.get_str_accessible_arena_game_objects(temp_address)]
+        prompt_input += [
+            persona.s_mem.get_str_accessible_arena_game_objects(temp_address)
+        ]
         return prompt_input
 
     def __func_validate(gpt_response, prompt=""):
@@ -1311,7 +1379,9 @@ def run_gpt_prompt_action_game_object_old(
         "stop": None,
     }
     prompt_template = "persona/prompt_template/v1/action_object_v2.txt"
-    prompt_input = create_prompt_input(action_description, persona, temp_address, test_input)
+    prompt_input = create_prompt_input(
+        action_description, persona, temp_address, test_input
+    )
     prompt = generate_prompt(prompt_input, prompt_template)
 
     fail_safe = get_fail_safe()
@@ -1321,13 +1391,17 @@ def run_gpt_prompt_action_game_object_old(
 
     x = [
         i.strip()
-        for i in persona.s_mem.get_str_accessible_arena_game_objects(temp_address).split(",")
+        for i in persona.s_mem.get_str_accessible_arena_game_objects(
+            temp_address
+        ).split(",")
     ]
     if output not in x:
         output = random.choice(x)
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -1399,11 +1473,15 @@ def run_gpt_prompt_pronunciatio_old(action_description, persona, verbose=False):
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/generate_pronunciatio_v1.txt"  ########
+    prompt_template = (
+        "persona/prompt_template/v3_ChatGPT/generate_pronunciatio_v1.txt"  ########
+    )
     prompt_input = create_prompt_input(action_description)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "🛁🧖‍♀️"  ########
-    special_instruction = "The value for the output must ONLY contain the emojis."  ########
+    special_instruction = (
+        "The value for the output must ONLY contain the emojis."  ########
+    )
     fail_safe = get_fail_safe()
     output = chat_safe_generate_response(
         prompt,
@@ -1440,6 +1518,18 @@ def run_gpt_prompt_pronunciatio_old(action_description, persona, verbose=False):
 
 
 def run_gpt_prompt_event_triple(action_description, persona, verbose=False):
+    if "(" in action_description:
+        action_description = action_description.split("(")[-1].split(")")[0]
+
+    @llm_function(is_chat=True, prompt_file="generate_event_triple.md")
+    def llm_generate_event_triple(persona_name, action):
+        return {"subject": "Joon Park", "predicate": "brew", "object": "coffee"}
+
+    output = llm_generate_event_triple(persona.name, action_description)
+    return [(output["subject"], output["predicate"], output["object"])]
+
+
+def run_gpt_prompt_event_triple_old(action_description, persona, verbose=False):
     def create_prompt_input(action_description, persona):
         if "(" in action_description:
             action_description = action_description.split("(")[-1].split(")")[0]
@@ -1464,36 +1554,6 @@ def run_gpt_prompt_event_triple(action_description, persona, verbose=False):
         fs = (persona.name, "is", "idle")
         return fs
 
-    # ChatGPT Plugin ===========================================================
-    # def __chat_func_clean_up(gpt_response, prompt=""): ############
-    #   cr = gpt_response.strip()
-    #   cr = [i.strip() for i in cr.split(")")[0].split(",")]
-    #   return cr
-
-    # def __chat_func_validate(gpt_response, prompt=""): ############
-    #   try:
-    #     gpt_response = __func_clean_up(gpt_response, prompt="")
-    #     if len(gpt_response) != 2:
-    #       return False
-    #   except: return False
-    #   return True
-
-    # print ("asdhfapsh8p9hfaiafdsi;ldfj as DEBUG 5") ########
-    # gpt_param = {"engine": "text-davinci-002", "max_tokens": 15,
-    #              "temperature": 0, "top_p": 1, "stream": False,
-    #              "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # prompt_template = "persona/prompt_template/v3_ChatGPT/generate_event_triple_v1.txt" ########
-    # prompt_input = create_prompt_input(action_description, persona)  ########
-    # prompt = generate_prompt(prompt_input, prompt_template)
-    # example_output = "(Jane Doe, cooking, breakfast)" ########
-    # special_instruction = "The value for the output must ONLY contain the triple. If there is an incomplete element, just say 'None' but there needs to be three elements no matter what." ########
-    # fail_safe = get_fail_safe(persona) ########
-    # output = chat_safe_generate_response(prompt, example_output, special_instruction, 3, fail_safe,
-    #                                         __chat_func_validate, __chat_func_clean_up, True)
-    # if output != False:
-    #   return output, [output, prompt, gpt_param, prompt_input, fail_safe]
-    # ChatGPT Plugin ===========================================================
-
     gpt_param = {
         "engine": "text-davinci-003",
         "max_tokens": 30,
@@ -1514,13 +1574,24 @@ def run_gpt_prompt_event_triple(action_description, persona, verbose=False):
     output = (persona.name, output[0], output[1])
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-# tyn
 def run_gpt_prompt_event_triple_new(action_description, verbose=False):
+    @llm_function(is_chat=True, prompt_file="generate_event_triple_new.md")
+    def llm_generate_event_triple(action):
+        return {"subject": "Joon Park", "predicate": "brew", "object": "coffee"}
+
+    output = llm_generate_event_triple(action_description)
+    return [(output["subject"], output["predicate"], output["object"])]
+
+
+# tyn
+def run_gpt_prompt_event_triple_new_old(action_description, verbose=False):
     def __func_clean_up(gpt_response, prompt=""):
         cr = gpt_response.strip()
         cr = [i.strip() for i in cr.split(")")[0].split(",")]
@@ -1584,7 +1655,13 @@ def run_gpt_prompt_act_obj_desc(act_game_object, act_desp, persona, verbose=Fals
 
 def run_gpt_prompt_act_obj_desc_old(act_game_object, act_desp, persona, verbose=False):
     def create_prompt_input(act_game_object, act_desp, persona):
-        prompt_input = [act_game_object, persona.name, act_desp, act_game_object, act_game_object]
+        prompt_input = [
+            act_game_object,
+            persona.name,
+            act_desp,
+            act_game_object,
+            act_game_object,
+        ]
         return prompt_input
 
     def __func_clean_up(gpt_response, prompt=""):
@@ -1629,13 +1706,13 @@ def run_gpt_prompt_act_obj_desc_old(act_game_object, act_desp, persona, verbose=
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/generate_obj_event_v1.txt"  ########
+    prompt_template = (
+        "persona/prompt_template/v3_ChatGPT/generate_obj_event_v1.txt"  ########
+    )
     prompt_input = create_prompt_input(act_game_object, act_desp, persona)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "being fixed"  ########
-    special_instruction = (
-        "The output should ONLY contain the phrase that should go in <fill in>."  ########
-    )
+    special_instruction = "The output should ONLY contain the phrase that should go in <fill in>."  ########
     fail_safe = get_fail_safe(act_game_object)  ########
     output = chat_safe_generate_response(
         prompt,
@@ -1672,7 +1749,9 @@ def run_gpt_prompt_act_obj_desc_old(act_game_object, act_desp, persona, verbose=
     # return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-def run_gpt_prompt_act_obj_event_triple(act_game_object, act_obj_desc, persona, verbose=False):
+def run_gpt_prompt_act_obj_event_triple(
+    act_game_object, act_obj_desc, persona, verbose=False
+):
     @llm_function(is_chat=True, prompt_file="generate_event_triple.md")
     def llm_generate_event_triple(persona_name, action):
         return {"subject": "Joon Park", "predicate": "brew", "object": "coffee"}
@@ -1682,7 +1761,9 @@ def run_gpt_prompt_act_obj_event_triple(act_game_object, act_obj_desc, persona, 
     return [output]
 
 
-def run_gpt_prompt_act_obj_event_triple_old(act_game_object, act_obj_desc, persona, verbose=False):
+def run_gpt_prompt_act_obj_event_triple_old(
+    act_game_object, act_obj_desc, persona, verbose=False
+):
     def create_prompt_input(act_game_object, act_obj_desc):
         prompt_input = [act_game_object, act_obj_desc, act_game_object]
         return prompt_input
@@ -1725,7 +1806,9 @@ def run_gpt_prompt_act_obj_event_triple_old(act_game_object, act_obj_desc, perso
     output = (act_game_object, output[0], output[1])
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -1776,7 +1859,9 @@ def run_gpt_prompt_new_decomp_schedule(
             if count < len(truncated_act_dur) - 1:
                 for_time += datetime.timedelta(minutes=int(i[1]))
 
-        new_plan_init += (for_time + datetime.timedelta(minutes=int(i[1]))).strftime("%H:%M") + " ~"
+        new_plan_init += (for_time + datetime.timedelta(minutes=int(i[1]))).strftime(
+            "%H:%M"
+        ) + " ~"
 
         prompt_input = [
             persona_name,
@@ -1807,9 +1892,9 @@ def run_gpt_prompt_new_decomp_schedule(
         for time_str, action in ret_temp:
             start_time = time_str.split(" ~ ")[0].strip()
             end_time = time_str.split(" ~ ")[1].strip()
-            delta = datetime.datetime.strptime(end_time, "%H:%M") - datetime.datetime.strptime(
-                start_time, "%H:%M"
-            )
+            delta = datetime.datetime.strptime(
+                end_time, "%H:%M"
+            ) - datetime.datetime.strptime(start_time, "%H:%M")
             delta_min = int(delta.total_seconds() / 60)
             if delta_min < 0:
                 delta_min = 0
@@ -1827,8 +1912,15 @@ def run_gpt_prompt_new_decomp_schedule(
                     return False
                 if str(type(dur)) != "<class 'int'>":
                     return False
-            x = prompt.split("\n")[0].split("originally planned schedule from")[-1].strip()[:-1]
-            x = [datetime.datetime.strptime(i.strip(), "%H:%M %p") for i in x.split(" to ")]
+            x = (
+                prompt.split("\n")[0]
+                .split("originally planned schedule from")[-1]
+                .strip()[:-1]
+            )
+            x = [
+                datetime.datetime.strptime(i.strip(), "%H:%M %p")
+                for i in x.split(" to ")
+            ]
             delta_min = int((x[1] - x[0]).total_seconds() / 60)
 
             if int(dur_sum) != int(delta_min):
@@ -1898,7 +1990,9 @@ def run_gpt_prompt_new_decomp_schedule(
     # print (fail_safe)
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -1929,7 +2023,10 @@ def run_gpt_prompt_decide_to_talk(
         if "(" in init_act_desc:
             init_act_desc = init_act_desc.split("(")[-1][:-1]
 
-        if len(init_persona.scratch.planned_path) == 0 and "waiting" not in init_act_desc:
+        if (
+            len(init_persona.scratch.planned_path) == 0
+            and "waiting" not in init_act_desc
+        ):
             init_p_desc = f"{init_persona.name} is already {init_act_desc}"
         elif "waiting" in init_act_desc:
             init_p_desc = f"{init_persona.name} is {init_act_desc}"
@@ -1940,7 +2037,10 @@ def run_gpt_prompt_decide_to_talk(
         if "(" in target_act_desc:
             target_act_desc = target_act_desc.split("(")[-1][:-1]
 
-        if len(target_persona.scratch.planned_path) == 0 and "waiting" not in init_act_desc:
+        if (
+            len(target_persona.scratch.planned_path) == 0
+            and "waiting" not in init_act_desc
+        ):
             target_p_desc = f"{target_persona.name} is already {target_act_desc}"
         elif "waiting" in init_act_desc:
             target_p_desc = f"{init_persona.name} is {init_act_desc}"
@@ -1965,7 +2065,10 @@ def run_gpt_prompt_decide_to_talk(
 
     def __func_validate(gpt_response, prompt=""):
         try:
-            if gpt_response.split("Answer in yes or no:")[-1].strip().lower() in ["yes", "no"]:
+            if gpt_response.split("Answer in yes or no:")[-1].strip().lower() in [
+                "yes",
+                "no",
+            ]:
                 return True
             return False
         except:
@@ -1998,7 +2101,9 @@ def run_gpt_prompt_decide_to_talk(
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -2039,7 +2144,9 @@ def run_gpt_prompt_decide_to_react(
                     + " in "
                     + init_persona.scratch.act_address.split(":")[-2]
                 )
-            init_p_desc = f"{init_persona.name} is on the way to {init_act_desc} at {loc}"
+            init_p_desc = (
+                f"{init_persona.name} is on the way to {init_act_desc} at {loc}"
+            )
 
         target_act_desc = target_persona.scratch.act_description
         if "(" in target_act_desc:
@@ -2052,7 +2159,9 @@ def run_gpt_prompt_decide_to_react(
                     + " in "
                     + target_persona.scratch.act_address.split(":")[-2]
                 )
-            target_p_desc = f"{target_persona.name} is already {target_act_desc} at {loc}"
+            target_p_desc = (
+                f"{target_persona.name} is already {target_act_desc} at {loc}"
+            )
         else:
             loc = ""
             if ":" in target_persona.scratch.act_address:
@@ -2061,7 +2170,9 @@ def run_gpt_prompt_decide_to_react(
                     + " in "
                     + target_persona.scratch.act_address.split(":")[-2]
                 )
-            target_p_desc = f"{target_persona.name} is on the way to {target_act_desc} at {loc}"
+            target_p_desc = (
+                f"{target_persona.name} is on the way to {target_act_desc} at {loc}"
+            )
 
         prompt_input = []
         prompt_input += [context]
@@ -2079,7 +2190,11 @@ def run_gpt_prompt_decide_to_react(
 
     def __func_validate(gpt_response, prompt=""):
         try:
-            if gpt_response.split("Answer: Option")[-1].strip().lower() in ["3", "2", "1"]:
+            if gpt_response.split("Answer: Option")[-1].strip().lower() in [
+                "3",
+                "2",
+                "1",
+            ]:
                 return True
             return False
         except:
@@ -2112,7 +2227,9 @@ def run_gpt_prompt_decide_to_react(
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -2126,7 +2243,10 @@ def run_gpt_prompt_create_conversation(
         if init_persona.a_mem.seq_chat:
             for i in init_persona.a_mem.seq_chat:
                 if i.object == target_persona.scratch.name:
-                    v1 = int((init_persona.scratch.curr_time - i.created).total_seconds() / 60)
+                    v1 = int(
+                        (init_persona.scratch.curr_time - i.created).total_seconds()
+                        / 60
+                    )
                     prev_convo_insert += (
                         f"{str(v1)} minutes ago, they had the following conversation.\n"
                     )
@@ -2139,7 +2259,8 @@ def run_gpt_prompt_create_conversation(
             if (
                 int(
                     (
-                        init_persona.scratch.curr_time - init_persona.a_mem.seq_chat[-1].created
+                        init_persona.scratch.curr_time
+                        - init_persona.a_mem.seq_chat[-1].created
                     ).total_seconds()
                     / 60
                 )
@@ -2167,9 +2288,7 @@ def run_gpt_prompt_create_conversation(
 
         init_persona_curr_desc = ""
         if init_persona.scratch.planned_path:
-            init_persona_curr_desc = (
-                f"{init_persona.name} is on the way to {init_persona.scratch.act_description}"
-            )
+            init_persona_curr_desc = f"{init_persona.name} is on the way to {init_persona.scratch.act_description}"
         else:
             init_persona_curr_desc = (
                 f"{init_persona.name} is {init_persona.scratch.act_description}"
@@ -2177,9 +2296,7 @@ def run_gpt_prompt_create_conversation(
 
         target_persona_curr_desc = ""
         if target_persona.scratch.planned_path:
-            target_persona_curr_desc = (
-                f"{target_persona.name} is on the way to {target_persona.scratch.act_description}"
-            )
+            target_persona_curr_desc = f"{target_persona.name} is on the way to {target_persona.scratch.act_description}"
         else:
             target_persona_curr_desc = (
                 f"{target_persona.name} is {target_persona.scratch.act_description}"
@@ -2217,7 +2334,9 @@ def run_gpt_prompt_create_conversation(
         # print ("???")
         # print (gpt_response)
 
-        gpt_response = (prompt + gpt_response).split("What would they talk about now?")[-1].strip()
+        gpt_response = (
+            (prompt + gpt_response).split("What would they talk about now?")[-1].strip()
+        )
         content = re.findall('"([^"]*)"', gpt_response)
 
         speaker_order = []
@@ -2263,12 +2382,16 @@ def run_gpt_prompt_create_conversation(
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-def run_gpt_prompt_summarize_conversation(persona, conversation, test_input=None, verbose=False):
+def run_gpt_prompt_summarize_conversation(
+    persona, conversation, test_input=None, verbose=False
+):
     def create_prompt_input(conversation, test_input=None):
         convo_str = ""
         for row in conversation:
@@ -2314,7 +2437,9 @@ def run_gpt_prompt_summarize_conversation(persona, conversation, test_input=None
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/summarize_conversation_v1.txt"  ########
+    prompt_template = (
+        "persona/prompt_template/v3_ChatGPT/summarize_conversation_v1.txt"  ########
+    )
     prompt_input = create_prompt_input(conversation, test_input)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "conversing about what to eat for lunch"  ########
@@ -2353,7 +2478,9 @@ def run_gpt_prompt_summarize_conversation(persona, conversation, test_input=None
     # return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-def run_gpt_prompt_extract_keywords(persona, description, test_input=None, verbose=False):
+def run_gpt_prompt_extract_keywords(
+    persona, description, test_input=None, verbose=False
+):
     def create_prompt_input(description, test_input=None):
         if "\n" in description:
             description = description.replace("\n", " <LINE_BREAK> ")
@@ -2407,7 +2534,9 @@ def run_gpt_prompt_extract_keywords(persona, description, test_input=None, verbo
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -2453,7 +2582,9 @@ def run_gpt_prompt_keyword_to_thoughts(
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -2515,12 +2646,16 @@ def run_gpt_prompt_convo_to_thoughts(
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-def run_gpt_prompt_event_poignancy(persona, event_description, test_input=None, verbose=False):
+def run_gpt_prompt_event_poignancy(
+    persona, event_description, test_input=None, verbose=False
+):
     def create_prompt_input(persona, event_description, test_input=None):
         prompt_input = [
             persona.scratch.name,
@@ -2567,13 +2702,13 @@ def run_gpt_prompt_event_poignancy(persona, event_description, test_input=None, 
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/poignancy_event_v1.txt"  ########
+    prompt_template = (
+        "persona/prompt_template/v3_ChatGPT/poignancy_event_v1.txt"  ########
+    )
     prompt_input = create_prompt_input(persona, event_description)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "5"  ########
-    special_instruction = (
-        "The output should ONLY contain ONE integer value on the scale of 1 to 10."  ########
-    )
+    special_instruction = "The output should ONLY contain ONE integer value on the scale of 1 to 10."  ########
     fail_safe = get_fail_safe()  ########
     output = chat_safe_generate_response(
         prompt,
@@ -2589,7 +2724,9 @@ def run_gpt_prompt_event_poignancy(persona, event_description, test_input=None, 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-def run_gpt_prompt_thought_poignancy(persona, event_description, test_input=None, verbose=False):
+def run_gpt_prompt_thought_poignancy(
+    persona, event_description, test_input=None, verbose=False
+):
     def create_prompt_input(persona, event_description, test_input=None):
         prompt_input = [
             persona.scratch.name,
@@ -2636,13 +2773,13 @@ def run_gpt_prompt_thought_poignancy(persona, event_description, test_input=None
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/poignancy_thought_v1.txt"  ########
+    prompt_template = (
+        "persona/prompt_template/v3_ChatGPT/poignancy_thought_v1.txt"  ########
+    )
     prompt_input = create_prompt_input(persona, event_description)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "5"  ########
-    special_instruction = (
-        "The output should ONLY contain ONE integer value on the scale of 1 to 10."  ########
-    )
+    special_instruction = "The output should ONLY contain ONE integer value on the scale of 1 to 10."  ########
     fail_safe = get_fail_safe()  ########
     output = chat_safe_generate_response(
         prompt,
@@ -2677,7 +2814,9 @@ def run_gpt_prompt_thought_poignancy(persona, event_description, test_input=None
     # return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-def run_gpt_prompt_chat_poignancy(persona, event_description, test_input=None, verbose=False):
+def run_gpt_prompt_chat_poignancy(
+    persona, event_description, test_input=None, verbose=False
+):
     def create_prompt_input(persona, event_description, test_input=None):
         prompt_input = [
             persona.scratch.name,
@@ -2724,13 +2863,13 @@ def run_gpt_prompt_chat_poignancy(persona, event_description, test_input=None, v
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/poignancy_chat_v1.txt"  ########
+    prompt_template = (
+        "persona/prompt_template/v3_ChatGPT/poignancy_chat_v1.txt"  ########
+    )
     prompt_input = create_prompt_input(persona, event_description)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "5"  ########
-    special_instruction = (
-        "The output should ONLY contain ONE integer value on the scale of 1 to 10."  ########
-    )
+    special_instruction = "The output should ONLY contain ONE integer value on the scale of 1 to 10."  ########
     fail_safe = get_fail_safe()  ########
     output = chat_safe_generate_response(
         prompt,
@@ -2810,12 +2949,12 @@ def run_gpt_prompt_focal_pt(persona, statements, n, test_input=None, verbose=Fal
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/generate_focal_pt_v1.txt"  ########
+    prompt_template = (
+        "persona/prompt_template/v3_ChatGPT/generate_focal_pt_v1.txt"  ########
+    )
     prompt_input = create_prompt_input(persona, statements, n)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
-    example_output = (
-        '["What should Jane do for lunch", "Does Jane like strawberry", "Who is Jane"]'  ########
-    )
+    example_output = '["What should Jane do for lunch", "Does Jane like strawberry", "Who is Jane"]'  ########
     special_instruction = "Output must be a list of str."  ########
     fail_safe = get_fail_safe(n)  ########
     output = chat_safe_generate_response(
@@ -2879,7 +3018,9 @@ def run_gpt_prompt_focal_pt_new(persona, statements, n, test_input=None, verbose
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/generate_focal_pt_v1.txt"  ########
+    prompt_template = (
+        "persona/prompt_template/v3_ChatGPT/generate_focal_pt_v1.txt"  ########
+    )
     prompt_input = create_prompt_input(persona, statements, n)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = '["xxx", "xxx", "xxx"]'  ########
@@ -2920,7 +3061,9 @@ def run_gpt_prompt_focal_pt_new(persona, statements, n, test_input=None, verbose
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -2944,12 +3087,16 @@ def run_gpt_prompt_focal_pt_new(persona, statements, n, test_input=None, verbose
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-def run_gpt_prompt_insight_and_guidance(persona, statements, n, test_input=None, verbose=False):
+def run_gpt_prompt_insight_and_guidance(
+    persona, statements, n, test_input=None, verbose=False
+):
     def create_prompt_input(persona, statements, n, test_input=None):
         prompt_input = [statements, str(n)]
         return prompt_input
@@ -2996,7 +3143,9 @@ def run_gpt_prompt_insight_and_guidance(persona, statements, n, test_input=None,
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -3004,7 +3153,9 @@ def run_gpt_prompt_insight_and_guidance(persona, statements, n, test_input=None,
 def run_gpt_prompt_agent_chat_summarize_ideas(
     persona, target_persona, statements, curr_context, test_input=None, verbose=False
 ):
-    def create_prompt_input(persona, target_persona, statements, curr_context, test_input=None):
+    def create_prompt_input(
+        persona, target_persona, statements, curr_context, test_input=None
+    ):
         prompt_input = [
             persona.scratch.get_str_curr_date_str(),
             curr_context,
@@ -3050,11 +3201,17 @@ def run_gpt_prompt_agent_chat_summarize_ideas(
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/summarize_chat_ideas_v1.txt"  ########
-    prompt_input = create_prompt_input(persona, target_persona, statements, curr_context)  ########
+    prompt_template = (
+        "persona/prompt_template/v3_ChatGPT/summarize_chat_ideas_v1.txt"  ########
+    )
+    prompt_input = create_prompt_input(
+        persona, target_persona, statements, curr_context
+    )  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "Jane Doe is working on a project"  ########
-    special_instruction = "The output should be a string that responds to the question."  ########
+    special_instruction = (
+        "The output should be a string that responds to the question."  ########
+    )
     fail_safe = get_fail_safe()  ########
     output = chat_safe_generate_response(
         prompt,
@@ -3131,13 +3288,13 @@ def run_gpt_prompt_agent_chat_summarize_relationship(
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = (
-        "persona/prompt_template/v3_ChatGPT/summarize_chat_relationship_v2.txt"  ########
-    )
+    prompt_template = "persona/prompt_template/v3_ChatGPT/summarize_chat_relationship_v2.txt"  ########
     prompt_input = create_prompt_input(persona, target_persona, statements)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "Jane Doe is working on a project"  ########
-    special_instruction = "The output should be a string that responds to the question."  ########
+    special_instruction = (
+        "The output should be a string that responds to the question."  ########
+    )
     fail_safe = get_fail_safe()  ########
     output = chat_safe_generate_response(
         prompt,
@@ -3183,13 +3340,20 @@ def run_gpt_prompt_agent_chat(
     verbose=False,
 ):
     def create_prompt_input(
-        persona, target_persona, curr_context, init_summ_idea, target_summ_idea, test_input=None
+        persona,
+        target_persona,
+        curr_context,
+        init_summ_idea,
+        target_summ_idea,
+        test_input=None,
     ):
         prev_convo_insert = "\n"
         if persona.a_mem.seq_chat:
             for i in persona.a_mem.seq_chat:
                 if i.object == target_persona.scratch.name:
-                    v1 = int((persona.scratch.curr_time - i.created).total_seconds() / 60)
+                    v1 = int(
+                        (persona.scratch.curr_time - i.created).total_seconds() / 60
+                    )
                     prev_convo_insert += f"{str(v1)} minutes ago, {persona.scratch.name} and {target_persona.scratch.name} were already {i.description} This context takes place after that conversation."
                     break
         if prev_convo_insert == "\n":
@@ -3197,7 +3361,9 @@ def run_gpt_prompt_agent_chat(
         if persona.a_mem.seq_chat:
             if (
                 int(
-                    (persona.scratch.curr_time - persona.a_mem.seq_chat[-1].created).total_seconds()
+                    (
+                        persona.scratch.curr_time - persona.a_mem.seq_chat[-1].created
+                    ).total_seconds()
                     / 60
                 )
                 > 480
@@ -3230,7 +3396,9 @@ def run_gpt_prompt_agent_chat(
     def __func_clean_up(gpt_response, prompt=""):
         print(gpt_response)
 
-        gpt_response = (prompt + gpt_response).split("Here is their conversation.")[-1].strip()
+        gpt_response = (
+            (prompt + gpt_response).split("Here is their conversation.")[-1].strip()
+        )
         content = re.findall('"([^"]*)"', gpt_response)
 
         speaker_order = []
@@ -3284,7 +3452,9 @@ def run_gpt_prompt_agent_chat(
         persona, target_persona, curr_context, init_summ_idea, target_summ_idea
     )  ########
     prompt = generate_prompt(prompt_input, prompt_template)
-    example_output = '[["Jane Doe", "Hi!"], ["John Doe", "Hello there!"] ... ]'  ########
+    example_output = (
+        '[["Jane Doe", "Hi!"], ["John Doe", "Hello there!"] ... ]'  ########
+    )
     special_instruction = 'The output should be a list of list where the inner lists are in the form of ["<Name>", "<Utterance>"].'  ########
     fail_safe = get_fail_safe()  ########
     output = chat_safe_generate_response(
@@ -3327,7 +3497,9 @@ def run_gpt_prompt_agent_chat(
 # =======================
 
 
-def run_gpt_prompt_summarize_ideas(persona, statements, question, test_input=None, verbose=False):
+def run_gpt_prompt_summarize_ideas(
+    persona, statements, question, test_input=None, verbose=False
+):
     def create_prompt_input(persona, statements, question, test_input=None):
         prompt_input = [statements, persona.scratch.name, question]
         return prompt_input
@@ -3367,11 +3539,15 @@ def run_gpt_prompt_summarize_ideas(persona, statements, question, test_input=Non
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/summarize_ideas_v1.txt"  ########
+    prompt_template = (
+        "persona/prompt_template/v3_ChatGPT/summarize_ideas_v1.txt"  ########
+    )
     prompt_input = create_prompt_input(persona, statements, question)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "Jane Doe is working on a project"  ########
-    special_instruction = "The output should be a string that responds to the question."  ########
+    special_instruction = (
+        "The output should be a string that responds to the question."  ########
+    )
     fail_safe = get_fail_safe()  ########
     output = chat_safe_generate_response(
         prompt,
@@ -3407,7 +3583,12 @@ def run_gpt_prompt_summarize_ideas(persona, statements, question, test_input=Non
 
 
 def run_gpt_prompt_generate_next_convo_line(
-    persona, interlocutor_desc, prev_convo, retrieved_summary, test_input=None, verbose=False
+    persona,
+    interlocutor_desc,
+    prev_convo,
+    retrieved_summary,
+    test_input=None,
+    verbose=False,
 ):
     def create_prompt_input(
         persona, interlocutor_desc, prev_convo, retrieved_summary, test_input=None
@@ -3475,7 +3656,9 @@ def run_gpt_prompt_generate_next_convo_line(
         "stop": None,
     }
     prompt_template = "persona/prompt_template/v2/generate_next_convo_line_v1.txt"
-    prompt_input = create_prompt_input(persona, interlocutor_desc, prev_convo, retrieved_summary)
+    prompt_input = create_prompt_input(
+        persona, interlocutor_desc, prev_convo, retrieved_summary
+    )
     prompt = generate_prompt(prompt_input, prompt_template)
 
     fail_safe = get_fail_safe()
@@ -3484,12 +3667,16 @@ def run_gpt_prompt_generate_next_convo_line(
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-def run_gpt_prompt_generate_whisper_inner_thought(persona, whisper, test_input=None, verbose=False):
+def run_gpt_prompt_generate_whisper_inner_thought(
+    persona, whisper, test_input=None, verbose=False
+):
     def create_prompt_input(persona, whisper, test_input=None):
         prompt_input = [persona.scratch.name, whisper]
         return prompt_input
@@ -3527,14 +3714,23 @@ def run_gpt_prompt_generate_whisper_inner_thought(persona, whisper, test_input=N
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-def run_gpt_prompt_planning_thought_on_convo(persona, all_utt, test_input=None, verbose=False):
+def run_gpt_prompt_planning_thought_on_convo(
+    persona, all_utt, test_input=None, verbose=False
+):
     def create_prompt_input(persona, all_utt, test_input=None):
-        prompt_input = [all_utt, persona.scratch.name, persona.scratch.name, persona.scratch.name]
+        prompt_input = [
+            all_utt,
+            persona.scratch.name,
+            persona.scratch.name,
+            persona.scratch.name,
+        ]
         return prompt_input
 
     def __func_clean_up(gpt_response, prompt=""):
@@ -3570,14 +3766,21 @@ def run_gpt_prompt_planning_thought_on_convo(persona, all_utt, test_input=None, 
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
 def run_gpt_prompt_memo_on_convo(persona, all_utt, test_input=None, verbose=False):
     def create_prompt_input(persona, all_utt, test_input=None):
-        prompt_input = [all_utt, persona.scratch.name, persona.scratch.name, persona.scratch.name]
+        prompt_input = [
+            all_utt,
+            persona.scratch.name,
+            persona.scratch.name,
+            persona.scratch.name,
+        ]
         return prompt_input
 
     def __func_clean_up(gpt_response, prompt=""):
@@ -3615,7 +3818,9 @@ def run_gpt_prompt_memo_on_convo(persona, all_utt, test_input=None, verbose=Fals
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/memo_on_convo_v1.txt"  ########
+    prompt_template = (
+        "persona/prompt_template/v3_ChatGPT/memo_on_convo_v1.txt"  ########
+    )
     prompt_input = create_prompt_input(persona, all_utt)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "Jane Doe was interesting to talk to."  ########
@@ -3656,7 +3861,9 @@ def run_gpt_prompt_memo_on_convo(persona, all_utt, test_input=None, verbose=Fals
     )
 
     if debug or verbose:
-        print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
+        print_run_prompts(
+            prompt_template, persona, gpt_param, prompt_input, prompt, output
+        )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -3702,7 +3909,13 @@ def run_gpt_generate_safety_score(persona, comment, test_input=None, verbose=Fal
         "stop": None,
     }
     output = completion_safe_generate_response(
-        prompt, gpt_param, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
+        prompt,
+        gpt_param,
+        3,
+        fail_safe,
+        __chat_func_validate,
+        __chat_func_clean_up,
+        verbose,
     )
     print(output)
 
@@ -3737,14 +3950,22 @@ def run_gpt_generate_iterative_chat_utt(
     verbose=False,
 ):
     def create_prompt_input(
-        maze, init_persona, target_persona, retrieved, curr_context, curr_chat, test_input=None
+        maze,
+        init_persona,
+        target_persona,
+        retrieved,
+        curr_context,
+        curr_chat,
+        test_input=None,
     ):
         persona = init_persona
         prev_convo_insert = "\n"
         if persona.a_mem.seq_chat:
             for i in persona.a_mem.seq_chat:
                 if i.object == target_persona.scratch.name:
-                    v1 = int((persona.scratch.curr_time - i.created).total_seconds() / 60)
+                    v1 = int(
+                        (persona.scratch.curr_time - i.created).total_seconds() / 60
+                    )
                     prev_convo_insert += f"{str(v1)} minutes ago, {persona.scratch.name} and {target_persona.scratch.name} were already {i.description} This context takes place after that conversation."
                     break
         if prev_convo_insert == "\n":
@@ -3752,7 +3973,9 @@ def run_gpt_generate_iterative_chat_utt(
         if persona.a_mem.seq_chat:
             if (
                 int(
-                    (persona.scratch.curr_time - persona.a_mem.seq_chat[-1].created).total_seconds()
+                    (
+                        persona.scratch.curr_time - persona.a_mem.seq_chat[-1].created
+                    ).total_seconds()
                     / 60
                 )
                 > 480
@@ -3837,7 +4060,13 @@ def run_gpt_generate_iterative_chat_utt(
         "stop": None,
     }
     output = completion_safe_generate_response(
-        prompt, gpt_param, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
+        prompt,
+        gpt_param,
+        3,
+        fail_safe,
+        __chat_func_validate,
+        __chat_func_clean_up,
+        verbose,
     )
     print(output)
 
@@ -3930,7 +4159,13 @@ def run_gpt_generate_iterative_comment_utt_with_policy(
         "stop": None,
     }
     output = completion_safe_generate_response(
-        prompt, gpt_param, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
+        prompt,
+        gpt_param,
+        3,
+        fail_safe,
+        __chat_func_validate,
+        __chat_func_clean_up,
+        verbose,
     )
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
@@ -3977,7 +4212,9 @@ def run_gpt_generate_iterative_comment_utt_new(
     init_iss = f"{persona.scratch.get_str_iss()}"  # Here is the content and comments about the case, here is a brief description of {persona.scratch.name}.
 
     # Step 2. Call llm function
-    result = iterative_comments(init_iss, pm, retrieved_context, persona.scratch.name, all_news)
+    result = iterative_comments(
+        init_iss, pm, retrieved_context, persona.scratch.name, all_news
+    )
     return result
 
 
@@ -4068,7 +4305,13 @@ def run_gpt_generate_iterative_comment_utt_with_websearch(
         "stop": None,
     }
     output = completion_safe_generate_response(
-        prompt, gpt_param, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
+        prompt,
+        gpt_param,
+        3,
+        fail_safe,
+        __chat_func_validate,
+        __chat_func_clean_up,
+        verbose,
     )
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
@@ -4120,7 +4363,7 @@ def run_gpt_generate_iterative_comment_utt_with_policy_and_websearch(
             all_news,
             policy,
             websearch,
-        ]
+        ] 
         return prompt_input
 
     def __chat_func_clean_up(gpt_response, prompt=""):
@@ -4156,44 +4399,44 @@ def run_gpt_generate_iterative_comment_utt_with_policy_and_websearch(
     }
 
     output = completion_safe_generate_response(
-        prompt, gpt_param, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
+        prompt,
+        gpt_param,
+        3,
+        fail_safe,
+        __chat_func_validate,
+        __chat_func_clean_up,
+        verbose,
     )
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
 ###wzt plan里面调用的判断
-def run_gpt_prompt_decide_to_comment(persona, retrieved, test_input=None, verbose=False):
-    def create_prompt_input(persona, retrieved, test_input=None):
-        pm = ""
-        retrieved_context = ""
-        description1, description2 = set(), set()
+def run_gpt_prompt_decide_to_comment(
+    persona, retrieved, test_input=None, verbose=False
+):
+    pm = ""
+    retrieved_context = ""
+    description1, description2 = set(), set()
 
-        for n, (key, vals) in enumerate(retrieved.items(), start=1):
-            pm += f"{n}. {vals['curr_event'].name} said, {vals['curr_event'].description}\n"
+    for n, (key, vals) in enumerate(retrieved.items(), start=1):
+        pm += f"{n}. {vals['curr_event'].name} said, {vals['curr_event'].description}\n"
 
-            description1.update(c_node.description for c_node in vals["events"])
-            description2.update(c_node.description for c_node in vals["thoughts"])
+        description1.update(c_node.description for c_node in vals["events"])
+        description2.update(c_node.description for c_node in vals["thoughts"])
 
-        for m, des in enumerate(description1 | description2, start=1):
-            retrieved_context += f"{m}. {des}\n"
+    for m, des in enumerate(description1 | description2, start=1):
+        retrieved_context += f"{m}. {des}\n"
 
-        curr_time = persona.scratch.curr_time.strftime("%B %d, %Y, %H:%M:%S %p")
-        init_iss = f"{persona.scratch.get_str_iss()}"
-
-        prompt_input = (pm, retrieved_context, curr_time, persona.name, init_iss)
-        return prompt_input
-
-    pm, retrieved_context, curr_time, persona_name, init_iss = create_prompt_input(
-        persona, retrieved, test_input
-    )
+    curr_time = persona.scratch.curr_time.strftime("%B %d, %Y, %H:%M:%S %p")
+    init_iss = f"{persona.scratch.get_str_iss()}"
 
     @llm_function(prompt_file="decide_to_comment.md", is_chat=True, stop="---")
-    def decide_to_comment(public_memory, time, context, persona_name):
+    def decide_to_comment(public_memory, time, context, persona_name, persona_iss):
 
         return {
             "reasoning": "Let's think step by step.<the reasoning of the answer...>",
             "answer": "Yes or No",
         }
 
-    output = decide_to_comment(pm, curr_time, retrieved_context, persona_name)
+    output = decide_to_comment(pm, curr_time, retrieved_context, persona.name, init_iss)
     return output["answer"].lower()

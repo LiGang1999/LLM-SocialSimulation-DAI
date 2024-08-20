@@ -3,7 +3,6 @@
 turn a sentence into (subject, predicate, object) .
 
 parameters:
-- persona_name: persona's full name
 - action: current action description
 
 ## system prompt
@@ -33,4 +32,4 @@ Output: (Merrie Morris, run, treadmill)
 
 ## user prompt
 
-{persona_name} is {action}.
+{action}.

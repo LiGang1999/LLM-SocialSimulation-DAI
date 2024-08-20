@@ -3,6 +3,8 @@ import './App.css';
 import fs from 'fs'
 import yaml from 'js-yaml'
 
+import React, { useState, useEffect } from 'react';
+
 /**
  * v0 by Vercel.
  * @see https://v0.dev/t/vWHQ7AzR8lD
@@ -13,6 +15,34 @@ function StartApp() {
   const server_ip = config_data.VITE_server_ip;
   const back_port = config_data.VITE_back_port;
   const front_port2 = config_data.VITE_front_port2;
+
+  const [templates, setTemplates] = useState([]);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      const envs = await get_envs();
+      setTemplates(envs);
+    };
+    fetchTemplates();
+  }, []);
+
+  const get_envs = async () => {
+    var url = `http://${server_ip}:${back_port}/list_envs/`;
+    try {
+      const response = await fetch(url,
+        {
+          method: 'GET'
+        }
+      );
+      const data = await response.json();
+      return data.envs;  // Using 'envs' instead of 'templates' as per the API response
+    } catch (error) {
+      console.error("Error fetching environments:", error);
+      return [];
+    }
+  };
+
+
   const start_sim = async () => {
 
     var fork_name = document.getElementById("fork_sim").value;
@@ -25,15 +55,6 @@ function StartApp() {
     const response = await fetch(url, {
       method: 'GET',
       mode: 'no-cors'
-      // body: JSON.stringify({
-      //   name: 'John Smith',
-      //   job: 'manager',
-      // }),
-      // headers: {
-      // 'Content-Type': 'application/json',
-      // Accept: 'application/json',
-      // "Access-Control-Allow-Origin": '*'
-      // },
     }).then(
       (data) => {
         console.log("response2: ", data)
@@ -62,13 +83,20 @@ function StartApp() {
           <label className="text-sm font-medium" htmlFor="input1">
             Template:
           </label>
-          <input
+          <select
             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             id="fork_sim"
-            placeholder=""
-            type="text"
-            value="base_the_ville_isabella_maria_klaus"
-          />
+          >
+            {templates.length === 0 ? (
+              <option>Loading...</option>
+            ) : (
+              templates.map((env) => (
+                <option key={env} value={env}>
+                  {env}
+                </option>
+              ))
+            )}
+          </select>
         </div>
         <div className="flex flex-col space-y-2">
           <label className="text-sm font-medium" htmlFor="input1">

@@ -22,4 +22,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("start/", control.start, name="start"),
     path("command/", control.add_command, name="start"),
+    path("list_envs/", control.list_envs),
 ]

@@ -128,10 +128,7 @@ def llm_request(
             start_time = time.time()
             if llm_config["chat"]:
                 # Chat mode implementation
-                messages = [
-                    {"role": "system", "content": sys_prompt},
-                    {"role": "user", "content": usr_prompt},
-                ]
+                messages = [{"role": "system", "content": sys_prompt}, {"role": "user", "content": usr_prompt}]
                 # L.debug(f"Prompt:{str(messages)}")
                 response = default_client.chat.completions.create(
                     model=model,
@@ -208,7 +205,7 @@ Here is the example user input and the answer:
 {'\n'.join([ f"{key}: {value}" for key, value in example_kwargs.items()])}"""
     # TODO shoud we include the example inputs and outputs here?
     prompt = f"""\n
-
+ 
 You MUST reply the answer in the following json format (the contents are for reference only):
 {json.dumps(example_retval, indent=4)}
 
@@ -275,16 +272,16 @@ def extract_largest_json(unstructured_string):
 
 
 def llm_function(
-    user_prompt: str = None,
-    system_prompt: str = None,
-    prompt_file: str = None,
-    is_chat: bool = False,
-    stop: str = "",
-    llm_config={},
-    cleanup_fn=None,
-    failsafe_fn=None,
-    failsafe=None,
-    validate_fn=None,
+    user_prompt: str = None,  # If prompt_file is not provided, this is used as the user prompt directly
+    system_prompt: str = None,  # If prompt_file is not provided, this is used as the system prompt directly
+    prompt_file: str = None,  # If provided, the user prompt and system prompt are loaded from this file
+    is_chat: bool = False,  # If True, the function is a chat function
+    stop: str = "",  # Stop sequence for the LLM
+    llm_config={},  # Use this parameter to override the default configurations of the llm
+    cleanup_fn=None,  # optional cleanup function. A default cleanup function is provided.
+    failsafe_fn=None,  # optional failsafe function. A default failsafe function is provided.
+    failsafe=None,  # optional failsafe value. If this is not None, the failsafe function will return this value.
+    validate_fn=None,  # optional validate function.
 ):
     # load prompt files if necessary
     if prompt_file:
@@ -362,18 +359,9 @@ def llm_function(
             sys_prompt = system_prompt.strip()
 
             usr_prompt = insert_prompt_args(usr_prompt, kwargs)
-            sys_prompt = insert_prompt_args(sys_prompt, kwargs) + example_output_format(
-                example_kwargs, example_result
-            )
+            sys_prompt = insert_prompt_args(sys_prompt, kwargs) + example_output_format(example_kwargs, example_result)
             result = llm_request(
-                usr_prompt,
-                sys_prompt,
-                _llm_config,
-                _validate_fn,
-                _cleanup_fn,
-                _failsafe_fn,
-                kwargs,
-                desc_func.__name__,
+                usr_prompt, sys_prompt, _llm_config, _validate_fn, _cleanup_fn, _failsafe_fn, kwargs, desc_func.__name__
             )
             return result
 

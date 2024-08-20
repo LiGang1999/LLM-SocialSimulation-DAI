@@ -8,6 +8,7 @@ Parameters:
 - context: context
 - time: time
 - persona_name: persona name
+- persona_iss: persona iss
 
 ## System Prompt
 
@@ -45,6 +46,6 @@ Answer:
 
 ## User prompt
 Public memory: {public_memory}
-Context: {context}
+Context: {persona_iss}. {context}
 
 Question:  Would {persona_name} comment for the case?
