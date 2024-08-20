@@ -21,6 +21,7 @@ from channels.auth import AuthMiddlewareStack
 
 websocket_urlpatterns = [
     path('ws/log', consumers.LogConsumer),
+    path('ws/online', consumers.OnlineConsumer),
 ]
 
 application = ProtocolTypeRouter({

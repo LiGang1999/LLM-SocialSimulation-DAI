@@ -28,6 +28,7 @@ import os
 import shutil
 import traceback
 from queue import Queue
+import asyncio
 
 from selenium import webdriver
 
@@ -38,9 +39,12 @@ from persona.persona import *
 from vector_db import *#
 from institution import *#
 from memorynode import *
+from persona.prompt_template.gpt_structure import init_api
 
 global_rs = None#???
 command_queue = Queue()
+# online_relation = asyncio.Queue(maxsize=3)
+online_relation = Queue()
 
 global_offline_mode = False ##false means online
 
@@ -56,13 +60,17 @@ def return_rs():
 class ReverieServer: 
   def __init__(self, 
                fork_sim_code,
-               sim_code):
+               sim_code,
+               model):
     # FORKING FROM A PRIOR SIMULATION:
     # <fork_sim_code> indicates the simulation we are forking from. 
     # Interestingly, all simulations must be forked from some initial 
     # simulation, where the first simulation is "hand-crafted".
     self.fork_sim_code = fork_sim_code
     fork_folder = f"{fs_storage}/{self.fork_sim_code}"
+
+    # init llm api config
+    init_api(model)
 
     # <sim_code> indicates our current simulation. The first step here is to 
     # copy everything that's in <fork_sim_code>, but edit its 
@@ -411,6 +419,7 @@ class ReverieServer:
               #   writing her next novel (editing her novel) 
               #   @ double studio:double studio:common room:sofa
               # next_tile, pronunciatio, description = persona.move(
+              print("persona.type: ", type(persona))
               next_tile, pronunciatio, description = persona.single_workflow(
                 self.maze, self.personas, self.personas_tile[persona_name], 
                 self.curr_time)
@@ -487,6 +496,9 @@ class ReverieServer:
     sim_folder = f"{fs_storage}/{self.sim_code}"
 
     while True: 
+      # while True:
+      #   online_relation.put("test - reverie")
+      #   time.sleep(5)
       # sim_command = input("Enter option: ")
       print("Enter option: ")
       sim_command = command_queue.get()
@@ -632,7 +644,7 @@ class ReverieServer:
           # Ex: call -- analysis Isabella Rodriguez
           persona_name = sim_command[len("call -- analysis"):].strip() #Do you support Isabella Rodriguez as mayor?
           # self.personas[persona_name].open_convo_session("analysis")#Do you want to run for mayor in the local election?
-          self.personas[persona_name].open_convo_session("analysis", self.maze.vbase)#Do you want to run for mayor in the local election?
+          self.personas[persona_name].open_convo_session("analysis", self.maze.vbase, command_queue)#Do you want to run for mayor in the local election?
 
         elif ("call -- load history" 
               in sim_command.lower()): 
@@ -1090,9 +1102,9 @@ class ReverieServer:
 #     return args
 ################SPP###############
 
-def start_sim(forked_sim_name, new_sim_name):
+def start_sim(forked_sim_name, new_sim_name, model):
   global rs
-  rs = ReverieServer(forked_sim_name, new_sim_name)
+  rs = ReverieServer(forked_sim_name, new_sim_name, model)
   global_rs = rs#
   rs.open_server()
 

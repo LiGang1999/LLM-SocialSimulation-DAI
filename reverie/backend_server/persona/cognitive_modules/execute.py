@@ -159,6 +159,10 @@ def execute(persona, maze, personas, plan):
   description += f" @ {persona.scratch.act_address}"
 
   execution = ret, persona.scratch.act_pronunciatio, description
+  print("ret: ", ret)
+  print("persona.scratch.act_pronunciatio: ", persona.scratch.act_pronunciatio)
+  print("description: ", description)
+  print("execution: ", execution)
   return execution
 
 
