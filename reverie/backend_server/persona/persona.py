@@ -248,8 +248,8 @@ class GaPersona(Persona):
   # def open_convo_session(self, convo_mode): 
   #   open_convo_session(self, convo_mode)
   
-  def open_convo_session(self, convo_mode, vbase): 
-    open_convo_session(self, convo_mode, vbase)
+  def open_convo_session(self, convo_mode, vbase, input_queue): 
+    open_convo_session(self, convo_mode, vbase, input_queue)
 
 class DaiPersona(Persona): 
   def __init__(self, name, folder_mem_saved=False):

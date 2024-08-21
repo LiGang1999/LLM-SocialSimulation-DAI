@@ -228,6 +228,8 @@ def new_retrieve(persona, focal_points, n_count=30):
     nodes = [i for created, i in nodes]
 
     # Calculating the component dictionaries and normalizing them.
+    print("persona: ", persona)
+    print("nodes: ", nodes)
     recency_out = extract_recency(persona, nodes)
     recency_out = normalize_dict_floats(recency_out, 0, 1)
     importance_out = extract_importance(persona, nodes)

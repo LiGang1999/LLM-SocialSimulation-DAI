@@ -20,5 +20,6 @@ from translator import control
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('start/', control.start, name='start'),
-    path('command/', control.add_command, name='start')
+    path('command/', control.add_command, name='start'),
+    path('persona/', control.get_persona, name='persona')
 ]

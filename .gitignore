@@ -5,6 +5,7 @@ static_dirs/*
 
 !environment/frontend_server/storage/base_the_ville_isabella_maria_klaus/*
 !environment/frontend_server/storage/base_the_ville_n25/*
+environment/frontend_server/storage/test*
 
 bin/
 include/

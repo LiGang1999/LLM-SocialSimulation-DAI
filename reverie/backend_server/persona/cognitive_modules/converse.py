@@ -288,14 +288,15 @@ def load_history_via_whisper(personas, whispers):
                               thought, keywords, thought_poignancy, 
                               thought_embedding_pair, None)
 
-def open_convo_session(persona, convo_mode, vbase): 
+def open_convo_session(persona, convo_mode, vbase, input_queue): 
 # def open_convo_session(persona, convo_mode): 
   if convo_mode == "analysis": 
     curr_convo = []
     interlocutor_desc = "Interviewer"
 
     while True: 
-      line = input("Enter Input: ")
+      # line = input("Enter Input: ")
+      line = input_queue.get()
       if line == "end_convo": 
         break
 

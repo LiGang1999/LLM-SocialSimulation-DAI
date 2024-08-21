@@ -12,17 +12,47 @@ import time
 from utils import *
 
 openai.api_key = openai_api_key
+openai.organization = openai_organization
 # openai.api_base = "https://www.aitesla.chat/v1"#20231108#2
 # openai.api_base = "http://47.110.234.71:31788/v1"
 # openai.api_base = "http://localhost:8000/v1"
 # openai.api_base = "http://localhost:8888/v1"
-openai.api_base = "http://127.0.0.1:8886/v1"
+# openai.api_base = "http://127.0.0.1:8886/v1"
 # openai.api_version = "2023-03-15-preview"#
 
 # openai.api_type = "azure"
 # openai.api_base = "https://zjudai.openai.azure.com/"
 # openai.api_key = "5c09a47bc6a44b44a6094f952882d958"
 # openai.api_version = "2023-05-15"
+
+model_name = ''
+completion_model_name = ''
+embedding_url = 'http://47.110.234.71:31791/v1'
+embedding_model = 'vicuna-13b-v1.5'
+
+def init_api(model):
+  global model_name, completion_model_name
+  model2url = {
+      'vicuna-13b-v1.5': 'http://47.110.234.71:31791/v1',
+      'Qwen/Qwen2-7B-Instruct (32K)': 'https://api.siliconflow.cn/v1',
+      'THUDM/glm-4-9b-chat (32K)': 'https://api.siliconflow.cn/v1',
+      '01-ai/Yi-1.5-9B-Chat-16K (16K)': 'https://api.siliconflow.cn/v1',
+      'gpt': 'https://api.openai.com/v1'
+  }
+  model2pure = {
+    'Qwen/Qwen2-7B-Instruct (32K)': 'Qwen/Qwen2-7B-Instruct',
+    'THUDM/glm-4-9b-chat (32K)': 'THUDM/glm-4-9b-chat',
+    '01-ai/Yi-1.5-9B-Chat-16K (16K)': '01-ai/Yi-1.5-9B-Chat-16K'
+  }
+  if 'gpt' in model:
+    openai.api_base = model2url['gpt']
+  else:
+    openai.api_base = model2url[model]
+  model_name = model2pure.get(model, model)
+  completion_model_name = 'vicuna-13b-v1.5'
+  # print("api.url: ", openai.api_base)
+  # print("api.model: ", model_name)
+  print(f"Using the chat model `{model_name}` and completion model `{completion_model_name}` with url `{openai.api_base}`")
 
 def temp_sleep(seconds=0.1):
   time.sleep(seconds)
@@ -45,12 +75,13 @@ def ChatGPT_single_request(prompt):
     # model="gpt-3.5-turbo", 
     # model="Llama-2-7b-chat-hf", 
     # model="Llama-2-13b-chat-hf", 
-    model="vicuna-13b-v1.5", 
+    model=model_name, 
     # model="vicuna-13b-v1.5-16k", 
     # model="vicuna-33b-v1.3", 
     # model="Baichuan-13B-Chat", 
     messages=[{"role": "user", "content": prompt}]
   )
+  print("completion: ", completion)
   return completion["choices"][0]["message"]["content"]
 
 
@@ -77,7 +108,7 @@ def GPT4_request(prompt):
     # model="gpt-4", 
     # model="Llama-2-7b-chat-hf", 
     # model="Llama-2-13b-chat-hf", 
-    model="vicuna-13b-v1.5", 
+    model=model_name, 
     # model="vicuna-13b-v1.5-16k", 
     # model="vicuna-33b-v1.3", 
     # model="Baichuan-13B-Chat", 
@@ -109,7 +140,7 @@ def ChatGPT_request(prompt):
     # model="gpt-3.5-turbo", 
     # model="Llama-2-7b-chat-hf", 
     # model="Llama-2-13b-chat-hf", 
-    model="vicuna-13b-v1.5", 
+    model=model_name, 
     # model="vicuna-13b-v1.5-16k", 
     # model="vicuna-33b-v1.3", 
     # model="Baichuan-13B-Chat", 
@@ -326,7 +357,7 @@ def GPT_request(prompt, gpt_parameter): ##lg##
                 # model=gpt_parameter["engine"],
                 # model="Llama-2-7b-chat-hf", 
                 # model="Llama-2-13b-chat-hf", 
-                model="vicuna-13b-v1.5", 
+                model=completion_model_name, 
                 # model="vicuna-13b-v1.5-16k", 
                 # model="vicuna-33b-v1.3", 
                 # model="Baichuan-13B-Chat", 
@@ -339,8 +370,11 @@ def GPT_request(prompt, gpt_parameter): ##lg##
                 stream=gpt_parameter["stream"],
                 stop=gpt_parameter["stop"],)
     return response.choices[0].text
-  except: 
+  except Exception as e: 
     print ("TOKEN LIMIT EXCEEDED")
+    print(e)
+    print("ip: ", openai.api_base)
+    print("model: ", model_name)
     return "TOKEN LIMIT EXCEEDED"
 
 
@@ -403,7 +437,7 @@ def get_embedding(text, model="text-embedding-ada-002"):
   if not text: 
     text = "this is blank"
   return openai.Embedding.create(
-          input=[text], model=model)['data'][0]['embedding']
+          input=[text], model=embedding_model, api_base=embedding_url)['data'][0]['embedding']
 
 # def get_embedding(text, model="text-embedding-ada-002"):
 #   text = text.replace("\n", " ")
