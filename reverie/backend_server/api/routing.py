@@ -15,7 +15,7 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import re_path
+from django.urls import re_path, path
 import consumers
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
@@ -23,5 +23,6 @@ from channels.auth import AuthMiddlewareStack
 websocket_urlpatterns = [
     re_path(
         r"ws/log/?$", consumers.LogConsumer.as_asgi()
-    )  # Use regex to ensure proper URL matching
+    ),  # Use regex to ensure proper URL matching
+    path("ws/online", consumers.OnlineConsumer),
 ]

@@ -5,6 +5,11 @@ import asyncio
 import io
 from log import L, log_stream
 
+import subprocess
+from reverie import online_relation
+from threading import Thread
+import time
+
 
 class LogConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -38,3 +43,34 @@ class LogConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         L.info(f"Websockets disconnected with code: {close_code}")
+
+
+class OnlineConsumer(AsyncWebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.thread = Thread(target=self.get_online)
+        self.thread.daemon = True
+        self.thread.start()
+
+    async def connect(self):
+        print("online connecting..")
+        await self.accept()
+        print("online connected")
+
+    def get_online(self):
+        print("online - watch log and send")
+        while True:
+            if not online_relation.empty():
+                line = online_relation.get()
+                try:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    result = loop.run_until_complete(
+                        self.send(text_data=json.dumps({"message": line}))
+                    )
+                except Exception as e:
+                    print("error: ", e)
+            time.sleep(1)
+
+    async def disconnect(self, close_code):
+        pass

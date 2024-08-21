@@ -96,6 +96,9 @@ class GaPersona(Persona):
         f_scratch = f"{save_folder}/scratch.json"
         self.scratch.save(f_scratch)
 
+    def open_convo_session(self, convo_mode, vbase, input_queue):
+        open_convo_session(self, convo_mode, vbase, input_queue)
+
 
 class DaiPersona(Persona):
     def __init__(self, name, folder_mem_saved=False):
