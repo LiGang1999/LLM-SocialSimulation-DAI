@@ -124,8 +124,6 @@ class ReverieServer:
             )
             removeanything(sim_folder)
         copyanything(fork_folder, sim_folder)
-        L.debug(f"{sim_meta.persona_names}")
-
         with open(f"{sim_folder}/reverie/meta.json") as json_file:
             reverie_meta = json.load(json_file)
             if sim_meta.curr_time:
@@ -133,7 +131,6 @@ class ReverieServer:
             if sim_meta.step:
                 reverie_meta["step"] = sim_meta.step
             if sim_meta.persona_names is not None and (len(sim_meta.persona_names) > 0):
-                L.debug(f"{len(sim_meta.persona_names)}")
                 reverie_meta["persona_names"] = sim_meta.persona_names
             if sim_meta.maze_name:
                 reverie_meta["maze_name"] = sim_meta.maze_name
