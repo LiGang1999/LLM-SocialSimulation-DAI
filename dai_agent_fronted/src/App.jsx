@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -8,6 +7,7 @@ import './App.css'
  * @see https://v0.dev/t/TPKUJgBr1Wy
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
+
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, DropdownMenu } from "@/components/ui/dropdown-menu"
@@ -32,40 +32,45 @@ const AvatarImg = () => {
   )
 }
 
+import { useState, useRef, useEffect } from 'react'
+
 function App() {
   const config_data = import.meta.env;
   const server_ip = config_data.VITE_server_ip;
   const back_port = config_data.VITE_back_port;
   const [chatType, setChatType] = useState('Command');
-  function add_chat(msg, is_start) {
-    var chat_box = document.getElementById("chatBox");
-    var chat_div = document.createElement("div");
-    console.log("add chat in chat box");
-    if (is_start) {
-    } else {
-      chat_div.className = 'flex justify-end items-start gap-3 items-center'
 
-      // create chat_left div
-      var chat_left_div = document.createElement("div");
+  const chatBoxRef = useRef(null);
+  const chatUserRef = useRef(null);
+  const inputRef = useRef(null);
+
+  function add_chat(msg, is_start) {
+    if (!chatBoxRef.current) return;
+
+    const chat_box = chatBoxRef.current;
+    const chat_div = document.createElement("div");
+    console.log("add chat in chat box");
+
+    if (!is_start) {
+      chat_div.className = 'flex justify-end items-start gap-3 items-center';
+
+      const chat_left_div = document.createElement("div");
       chat_left_div.className = "flex flex-col items-end";
 
-      // create Name div
-      var name_div = document.createElement("div");
+      const name_div = document.createElement("div");
       name_div.className = "font-medium text-sm";
       name_div.innerHTML = "Admin";
       chat_left_div.appendChild(name_div);
 
-      // create message div
-      var mes_div = document.createElement("div");
+      const mes_div = document.createElement("div");
       mes_div.className = "rounded-lg bg-blue-500 p-3 text-sm text-white";
 
-      var mes_p = document.createElement("p");
+      const mes_p = document.createElement("p");
       mes_p.innerHTML = msg;
       mes_div.appendChild(mes_p);
       chat_left_div.appendChild(mes_div);
 
-      // create avatar
-      var avatar_img = document.createElement("img");
+      const avatar_img = document.createElement("img");
       avatar_img.alt = "User Avatar";
       avatar_img.className = "rounded-full";
       avatar_img.height = 40;
@@ -83,18 +88,22 @@ function App() {
   }
 
   const interact = async () => {
-    var chat_type = document.getElementById("chat_type").value;
-    console.log("chat_type: ", chat_type)
-    var chat_user = document.getElementById("chat_user").value;
-    console.log("chat user: ", chat_user)
-    var params, response;
-    if (chat_type == 'Chat') {
-      // open the conversion to chat user
-      var cmd = `call -- analysis ${chat_user}`
-      console.log("cmd: ", cmd)
+    if (!chatUserRef.current || !inputRef.current) return;
+
+    const chat_type = chatUserRef.current.value;
+    console.log("chat_type: ", chat_type);
+
+    const chat_user = chatUserRef.current.value;
+    console.log("chat user: ", chat_user);
+
+    let params, response;
+
+    if (chatType === 'Chat') {
+      const cmd = `call -- analysis ${chat_user}`;
+      console.log("cmd: ", cmd);
       params = new URLSearchParams();
       params.append('command', cmd);
-      var url = `http://${server_ip}:${back_port}/command/?${params.toString()}`;
+      const url = `http://${server_ip}:${back_port}/command/?${params.toString()}`;
       add_chat("Command: " + cmd, false);
       response = await fetch(url, {
         method: 'GET',
@@ -102,10 +111,10 @@ function App() {
       });
     }
 
-    var cmd = document.getElementById("input").value;
+    const cmd = inputRef.current.value;
     params = new URLSearchParams();
     params.append('command', cmd);
-    var url = `http://${server_ip}:${back_port}/command/?${params.toString()}`;
+    const url = `http://${server_ip}:${back_port}/command/?${params.toString()}`;
     add_chat("Command: " + cmd, false);
     response = await fetch(url, {
       method: 'GET',
@@ -113,7 +122,7 @@ function App() {
     });
 
     // Clear the input
-    inputElement.value = '';
+    inputRef.current.value = '';
   };
 
   const handleKeyDown = (event) => {
@@ -122,42 +131,39 @@ function App() {
     }
   };
 
-  // add agent name in chat user list
-  var url = `http://${server_ip}:${back_port}/persona/`;
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url, true);
-  xhr.responseType = 'json';
-  xhr.onload = function () {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      // 请求成功
-      console.log('Response:', xhr.response['personas']);
-      var personas = xhr.response['personas'];
-      var chat_user = document.getElementById("chat_user");
-      chat_user.innerHTML = '';
-      for (var i = 0; i < personas.length; i++) {
-        console.log("person: ", personas[i])
-        var user_option = document.createElement("option");
-        user_option.textContent = personas[i];
-        chat_user.appendChild(user_option)
+  useEffect(() => {
+    const url = `http://${server_ip}:${back_port}/persona/`;
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const personas = xhr.response['personas'];
+        if (chatUserRef.current) {
+          chatUserRef.current.innerHTML = '';
+          personas.forEach(persona => {
+            const user_option = document.createElement("option");
+            user_option.textContent = persona;
+            chatUserRef.current.appendChild(user_option);
+          });
+        }
+      } else {
+        console.error('Request failed with status:', xhr.status);
       }
-    } else {
-      // 请求失败
-      console.error('Request failed with status:', xhr.status);
-    }
-  };
+    };
 
-  xhr.onerror = function () {
-    // 请求过程中发生错误
-    console.error('Request error...');
-  };
+    xhr.onerror = function () {
+      console.error('Request error...');
+    };
 
-  xhr.send();
+    xhr.send();
+  }, [server_ip, back_port]);
 
   return (
     <div className="flex flex-col items-center justify-center h-[100vh] w-full bg-gradient-to-br from-blue-200 to-red-200">
       <div className="flex h-[65vh] w-[70vw] flex-col border rounded-lg bg-white">
         <div className="flex-1 overflow-auto border-b p-4">
-          <div className="space-y-4" id="chatBox">
+          <div className="space-y-4" id="chatBox" ref={chatBoxRef}>
             <div className="flex justify-end items-start gap-3 items-center">
               <div className="flex flex-col items-end">
                 <div className="font-medium text-sm">Admin</div>
@@ -202,6 +208,7 @@ function App() {
             <select
               className="block flex-1 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
               id="chat_user"
+              ref={chatUserRef}
             >
               <option>John Doe</option>
               <option>Jane Smith</option>
@@ -209,7 +216,13 @@ function App() {
             </select>
           </div>
           <div className="flex items-center">
-            <Input className="flex-1" id="input" placeholder={(chatType === 'Chat' ? 'Please input chat content' : 'Please input your command') + "..."} onKeyDown={handleKeyDown} />
+            <Input
+              className="flex-1"
+              id="input"
+              placeholder={(chatType === 'Chat' ? 'Please input chat content' : 'Please input your command') + "..."}
+              onKeyDown={handleKeyDown}
+              ref={inputRef}
+            />
             <Button className="ml-2" size="sm" variant="primary" onClick={interact}>
               <SendIcon className="h-4 w-4" />
             </Button>

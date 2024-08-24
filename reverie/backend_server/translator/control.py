@@ -1,6 +1,8 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-from reverie import start_sim, command_queue
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from reverie import start_sim, command_queue, ReverieMeta
 import threading
 import os
 
@@ -8,13 +10,29 @@ import json
 from os import listdir
 
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def start(request):
-    fork = request.GET.get("fork")
-    new = request.GET.get("new")
-    model = request.GET.get("model")
-    thread = threading.Thread(target=start_sim, args=(fork, new, model))
-    thread.start()
-    return HttpResponse("success")
+    try:
+        data = json.loads(request.body)
+        template = data.get("template")
+        config = data.get("config")
+
+        if not template or not config:
+            return JsonResponse({"error": "Missing required parameters"}, status=400)
+
+        # Convert the config dictionary to ReverieMeta object
+        config = ReverieMeta(**config)
+
+        thread = threading.Thread(target=start_sim, args=(template, config))
+        thread.start()
+
+        return JsonResponse({"status": "success", "message": "Simulation started"})
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 def add_command(request):
@@ -29,7 +47,7 @@ def list_envs(request):
     envs = os.listdir(storage_folder)
     result_envs = []
     for dir in envs:
-        if "test" not in dir and "sim" not in dir:
+        if "test" not in dir and "sim" not in dir and "July" not in dir:
             result_envs.append(dir)
     return JsonResponse(safe=False, data={"envs": result_envs})
 
@@ -49,17 +67,15 @@ def find_filenames(path_to_dir, suffix=".csv"):
 
 
 def get_persona(request):
+    # This implementation is a pile of shit
     print("Get personas...")
-    with open(
-        "/home/lj/code/mine/llm-ss-dai-0624/environment/frontend_server/temp_storage/curr_sim_code.json"
-    ) as json_file:
+    storage_path = "../../environment/frontend_server/storage"
+    temp_storage_path = "../../environment/frontend_server/temp_storage"
+    with open(f"{temp_storage_path}/curr_sim_code.json") as json_file:
         sim_code = json.load(json_file)["sim_code"]
     persona_names = []
     persona_names_set = set()
-    for i in find_filenames(
-        f"/home/lj/code/mine/llm-ss-dai-0624/environment/frontend_server/storage/{sim_code}/personas",
-        "",
-    ):
+    for i in find_filenames(f"{storage_path}/{sim_code}/personas", ""):
         x = i.split("/")[-1].strip()
         if x[0] != ".":
             persona_names += [[x, x.replace(" ", "_")]]

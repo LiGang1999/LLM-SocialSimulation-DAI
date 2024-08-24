@@ -41,15 +41,15 @@ from persona.persona import *
 from vector_db import *  #
 from institution import *  #
 from memorynode import *
-from pydantic import BaseModel
-from persona.prompt_template.gpt_structure import init_api
+import utils
+from dataclasses import dataclass, field, replace, fields, asdict
 
 global_rs = None  # ???
 command_queue = Queue()
 # online_relation = asyncio.Queue(maxsize=3)
 online_relation = Queue()
 
-global_offline_mode = False  ##false means online
+global_offline_mode = True  ##false means online
 # TODO Offline模式和Online模式应该在运行时选择
 
 
@@ -64,8 +64,46 @@ def return_rs():
 ##############################################################################
 
 
+def from_dict(cls, input_dict):
+    # Initialize with default values
+    obj = cls()
+    # Update with the values from input_dict
+    return replace(
+        obj,
+        **{key: value for key, value in input_dict.items() if key in {f.name for f in fields(cls)}},
+    )
+
+
+@dataclass
+class LLMConfig:
+    api_base: str = utils.openai_api_base
+    api_key: str = utils.openai_api_key
+    engine: str = ""
+    tempreature: float = 1.0
+    max_tokens: int = 512
+    top_p: float = 0.7
+    frequency_penalty: float = 0.0
+    presence_penalty: float = 0.0
+    stream: bool = False
+
+
+# The data class representing the meta information of a simulation.
+# Passed as an argument when creating a new simulation
+# If a field is none, it will be inherited from the forking template
+@dataclass
+class ReverieMeta:
+    sim_code: str = ""  # current simulation code
+    sim_mode: str | None = ""  # simulation mode.
+    start_date: str | None = ""  # simulation start date
+    curr_time: str | None = ""  # simulation current time
+    maze_name: str | None = ""  # map name
+    step: int | None = 0  # current steps
+    persona_names: List[str] = field(default_factory=list)  # list of persona names
+    llm_config: LLMConfig | None = field(default_factory=LLMConfig)  # llm config
+
+
 class ReverieServer:
-    def __init__(self, fork_sim_code, sim_code, model):
+    def __init__(self, fork_sim_code, sim_meta: ReverieMeta):
         # FORKING FROM A PRIOR SIMULATION:
         # <fork_sim_code> indicates the simulation we are forking from.
         # Interestingly, all simulations must be forked from some initial
@@ -73,12 +111,12 @@ class ReverieServer:
         self.fork_sim_code = fork_sim_code
         fork_folder = f"{fs_storage}/{self.fork_sim_code}"
 
-        init_api(model)
+        # init_api(model)
 
         # <sim_code> indicates our current simulation. The first step here is to
         # copy everything that's in <fork_sim_code>, but edit its
         # reverie/meta/json's fork variable.
-        self.sim_code = sim_code
+        self.sim_code = sim_meta.sim_code
         sim_folder = f"{fs_storage}/{self.sim_code}"
         if check_if_dir_exists(sim_folder):
             L.warning(
@@ -86,15 +124,33 @@ class ReverieServer:
             )
             removeanything(sim_folder)
         copyanything(fork_folder, sim_folder)
+        L.debug(f"{sim_meta.persona_names}")
 
         with open(f"{sim_folder}/reverie/meta.json") as json_file:
             reverie_meta = json.load(json_file)
+            if sim_meta.curr_time:
+                reverie_meta["curr_time"] = sim_meta.curr_time
+            if sim_meta.step:
+                reverie_meta["step"] = sim_meta.step
+            if sim_meta.persona_names is not None and (len(sim_meta.persona_names) > 0):
+                L.debug(f"{len(sim_meta.persona_names)}")
+                reverie_meta["persona_names"] = sim_meta.persona_names
+            if sim_meta.maze_name:
+                reverie_meta["maze_name"] = sim_meta.maze_name
+            if sim_meta.sim_mode:
+                reverie_meta["sim_mode"] = sim_meta.sim_mode
+            if sim_meta.start_date:
+                reverie_meta["start_date"] = sim_meta.start_date
+            if sim_meta.llm_config:
+                reverie_meta["llm_config"] = asdict(sim_meta.llm_config)
 
         with open(f"{sim_folder}/reverie/meta.json", "w") as outfile:
             reverie_meta["fork_sim_code"] = fork_sim_code
             outfile.write(json.dumps(reverie_meta, indent=2))
 
         # LOADING REVERIE'S GLOBAL VARIABLES
+        # Whether the reverie runs in offline mode or online mode
+
         # The start datetime of the Reverie:
         # <start_datetime> is the datetime instance for the start datetime of
         # the Reverie instance. Once it is set, this is not really meant to
@@ -161,6 +217,7 @@ class ReverieServer:
         # Loading in all personas.
         init_env_file = f"{sim_folder}/environment/{str(self.step)}.json"
         init_env = json.load(open(init_env_file))
+        L.debug(f"{reverie_meta}")
         for persona_name in reverie_meta["persona_names"]:
             persona_folder = f"{sim_folder}/personas/{persona_name}"
             if global_offline_mode:
@@ -723,6 +780,7 @@ class ReverieServer:
                     # Initialize domain knowledge
                     content = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
                     # self.maze.vbase = Storage(content=content)
+                    # FIX: who told you to write like this?
                     self.maze.vbase = Storage(case=content)
                     query = "nuclear"
                     texts = self.maze.vbase.get_texts(query, 2)
@@ -896,10 +954,9 @@ class ReverieServer:
                 pass
 
 
-def start_sim(forked_sim_name, new_sim_name, model):
+def start_sim(template_sim_name, new_sim_meta):
     global rs
-    rs = ReverieServer(forked_sim_name, new_sim_name, model)
-    global_rs = rs  #
+    rs = ReverieServer(template_sim_name, new_sim_meta)
     rs.open_server()
 
 
