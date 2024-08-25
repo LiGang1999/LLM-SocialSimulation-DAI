@@ -12,13 +12,12 @@ sys.path.append("../../")
 import datetime
 import random
 
+from global_methods import *
 from numpy import dot
 from numpy.linalg import norm
-
-from global_methods import *
-from persona.prompt_template.run_gpt_prompt import *
-from persona.prompt_template.gpt_structure import *
 from persona.cognitive_modules.retrieve import *
+from persona.prompt_template.gpt_structure import *
+from persona.prompt_template.run_gpt_prompt import *
 
 
 def generate_focal_points(persona, n=3):
@@ -108,9 +107,7 @@ def generate_poig_score(persona, event_type, description):
     if event_type == "event" or event_type == "thought":
         return run_gpt_prompt_event_poignancy(persona, description)[0]
     elif event_type == "chat":
-        return run_gpt_prompt_chat_poignancy(persona, persona.scratch.act_description)[
-            0
-        ]
+        return run_gpt_prompt_chat_poignancy(persona, persona.scratch.act_description)[0]
 
 
 def generate_planning_thought_on_convo(persona, all_utt):
@@ -199,11 +196,7 @@ def run_reflect_new(persona):
         for thought, evidence in thoughts.items():
             created = persona.scratch.curr_time
             expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
-            # s, p, o = generate_action_event_triple(thought, persona)
-            # tyn
-            s = "日本"
-            p = "排放"
-            o = "核废水"
+            s, p, o = generate_action_event_triple(thought, persona)
             keywords = set([s, p, o])
             thought_poignancy = generate_poig_score(persona, "thought", thought)
             thought_embedding_pair = (thought, get_embedding(thought))
@@ -323,23 +316,17 @@ def reflect(persona):
 
             # print (persona.a_mem.get_last_chat(persona.scratch.chatting_with).node_id)
 
-            evidence = [
-                persona.a_mem.get_last_chat(persona.scratch.chatting_with).node_id
-            ]
+            evidence = [persona.a_mem.get_last_chat(persona.scratch.chatting_with).node_id]
 
             planning_thought = generate_planning_thought_on_convo(persona, all_utt)  ###
             # lg: run_gpt_prompt_planning_thought_on_convo()
-            planning_thought = (
-                f"For {persona.scratch.name}'s planning: {planning_thought}"
-            )
+            planning_thought = f"For {persona.scratch.name}'s planning: {planning_thought}"
 
             created = persona.scratch.curr_time
             expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
             s, p, o = generate_action_event_triple(planning_thought, persona)
             keywords = set([s, p, o])
-            thought_poignancy = generate_poig_score(
-                persona, "thought", planning_thought
-            )
+            thought_poignancy = generate_poig_score(persona, "thought", planning_thought)
             thought_embedding_pair = (planning_thought, get_embedding(planning_thought))
 
             persona.a_mem.add_thought(
