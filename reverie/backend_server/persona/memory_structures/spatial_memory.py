@@ -11,11 +11,10 @@ import sys
 
 sys.path.append("../../")
 
-from utils import *
 from global_methods import *
-
 from persona.memory_structures.memory import *
-from log import L
+from utils.config import *
+from utils.logs import L
 
 
 class MemoryTree(Memory):

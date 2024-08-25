@@ -6,17 +6,17 @@ Description: Defines all run gpt prompt functions. These functions directly
 interface with the safe_generate_response function.
 """
 
-import re
-import datetime
-import sys
 import ast
+import datetime
+import re
+import sys
 
 sys.path.append("../../")
 
 from global_methods import *
 from persona.prompt_template.gpt_structure import *
 from persona.prompt_template.print_prompt import *
-from llm_function import llm_function
+from utils.llm_function import llm_function
 
 
 def get_random_alphanumeric(i=6, j=6):

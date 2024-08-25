@@ -47,7 +47,7 @@ back_port: port3
 ```
 
 ## Modify llm configurations
-Create `utils.py` under `reverie/backend_server`. Here is a template:
+Create `utils/config.py` under `reverie/backend_server`. Here is a template:
 ```python
 # Copy and paste your OpenAI API Key
 openai_api_base = "https://api.openai.com/v1"

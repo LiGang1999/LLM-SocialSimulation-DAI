@@ -6,16 +6,16 @@ Description: Defines the Maze class, which represents the map of the simulated
 world in a 2-dimensional matrix. 
 """
 
-import json
-import numpy
 import datetime
+import json
+import math
 import pickle
 import time
-import math
 
-from global_methods import *
-from utils import *
+import numpy
 from event import Event
+from global_methods import *
+from utils.config import *
 
 
 class Maze:
@@ -158,9 +158,7 @@ class OfflineMaze(Maze):
 
                 tile_details["spawning_location"] = ""
                 if spawning_location_maze[i][j] in slb_dict:
-                    tile_details["spawning_location"] = slb_dict[
-                        spawning_location_maze[i][j]
-                    ]
+                    tile_details["spawning_location"] = slb_dict[spawning_location_maze[i][j]]
 
                 tile_details["collision"] = False
                 if self.collision_maze[i][j] != "0":
@@ -414,9 +412,7 @@ class OnlineMaze(Maze):
 
         # 初始化关系矩阵为“陌生人”
         self.user_count = 3
-        self.relationship_matrix = [
-            [self.relationship_dict["陌生人"]] * 3 for _ in range(3)
-        ]
+        self.relationship_matrix = [[self.relationship_dict["陌生人"]] * 3 for _ in range(3)]
         self.relationship_matrix_chinese = [["陌生人"] * 3 for _ in range(3)]
 
         # 设置对角线为“本人”
@@ -459,9 +455,7 @@ class OnlineMaze(Maze):
         for row in self.relationship_matrix:
             row.extend([self.relationship_dict["陌生人"]] * n)
         for _ in range(n):
-            self.relationship_matrix.append(
-                [self.relationship_dict["陌生人"]] * new_user_count
-            )
+            self.relationship_matrix.append([self.relationship_dict["陌生人"]] * new_user_count)
 
         # 扩展 relationship_matrix_chinese
         for row in self.relationship_matrix_chinese:

@@ -39,52 +39,20 @@ function App() {
   const server_ip = config_data.VITE_server_ip;
   const back_port = config_data.VITE_back_port;
   const [chatType, setChatType] = useState('Command');
+  const [showLogs, setShowLogs] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const [autoScroll, setAutoScroll] = useState(true);
+
 
   const chatBoxRef = useRef(null);
   const chatUserRef = useRef(null);
   const inputRef = useRef(null);
+  const logWebSocket = useRef(null);
+  const logPanelRef = useRef(null);
+  const [chatList, setChatList] = useState([]);
 
-  function add_chat(msg, is_start) {
-    if (!chatBoxRef.current) return;
-
-    const chat_box = chatBoxRef.current;
-    const chat_div = document.createElement("div");
-    console.log("add chat in chat box");
-
-    if (!is_start) {
-      chat_div.className = 'flex justify-end items-start gap-3 items-center';
-
-      const chat_left_div = document.createElement("div");
-      chat_left_div.className = "flex flex-col items-end";
-
-      const name_div = document.createElement("div");
-      name_div.className = "font-medium text-sm";
-      name_div.innerHTML = "Admin";
-      chat_left_div.appendChild(name_div);
-
-      const mes_div = document.createElement("div");
-      mes_div.className = "rounded-lg bg-blue-500 p-3 text-sm text-white";
-
-      const mes_p = document.createElement("p");
-      mes_p.innerHTML = msg;
-      mes_div.appendChild(mes_p);
-      chat_left_div.appendChild(mes_div);
-
-      const avatar_img = document.createElement("img");
-      avatar_img.alt = "User Avatar";
-      avatar_img.className = "rounded-full";
-      avatar_img.height = 40;
-      avatar_img.src = 'admin.svg';
-      avatar_img.style = {
-        aspectRatio: "40/40",
-        objectFit: "cover",
-      };
-      avatar_img.width = 40;
-
-      chat_div.appendChild(chat_left_div);
-      chat_div.appendChild(avatar_img);
-    }
-    chat_box.appendChild(chat_div);
+  function add_chat(role, username, content) {
+    setChatList(prevList => [...prevList, { role, username, content }]);
   }
 
   const interact = async () => {
@@ -104,7 +72,7 @@ function App() {
       params = new URLSearchParams();
       params.append('command', cmd);
       const url = `http://${server_ip}:${back_port}/command/?${params.toString()}`;
-      add_chat("Command: " + cmd, false);
+      add_chat("admin", "Admin", "Command: " + cmd, false);
       response = await fetch(url, {
         method: 'GET',
         mode: 'no-cors'
@@ -115,7 +83,7 @@ function App() {
     params = new URLSearchParams();
     params.append('command', cmd);
     const url = `http://${server_ip}:${back_port}/command/?${params.toString()}`;
-    add_chat("Command: " + cmd, false);
+    add_chat("admin", "Admin", "Command: " + cmd, false);
     response = await fetch(url, {
       method: 'GET',
       mode: 'no-cors'
@@ -130,6 +98,24 @@ function App() {
       interact();
     }
   };
+
+  const handleLogScroll = () => {
+    if (!logPanelRef.current) return;
+
+    const tolerance = 10; // Adjust this value as needed for how lenient the auto-scroll should be
+    const isAtBottom =
+      logPanelRef.current.scrollHeight - logPanelRef.current.scrollTop <= logPanelRef.current.clientHeight + tolerance;
+
+    setAutoScroll(isAtBottom);
+  };
+
+
+  useEffect(() => {
+    if (autoScroll && logPanelRef.current) {
+      logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight;
+    }
+  }, [logs]); // This useEffect will trigger whenever logs change
+
 
   useEffect(() => {
     const url = `http://${server_ip}:${back_port}/persona/`;
@@ -157,80 +143,167 @@ function App() {
     };
 
     xhr.send();
+
+    // Set up WebSocket connection for logs
+    logWebSocket.current = new WebSocket(`ws://${server_ip}:${back_port}/ws/log`);
+    logWebSocket.current.onmessage = (event) => {
+      setLogs(prevLogs => [...prevLogs, event.data]);
+    };
+
+    return () => {
+      if (logWebSocket.current) {
+        logWebSocket.current.close();
+      }
+    };
   }, [server_ip, back_port]);
+
+  useEffect(() => {
+    const chatWebSocket = new WebSocket(`ws://${server_ip}:${back_port}/ws/chat`);
+
+    chatWebSocket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      add_chat(message.role, message.name, message.content);
+    };
+
+    return () => {
+      chatWebSocket.close();
+    };
+  }, [server_ip, back_port]);
+
+  const toggleLogs = () => {
+    setShowLogs(!showLogs);
+  };
 
   return (
     <div className="flex flex-col items-center justify-center h-[100vh] w-full bg-gradient-to-br from-blue-200 to-red-200">
-      <div className="flex h-[65vh] w-[70vw] flex-col border rounded-lg bg-white">
-        <div className="flex-1 overflow-auto border-b p-4">
-          <div className="space-y-4" id="chatBox" ref={chatBoxRef}>
-            <div className="flex justify-end items-start gap-3 items-center">
-              <div className="flex flex-col items-end">
-                <div className="font-medium text-sm">Admin</div>
-                <div className="rounded-lg bg-blue-500 p-3 text-sm text-white">
-                  <p>Please begin your conversation.</p>
+      <div className="flex h-[65vh] w-[70vw]">
+        <div className="flex-1 flex flex-col border rounded-lg bg-white">
+          <div className="flex-1 overflow-auto border-b p-4">
+            <div className="space-y-4" id="chatBox" ref={chatBoxRef}>
+              {chatList.map((chat, index) => (
+                <div
+                  key={index}
+                  className={`flex ${chat.role === 'admin' ? 'justify-end' : 'justify-start'} items-center gap-3`}
+                >
+                  {chat.role !== 'admin' && (
+                    <img
+                      alt="User Avatar"
+                      className="rounded-full"
+                      height={40}
+                      src="user.svg"
+                      style={{
+                        aspectRatio: "40/40",
+                        objectFit: "cover",
+                      }}
+                      width={40}
+                    />
+                  )}
+                  <div className={`flex flex-col ${chat.role === 'admin' ? 'items-end' : 'items-start'}`}>
+                    <div className="font-medium text-sm">{chat.username}</div>
+                    <div
+                      className={`rounded-lg p-3 text-sm ${chat.role === 'admin' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
+                        }`}
+                    >
+                      <p>{chat.content}</p>
+                    </div>
+                  </div>
+                  {chat.role === 'admin' && (
+                    <img
+                      alt="Admin Avatar"
+                      className="rounded-full"
+                      height={40}
+                      src="admin.svg"
+                      style={{
+                        aspectRatio: "40/40",
+                        objectFit: "cover",
+                      }}
+                      width={40}
+                    />
+                  )}
                 </div>
-              </div>
-              <img
-                alt="User Avatar"
-                className="rounded-full"
-                height={40}
-                src="admin.svg"
-                style={{
-                  aspectRatio: "40/40",
-                  objectFit: "cover",
-                }}
-                width={40}
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 border-t p-4">
+            <div className="flex items-center gap-2">
+              <Label className="font-medium" htmlFor="chat-type">
+                Chat Type:
+              </Label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="flex-1 justify-between" size="sm" variant="outline">
+                    <span>{chatType}</span>
+                    <ChevronDownIcon className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setChatType('Command')}>Command</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setChatType('Chat')}>Chat</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Label className="font-medium" htmlFor="chat-user">
+                Chat User:
+              </Label>
+              <select
+                className="block flex-1 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                id="chat_user"
+                ref={chatUserRef}
+              >
+                <option>John Doe</option>
+                <option>Jane Smith</option>
+                <option>Bob Johnson</option>
+              </select>
+            </div>
+            <div className="flex items-center">
+              <Input
+                className="flex-1"
+                id="input"
+                placeholder={(chatType === 'Chat' ? 'Please input chat content' : 'Please input your command') + "..."}
+                onKeyDown={handleKeyDown}
+                ref={inputRef}
               />
+              <Button className="ml-2" size="sm" variant="primary" onClick={interact}>
+                <SendIcon className="h-4 w-4" />
+              </Button>
+              <Button className="ml-2" size="sm" variant="secondary" onClick={toggleLogs}>
+                {showLogs ? 'Hide Logs' : 'Show Logs'}
+              </Button>
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-2 border-t p-4">
-          <div className="flex items-center gap-2">
-            <Label className="font-medium" htmlFor="chat-type">
-              Chat Type:
-            </Label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="flex-1 justify-between" size="sm" variant="outline">
-                  <span>{chatType}</span>
-                  <ChevronDownIcon className="h-4 w-4" />
+        {showLogs && (
+          <div
+            className="w-1/2 ml-4 border rounded-lg bg-white flex flex-col"
+            style={{ maxHeight: '100%' }}
+          >
+            {/* Fixed Title Section */}
+            <div className="p-4 border-b">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold">Logs</h3>
+                <Button variant="danger" onClick={() => setLogs([])}>
+                  Clear Logs
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setChatType('Command')}>Command</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setChatType('Chat')}>Chat</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Label className="font-medium" htmlFor="chat-user">
-              Chat User:
-            </Label>
-            <select
-              className="block flex-1 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-              id="chat_user"
-              ref={chatUserRef}
+              </div>
+            </div>
+
+            {/* Scrollable Log Content */}
+            <div
+              className="flex-1 overflow-auto p-4 custom-scrollbar"
+              ref={logPanelRef}
+              onScroll={handleLogScroll}
+              style={{ fontFamily: 'monospace' }}
             >
-              <option>John Doe</option>
-              <option>Jane Smith</option>
-              <option>Bob Jonhnson</option>
-            </select>
+              {logs.map((log, index) => (
+                <div key={index} className="text-sm mb-1">
+                  • {log}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center">
-            <Input
-              className="flex-1"
-              id="input"
-              placeholder={(chatType === 'Chat' ? 'Please input chat content' : 'Please input your command') + "..."}
-              onKeyDown={handleKeyDown}
-              ref={inputRef}
-            />
-            <Button className="ml-2" size="sm" variant="primary" onClick={interact}>
-              <SendIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
-  )
+  );
 }
 
 function ChevronDownIcon(props) {

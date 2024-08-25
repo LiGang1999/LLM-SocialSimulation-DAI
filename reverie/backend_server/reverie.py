@@ -19,38 +19,33 @@ to the memory stream, and "reverie" to refer to the overarching simulation
 framework.
 """
 
-import json
-import numpy
+import asyncio
 import datetime
-import pickle
-import time
+import json
 import math
 import os
+import pickle
 import shutil
+import time
 import traceback
+from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
-import asyncio
 
-from selenium import webdriver
-
+import numpy
 from global_methods import *
-
-# from utils import *
+from institution import *
 from maze import *
-from persona.persona import *
-from vector_db import *  #
-from institution import *  #
 from memorynode import *
-import utils
-from dataclasses import dataclass, field, replace, fields, asdict
+from persona.persona import *
+from selenium import webdriver
+from utils import config
+from utils.config import *
+from vector_db import *
 
 global_rs = None  # ???
 command_queue = Queue()
 # online_relation = asyncio.Queue(maxsize=3)
 online_relation = Queue()
-
-global_offline_mode = True  ##false means online
-# TODO Offline模式和Online模式应该在运行时选择
 
 
 def return_rs():
@@ -76,8 +71,8 @@ def from_dict(cls, input_dict):
 
 @dataclass
 class LLMConfig:
-    api_base: str = utils.openai_api_base
-    api_key: str = utils.openai_api_key
+    api_base: str = config.openai_api_base
+    api_key: str = config.openai_api_key
     engine: str = ""
     tempreature: float = 1.0
     max_tokens: int = 512
@@ -141,6 +136,11 @@ class ReverieServer:
             if sim_meta.llm_config:
                 reverie_meta["llm_config"] = asdict(sim_meta.llm_config)
 
+        # check fields for reverie_meta
+
+        if "sim_mode" not in reverie_meta:
+            reverie_meta["sim_mode"] = "offline"
+
         with open(f"{sim_folder}/reverie/meta.json", "w") as outfile:
             reverie_meta["fork_sim_code"] = fork_sim_code
             outfile.write(json.dumps(reverie_meta, indent=2))
@@ -175,7 +175,8 @@ class ReverieServer:
         # <maze> is the main Maze instance. Note that we pass in the maze_name
         # (e.g., "double_studio") to instantiate Maze.
         # e.g., Maze("double_studio")
-        if global_offline_mode:
+        self.is_offline_mode = reverie_meta["sim_mode"] == "offline"
+        if self.is_offline_mode:
             self.maze = OfflineMaze(reverie_meta["maze_name"])
         else:
             self.maze = OnlineMaze(reverie_meta["maze_name"])
@@ -196,7 +197,7 @@ class ReverieServer:
         # the personas (!-> NOT px tile, but the actual tile coordinate).
         # The tile take the form of a set, (row, col).
         # e.g., ["Isabella Rodriguez"] = (58, 39)
-        if global_offline_mode:
+        if self.is_offline_mode:
             self.personas_tile = dict()
 
         # # <persona_convo_match> is a dictionary that describes which of the two
@@ -214,10 +215,9 @@ class ReverieServer:
         # Loading in all personas.
         init_env_file = f"{sim_folder}/environment/{str(self.step)}.json"
         init_env = json.load(open(init_env_file))
-        L.debug(f"{reverie_meta}")
         for persona_name in reverie_meta["persona_names"]:
             persona_folder = f"{sim_folder}/personas/{persona_name}"
-            if global_offline_mode:
+            if self.is_offline_mode:
                 p_x = init_env[persona_name]["x"]
                 p_y = init_env[persona_name]["y"]
                 curr_persona = GaPersona(persona_name, persona_folder)
@@ -420,7 +420,7 @@ class ReverieServer:
             if int_counter == 0:
                 break
 
-            if global_offline_mode:
+            if self.is_offline_mode:
                 # <curr_env_file> file is the file that our frontend outputs. When the
                 # frontend has done its job and moved the personas, then it will put a
                 # new environment file that matches our step count. That's when we run
@@ -841,7 +841,7 @@ class ReverieServer:
                         "Isabella Rodriguez",
                         "call -- load online event",
                         "Marine biologists at the Oceanic Institute of Marine Sciences made a groundbreaking discovery this week, uncovering a previously unknown species of bioluminescent jellyfish in the depths of the Pacific Ocean. The newly identified species, named Aurelia noctiluca, emits a mesmerizing blue-green glow, illuminating the dark ocean depths where it resides.",
-                        "Isabella Rodriguez",
+                        "Isabella Rodriguez, Klaus Mueller, Maria Lopez",
                         "run 2",
                     ]
                     for cmd in commands:
@@ -860,6 +860,7 @@ class ReverieServer:
                     # p = "排放"
                     # o = "核废水"
                     description = word_command
+                    # OfflineMaze does not have events
                     event_id = len(self.maze.events)
                     print("Input access name: ")
 

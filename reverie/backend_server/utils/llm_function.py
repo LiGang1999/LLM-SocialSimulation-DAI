@@ -1,25 +1,30 @@
 import functools
 import inspect
-import openai
 import json
-from log import L
-import re
 import os
+import re
 import time
-from utils import openai_api_base, openai_api_key, override_gpt_param, override_model
+
+import openai
+from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model
+from utils.logs import L
 
 default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
 
 default_llm_config = override_gpt_param
 
-print_raw_log = True
+print_raw_log = False
+print_short_log = True
 
 
 def llm_logging_repr(object):
     if print_raw_log:
-        return str(object)
+        s = str(object)
     else:
-        return repr(object)
+        s = repr(object)
+    if print_short_log:
+        s = s[:50] + "..."
+    return s
 
 
 def unescape_markdown(text):

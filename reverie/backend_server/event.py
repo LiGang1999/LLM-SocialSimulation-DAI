@@ -12,6 +12,7 @@ class Event:
     def get_memories(self, name):
         print(name)
         if name in self.access_name:
+            # TODO improve access management
             return self.public_memory
         else:
             return None

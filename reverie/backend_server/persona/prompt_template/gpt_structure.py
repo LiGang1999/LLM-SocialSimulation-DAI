@@ -7,12 +7,12 @@ Description: Wrapper functions for calling OpenAI APIs.
 
 import json
 import random
-from openai import OpenAI
-import time
 import re
-from utils import openai_api_base, openai_api_key, override_model, override_gpt_param
-from log import L, get_outer_caller
+import time
 
+from openai import OpenAI
+from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model
+from utils.logs import L, get_outer_caller
 
 client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
 

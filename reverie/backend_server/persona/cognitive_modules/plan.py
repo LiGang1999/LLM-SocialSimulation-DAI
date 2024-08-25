@@ -1332,6 +1332,7 @@ def plan_dai(persona, retrieved):
     plan = dict()
     for sub_dict in sub_dicts:
         sub_plan = run_gpt_prompt_decide_to_comment(persona, sub_dict)[0]
+        L.debug(f"[decide_to_comment] persona={repr(persona.name)} retrieved={repr(sub_dict)} result={repr(sub_plan)}")
         plan[list(sub_dict.keys())[0]] = sub_plan
 
     return plan

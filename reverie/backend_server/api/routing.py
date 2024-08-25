@@ -14,15 +14,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.contrib import admin
-from django.urls import re_path, path
-import consumers
-from channels.routing import ProtocolTypeRouter, URLRouter
+from api import websocket as ws
 from channels.auth import AuthMiddlewareStack
+from channels.routing import ProtocolTypeRouter, URLRouter
+from django.contrib import admin
+from django.urls import path, re_path
 
-websocket_urlpatterns = [
-    re_path(
-        r"ws/log/?$", consumers.LogConsumer.as_asgi()
-    ),  # Use regex to ensure proper URL matching
-    path("ws/online", consumers.OnlineConsumer),
-]
+websocket_urlpatterns = [re_path(r"ws/(?P<sock_name>\w+)$", ws.SocketConsumer.as_asgi())]

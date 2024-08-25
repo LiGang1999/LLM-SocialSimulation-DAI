@@ -9,14 +9,14 @@ import sys
 
 sys.path.append("../")
 
-import json
-import numpy
 import datetime
+import json
 import random
 
+import numpy
 from global_methods import *
 from persona.prompt_template.gpt_structure import *
-from utils import *
+from utils.config import *
 
 ##############################################################################
 #                    PERSONA Chapter 1: Prompt Structures                    #

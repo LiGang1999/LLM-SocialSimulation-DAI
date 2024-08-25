@@ -4,12 +4,12 @@ Author: Siyu Chen (3210101016@zju.edu.cn)
 File: browser.py
 """
 
-import sys
-import requests
 import re
+import sys
 
-from utils import google_api_cx, google_api_key
+import requests
 from bs4 import BeautifulSoup
+from utils.config import google_api_cx, google_api_key
 
 
 class SearchEngine:
@@ -50,11 +50,7 @@ class GoogleSearch(SearchEngine):
             try:
                 json = response.json()
                 return [
-                    {
-                        "link": item["link"],
-                        "title": item["title"],
-                        "snippet": item["snippet"],
-                    }
+                    {"link": item["link"], "title": item["title"], "snippet": item["snippet"]}
                     for item in json["items"]
                 ]
             except Exception as e:
