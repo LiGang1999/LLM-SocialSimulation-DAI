@@ -198,25 +198,26 @@ def perceive_dai(persona, maze):
     perceive_memories = {}
     all_news = ""
     for event_name in maze.events:
-        all_news += maze.events[event_name].get_desc(persona.name)
+        all_news += maze.events[event_name].get_description(persona.name)
         L.debug(event_name)
         L.debug(type(event_name))
 
-        memories = maze.events[event_name].get_memories(persona.name)
-        if memories is None:
+        # 这里不应该叫做memories, 应该叫做history，因为这里只是获取公共的聊天历史，而不是智能体各人的记忆
+        histories = maze.events[event_name].get_histories(persona.name)
+        if histories is None:
             continue
 
-        for perceive_node in memories:
+        for perceive_node in histories:
             if perceive_node.name == "public":
                 perceive_memories[event_name] = [perceive_node]
 
         if event_name not in persona.read_positions:
             persona.read_positions[event_name] = 0
         read_position = persona.read_positions[event_name]
-        unread_memories = memories[read_position:]  # 从上次读取位置开始读取未读评论
+        unread_memories = histories[read_position:]  # 从上次读取位置开始读取未读评论
         new_memories[event_name] = []
         new_memories[event_name].extend(unread_memories)
-        persona.read_positions[event_name] = len(memories)  # 更新智能体的读取位置到最后一个评论
+        persona.read_positions[event_name] = len(histories)  # 更新智能体的读取位置到最后一个评论
 
     created = persona.scratch.curr_time
     expiration = persona.scratch.curr_time + datetime.timedelta(days=30)

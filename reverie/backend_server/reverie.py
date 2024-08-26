@@ -82,23 +82,39 @@ class LLMConfig:
     stream: bool = False
 
 
+@dataclass
+class PersonaConfig:
+    name: str
+    daily_plan_req: str = ""
+    first_name: str
+    last_name: str
+    age: int
+    learned: str
+    currently: str
+    lifestyle: str
+    living_area: str
+    bibliography: str  # This one is additional field
+
+
 # The data class representing the meta information of a simulation.
 # Passed as an argument when creating a new simulation
 # If a field is none, it will be inherited from the forking template
 @dataclass
-class ReverieMeta:
+class ReverieConfig:
     sim_code: str = ""  # current simulation code
     sim_mode: str | None = ""  # simulation mode.
     start_date: str | None = ""  # simulation start date
     curr_time: str | None = ""  # simulation current time
     maze_name: str | None = ""  # map name
     step: int | None = 0  # current steps
-    persona_names: List[str] = field(default_factory=list)  # list of persona names
     llm_config: LLMConfig | None = field(default_factory=LLMConfig)  # llm config
+    persona_configs: dict[str, PersonaConfig]
+    public_event: List[str] = field(default_factory=list)  # public events
+    direction: str | None = ""  # The instruction of what the agents should do with each other
 
 
 class ReverieServer:
-    def __init__(self, fork_sim_code, sim_meta: ReverieMeta):
+    def __init__(self, fork_sim_code, sim_meta: ReverieConfig):
         # FORKING FROM A PRIOR SIMULATION:
         # <fork_sim_code> indicates the simulation we are forking from.
         # Interestingly, all simulations must be forked from some initial
@@ -871,7 +887,8 @@ class ReverieServer:
 
                     # 创建一个memory_node
                     memory_node = MemoryNode("public", s, p, o, description, True)
-                    self.maze.add_event(event_id, name)
+                    access_list = [name.strip() for name in word_command.split(",")]
+                    self.maze.add_event(event_id, access_list)
 
                     self.maze.add_memory_to_event(event_id, memory_node)
 

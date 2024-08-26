@@ -16,6 +16,7 @@ import numpy
 from event import Event
 from global_methods import *
 from utils.config import *
+from utils.logs import L
 
 
 class Maze:
@@ -470,21 +471,21 @@ class OnlineMaze(Maze):
 
         self.user_count = new_user_count
 
-    def add_event(self, event_name, name=""):
+    def add_event(self, event_name, access_list):
         if event_name not in self.events:
-            self.events[event_name] = Event(name)
+            self.events[event_name] = Event(event_name, access_list)
 
     def add_memory_to_event(self, event_name, memory_node):
         if event_name in self.events:
-            self.events[event_name].add_memory(memory_node)
+            self.events[event_name].add_history(memory_node)
         else:
-            print(f"Event '{event_name}' does not exist.")
+            L.error(f"Event '{event_name}' does not exist.")
 
     def get_event_memories(self, event_name):
         if event_name in self.events:
-            return self.events[event_name].get_memories()
+            return self.events[event_name].get_histories()
         else:
-            print(f"Event '{event_name}' does not exist.")
+            L.error(f"Event '{event_name}' does not exist.")
 
     def add_events_policy(self, event_name, policy):
         self.events_policy[event_name] = policy

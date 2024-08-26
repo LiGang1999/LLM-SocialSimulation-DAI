@@ -1,13 +1,14 @@
+import json
+import os
+import threading
+from os import listdir
+
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from reverie import start_sim, command_queue, ReverieMeta
-import threading
-import os
 
-import json
-from os import listdir
+from reverie import ReverieConfig, command_queue, start_sim
 
 
 @csrf_exempt
@@ -21,8 +22,8 @@ def start(request):
         if not template or not config:
             return JsonResponse({"error": "Missing required parameters"}, status=400)
 
-        # Convert the config dictionary to ReverieMeta object
-        config = ReverieMeta(**config)
+        # Convert the config dictionary to ReverieConfig object
+        config = ReverieConfig(**config)
 
         thread = threading.Thread(target=start_sim, args=(template, config))
         thread.start()
