@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-=======
-Here's the translation of your provided text into English:
-
->>>>>>> bbe98007 (Optimize the front-end)
 # Generalized LLM Based Social Simulation Instrument
 
 <!-- <p align="center" width="100%">
