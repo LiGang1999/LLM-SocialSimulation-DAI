@@ -104,9 +104,7 @@ def normalize_dict_floats(d, target_min, target_max):
             d[key] = (target_max - target_min) / 2
     else:
         for key, val in d.items():
-            d[key] = (val - min_val) * (
-                target_max - target_min
-            ) / range_val + target_min
+            d[key] = (val - min_val) * (target_max - target_min) / range_val + target_min
     return d
 
 
@@ -233,6 +231,8 @@ def new_retrieve(persona, focal_points, n_count=30):
         nodes = [i for created, i in nodes]
 
         # Calculating the component dictionaries and normalizing them.
+        print("persona: ", persona)
+        print("nodes: ", nodes)
         recency_out = extract_recency(persona, nodes)
         recency_out = normalize_dict_floats(recency_out, 0, 1)
         importance_out = extract_importance(persona, nodes)
@@ -270,9 +270,7 @@ def new_retrieve(persona, focal_points, n_count=30):
         # highest x values, we want to translate the node.id into nodes and return
         # the list of nodes.
         master_out = top_highest_x_values(master_out, n_count)
-        master_nodes = [
-            persona.a_mem.id_to_node[key] for key in list(master_out.keys())
-        ]
+        master_nodes = [persona.a_mem.id_to_node[key] for key in list(master_out.keys())]
 
         for n in master_nodes:
             n.last_accessed = persona.scratch.curr_time
@@ -316,9 +314,7 @@ def retrieve_dai(persona, perceived):
             relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(
                 event.subject, event.predicate, event.object
             )
-            retrieved[event_name]["events"] = list(relevant_events) + list(
-                relevant_thoughts
-            )
+            retrieved[event_name]["events"] = list(relevant_events) + list(relevant_thoughts)
             retrieved[event_name]["thoughts"] = list()
 
     return retrieved
@@ -404,9 +400,7 @@ for i in ... if "idle" not in i.embedding_key：在遍历这个混合列表时�
         # highest x values, we want to translate the node.id into nodes and return
         # the list of nodes.
         master_out = top_highest_x_values(master_out, n_count)
-        master_nodes = [
-            persona.a_mem.id_to_node[key] for key in list(master_out.keys())
-        ]
+        master_nodes = [persona.a_mem.id_to_node[key] for key in list(master_out.keys())]
 
         for n in master_nodes:
             n.last_accessed = persona.scratch.curr_time

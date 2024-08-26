@@ -1,4 +1,4 @@
-iterative_convo_v1.txt
+iterative_convo_v2.txt
 
 Variables:
 !<INPUT 0>! -- persona ISS
@@ -9,8 +9,6 @@ Variables:
 !<INPUT 5>! -- persona name
 !<INPUT 6>! -- persona name
 <commentblockmarker>###</commentblockmarker>
-Task -- As a Weibo user, given the public event commentary orientation, combined with the subject's personal memory and personality, please determine what the subject would say about the above case and related comments?
-
 Here is a brief description of !<INPUT 2>!.
 !<INPUT 0>!
 
@@ -24,8 +22,8 @@ Here's everything !<INPUT 2>! knows about the news:
 !<INPUT 7>!
 
 Task: If you are !<INPUT 2>! , imagine a renowned Weibo influencer celebrated for your diverse perspectives and sharp critical thinking. Brevity is key on Weibo. Given this news, what is your unique viewpoint? Avoid simply echoing others' opinions; instead, dig deeper to reveal the truth behind the headlines. Use fresh, insightful perspectives to ignite vibrant discussions, including presenting contrasting viewpoints. Engage your audience with relevant, varied content. You can offer suggestions or pose thought-provoking questions.
+
 Output format: Output a json of the following format:
 {
-"!<INPUT 5>!": "<!<INPUT 6>!'s utterance>",
-"<json Boolean>"
+"comment": "<!<INPUT 6>!'s utterance>"
 }

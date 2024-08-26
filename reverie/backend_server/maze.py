@@ -6,16 +6,17 @@ Description: Defines the Maze class, which represents the map of the simulated
 world in a 2-dimensional matrix. 
 """
 
-import json
-import numpy
 import datetime
+import json
+import math
 import pickle
 import time
-import math
 
-from global_methods import *
-from utils import *
+import numpy
 from event import Event
+from global_methods import *
+from utils.config import *
+from utils.logs import L
 
 
 class Maze:
@@ -158,9 +159,7 @@ class OfflineMaze(Maze):
 
                 tile_details["spawning_location"] = ""
                 if spawning_location_maze[i][j] in slb_dict:
-                    tile_details["spawning_location"] = slb_dict[
-                        spawning_location_maze[i][j]
-                    ]
+                    tile_details["spawning_location"] = slb_dict[spawning_location_maze[i][j]]
 
                 tile_details["collision"] = False
                 if self.collision_maze[i][j] != "0":
@@ -414,9 +413,7 @@ class OnlineMaze(Maze):
 
         # 初始化关系矩阵为“陌生人”
         self.user_count = 3
-        self.relationship_matrix = [
-            [self.relationship_dict["陌生人"]] * 3 for _ in range(3)
-        ]
+        self.relationship_matrix = [[self.relationship_dict["陌生人"]] * 3 for _ in range(3)]
         self.relationship_matrix_chinese = [["陌生人"] * 3 for _ in range(3)]
 
         # 设置对角线为“本人”
@@ -459,9 +456,7 @@ class OnlineMaze(Maze):
         for row in self.relationship_matrix:
             row.extend([self.relationship_dict["陌生人"]] * n)
         for _ in range(n):
-            self.relationship_matrix.append(
-                [self.relationship_dict["陌生人"]] * new_user_count
-            )
+            self.relationship_matrix.append([self.relationship_dict["陌生人"]] * new_user_count)
 
         # 扩展 relationship_matrix_chinese
         for row in self.relationship_matrix_chinese:
@@ -476,21 +471,21 @@ class OnlineMaze(Maze):
 
         self.user_count = new_user_count
 
-    def add_event(self, event_name, name=""):
+    def add_event(self, event_name, access_list):
         if event_name not in self.events:
-            self.events[event_name] = Event(name)
+            self.events[event_name] = Event(event_name, access_list)
 
     def add_memory_to_event(self, event_name, memory_node):
         if event_name in self.events:
-            self.events[event_name].add_memory(memory_node)
+            self.events[event_name].add_history(memory_node)
         else:
-            print(f"Event '{event_name}' does not exist.")
+            L.error(f"Event '{event_name}' does not exist.")
 
     def get_event_memories(self, event_name):
         if event_name in self.events:
-            return self.events[event_name].get_memories()
+            return self.events[event_name].get_histories()
         else:
-            print(f"Event '{event_name}' does not exist.")
+            L.error(f"Event '{event_name}' does not exist.")
 
     def add_events_policy(self, event_name, policy):
         self.events_policy[event_name] = policy

@@ -5,16 +5,18 @@ File: execute.py
 Description: This defines the "Act" module for generative agents. 
 """
 
-import sys
 import random
+import sys
 
 sys.path.append("../../")
 
 from global_methods import *
-from persona.cognitive_modules.converse import *
-from path_finder import *
-from utils import *
+from maze import OnlineMaze
 from memorynode import *
+from path_finder import *
+from persona.cognitive_modules.converse import *
+from utils.config import *
+from utils.triggers import event_trigger
 
 
 def execute(persona, maze, personas, plan):
@@ -52,14 +54,9 @@ def execute(persona, maze, personas, plan):
 
         if "<persona>" in plan:
             # Executing persona-persona interaction.
-            target_p_tile = personas[
-                plan.split("<persona>")[-1].strip()
-            ].scratch.curr_tile
+            target_p_tile = personas[plan.split("<persona>")[-1].strip()].scratch.curr_tile
             potential_path = path_finder(
-                maze.collision_maze,
-                persona.scratch.curr_tile,
-                target_p_tile,
-                collision_block_id,
+                maze.collision_maze, persona.scratch.curr_tile, target_p_tile, collision_block_id
             )
             if len(potential_path) <= 2:
                 target_tiles = [potential_path[0]]
@@ -141,9 +138,7 @@ def execute(persona, maze, personas, plan):
             # an input, and returns a list of coordinate tuples that becomes the
             # path.
             # e.g., [(0, 1), (1, 1), (1, 2), (1, 3), (1, 4)...]
-            curr_path = path_finder(
-                maze.collision_maze, curr_tile, i, collision_block_id
-            )
+            curr_path = path_finder(maze.collision_maze, curr_tile, i, collision_block_id)
             if not closest_target_tile:
                 closest_target_tile = i
                 path = curr_path
@@ -167,10 +162,16 @@ def execute(persona, maze, personas, plan):
     description += f" @ {persona.scratch.act_address}"
 
     execution = ret, persona.scratch.act_pronunciatio, description
+
+    # print("ret: ", ret)
+    # print("persona.scratch.act_pronunciatio: ", persona.scratch.act_pronunciatio)
+    # print("description: ", description)
+    # print("execution: ", execution)
+
     return execution
 
 
-def execute_dai(persona, maze, retrived, plan, all_news):
+def execute_dai(persona, maze: OnlineMaze, retrived, plan, all_news):
     ###如果plan返回yes，则进行评论，判断在reverie里
     for event_name, plan_yes in plan.items():
         if plan_yes == "yes":
@@ -181,9 +182,11 @@ def execute_dai(persona, maze, retrived, plan, all_news):
             comment = generate_one_utterance_for_comment(
                 persona, sub_retrived, all_news, policy, websearch
             )
+
             s = sub_retrived[event_name]["curr_event"].subject
             p = sub_retrived[event_name]["curr_event"].predicate
             o = sub_retrived[event_name]["curr_event"].object
+            event_trigger("agent_comment", {"name": persona.name, "content": comment})
             memory_node = MemoryNode(persona.name, s, p, o, comment, True)
             maze.add_memory_to_event(event_name, memory_node)
         else:

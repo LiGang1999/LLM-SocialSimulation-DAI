@@ -21,5 +21,7 @@ from translator import control
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("start/", control.start, name="start"),
-    path("command/", control.add_command, name="start"),
+    path("command/", control.add_command, name="add_command"),
+    path("list_envs/", control.list_envs, name="list_envs"),
+    path("persona/", control.get_persona, name="persona"),
 ]

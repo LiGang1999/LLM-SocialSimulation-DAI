@@ -1,9 +1,9 @@
-import sys
-from persona.action import *
 import datetime  # extend planning cycle
 import pprint
+import sys
 
-from log import L
+from persona.action import *
+from utils.logs import L
 
 
 class WorkFlow:
@@ -28,9 +28,7 @@ class GaWorkFlow(WorkFlow):
         new_day = False
         if not persona.scratch.curr_time:
             new_day = "First day"
-        elif persona.scratch.curr_time.strftime("%A %B %d") != curr_time.strftime(
-            "%A %B %d"
-        ):
+        elif persona.scratch.curr_time.strftime("%A %B %d") != curr_time.strftime("%A %B %d"):
             new_day = "New day"
             if curr_time.strftime("%A %B %d") > maze.last_planning_day.strftime(
                 "%A %B %d"
@@ -59,19 +57,17 @@ class DaiWorkFlow(WorkFlow):
         new_day = False
         if not persona.scratch.curr_time:
             new_day = "First day"
-        elif persona.scratch.curr_time.strftime("%A %B %d") != curr_time.strftime(
-            "%A %B %d"
-        ):
+        elif persona.scratch.curr_time.strftime("%A %B %d") != curr_time.strftime("%A %B %d"):
             new_day = "New day"
         persona.scratch.curr_time = curr_time
 
         L.debug("Perceive begin")
         perceived, all_news = self.perceive.action(persona, maze)
-        L.debug("Perceive end, Retrieve begin")
+        L.debug(f"Perceive end, Retrieve begin. percieved={perceived}, all_news={all_news}")
         retrieved = self.retrieve.action(persona, perceived)
-        L.debug("Retrieve end, Plan begin")
+        L.debug(f"Retrieve end, Plan begin. retrieved={retrieved}")
         plan = self.plan.action(persona, retrieved)
-        L.debug("Plan end, Execute begin")
+        L.debug(f"Plan end, Execute begin. plan={plan}")
         self.execute.action(persona, maze, retrieved, plan, all_news)
         L.debug("Execute end, Reflect begin")
         self.reflect.action(persona)

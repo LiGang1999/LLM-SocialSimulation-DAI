@@ -10,10 +10,11 @@ import sys
 sys.path.append("../../")
 
 from operator import itemgetter
+
 from global_methods import *
 from persona.prompt_template.gpt_structure import *
 from persona.prompt_template.run_gpt_prompt import *
-from log import L
+from utils.logs import L
 
 
 def generate_poig_score(persona, event_type, description):
@@ -23,9 +24,7 @@ def generate_poig_score(persona, event_type, description):
     if event_type == "event":
         return run_gpt_prompt_event_poignancy(persona, description)[0]
     elif event_type == "chat":
-        return run_gpt_prompt_chat_poignancy(persona, persona.scratch.act_description)[
-            0
-        ]
+        return run_gpt_prompt_chat_poignancy(persona, persona.scratch.act_description)[0]
 
 
 def perceive(persona, maze):
@@ -49,9 +48,7 @@ def perceive(persona, maze):
     # PERCEIVE SPACE
     # We get the nearby tiles given our current tile and the persona's vision
     # radius.
-    nearby_tiles = maze.get_nearby_tiles(
-        persona.scratch.curr_tile, persona.scratch.vision_r
-    )
+    nearby_tiles = maze.get_nearby_tiles(persona.scratch.curr_tile, persona.scratch.vision_r)
 
     # We then store the perceived space. Note that the s_mem of the persona is
     # in the form of a tree constructed using dictionaries.
@@ -67,13 +64,8 @@ def perceive(persona, maze):
             if i["arena"] not in persona.s_mem.tree[i["world"]][i["sector"]]:
                 persona.s_mem.tree[i["world"]][i["sector"]][i["arena"]] = []
         if i["game_object"]:
-            if (
-                i["game_object"]
-                not in persona.s_mem.tree[i["world"]][i["sector"]][i["arena"]]
-            ):
-                persona.s_mem.tree[i["world"]][i["sector"]][i["arena"]] += [
-                    i["game_object"]
-                ]
+            if i["game_object"] not in persona.s_mem.tree[i["world"]][i["sector"]][i["arena"]]:
+                persona.s_mem.tree[i["world"]][i["sector"]][i["arena"]] += [i["game_object"]]
 
     # PERCEIVE EVENTS.
     # We will perceive events that take place in the same arena as the
@@ -94,8 +86,7 @@ def perceive(persona, maze):
                 # This calculates the distance between the persona's current tile,
                 # and the target tile.
                 dist = math.dist(
-                    [tile[0], tile[1]],
-                    [persona.scratch.curr_tile[0], persona.scratch.curr_tile[1]],
+                    [tile[0], tile[1]], [persona.scratch.curr_tile[0], persona.scratch.curr_tile[1]]
                 )
                 # Add any relevant events to our temp set/list with the distant info.
                 for event in tile_details["events"]:
@@ -128,9 +119,7 @@ def perceive(persona, maze):
         # We retrieve the latest persona.scratch.retention events. If there is
         # something new that is happening (that is, p_event not in latest_events),
         # then we add that event to the a_mem and return it.
-        latest_events = persona.a_mem.get_summarized_latest_events(
-            persona.scratch.retention
-        )
+        latest_events = persona.a_mem.get_summarized_latest_events(persona.scratch.retention)
         if p_event not in latest_events:
             # We start by managing keywords.
             keywords = set()
@@ -145,9 +134,7 @@ def perceive(persona, maze):
             # Get event embedding
             desc_embedding_in = desc
             if "(" in desc:
-                desc_embedding_in = (
-                    desc_embedding_in.split("(")[1].split(")")[0].strip()
-                )
+                desc_embedding_in = desc_embedding_in.split("(")[1].split(")")[0].strip()
             if desc_embedding_in in persona.a_mem.embeddings:
                 event_embedding = persona.a_mem.embeddings[desc_embedding_in]
             else:
@@ -163,9 +150,7 @@ def perceive(persona, maze):
             if p_event[0] == f"{persona.name}" and p_event[1] == "chat with":
                 curr_event = persona.scratch.act_event
                 if persona.scratch.act_description in persona.a_mem.embeddings:
-                    chat_embedding = persona.a_mem.embeddings[
-                        persona.scratch.act_description
-                    ]
+                    chat_embedding = persona.a_mem.embeddings[persona.scratch.act_description]
                 else:
                     chat_embedding = get_embedding(persona.scratch.act_description)
                 chat_embedding_pair = (persona.scratch.act_description, chat_embedding)
@@ -213,27 +198,26 @@ def perceive_dai(persona, maze):
     perceive_memories = {}
     all_news = ""
     for event_name in maze.events:
-        all_news += maze.events[event_name].get_desc(persona.name)
+        all_news += maze.events[event_name].get_description(persona.name)
         L.debug(event_name)
         L.debug(type(event_name))
 
-        memories = maze.events[event_name].get_memories(persona.name)
-        if memories is None:
+        # 这里不应该叫做memories, 应该叫做history，因为这里只是获取公共的聊天历史，而不是智能体各人的记忆
+        histories = maze.events[event_name].get_histories(persona.name)
+        if histories is None:
             continue
 
-        for perceive_node in memories:
+        for perceive_node in histories:
             if perceive_node.name == "public":
                 perceive_memories[event_name] = [perceive_node]
 
         if event_name not in persona.read_positions:
             persona.read_positions[event_name] = 0
         read_position = persona.read_positions[event_name]
-        unread_memories = memories[read_position:]  # 从上次读取位置开始读取未读评论
+        unread_memories = histories[read_position:]  # 从上次读取位置开始读取未读评论
         new_memories[event_name] = []
         new_memories[event_name].extend(unread_memories)
-        persona.read_positions[event_name] = len(
-            memories
-        )  # 更新智能体的读取位置到最后一个评论
+        persona.read_positions[event_name] = len(histories)  # 更新智能体的读取位置到最后一个评论
 
     created = persona.scratch.curr_time
     expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
@@ -247,15 +231,8 @@ def perceive_dai(persona, maze):
             p = perceive_node.predicate
             o = perceive_node.object
             keywords = set([s, p, o])
-            event_poignancy = generate_poig_score(
-                persona, "event", perceive_node.description
-            )
-            L.debug(
-                "正在存放："
-                + perceive_node.name
-                + " said, "
-                + perceive_node.description
-            )
+            event_poignancy = generate_poig_score(persona, "event", perceive_node.description)
+            L.debug("正在存放：" + perceive_node.name + " said, " + perceive_node.description)
             persona.a_mem.add_event(
                 created,
                 expiration,

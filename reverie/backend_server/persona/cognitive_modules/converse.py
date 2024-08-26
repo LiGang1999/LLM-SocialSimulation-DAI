@@ -308,14 +308,14 @@ def load_history_via_whisper(personas, whispers):
         )
 
 
-def open_convo_session(persona, convo_mode, vbase):
+def open_convo_session(persona, convo_mode, vbase, input_queue):
     # def open_convo_session(persona, convo_mode):
     if convo_mode == "analysis":
         curr_convo = []
         interlocutor_desc = "Interviewer"
 
         while True:
-            line = input("Enter Input: ")
+            line = input_queue.get()
             if line == "end_convo":
                 break
 
@@ -365,7 +365,7 @@ def generate_one_utterance_for_comment(persona, retrieved, all_news, policy, web
     print("正在生成评论，请稍等")
     if policy is None:
         if websearch is None:
-            x = run_gpt_generate_iterative_comment_utt(persona, retrieved, all_news)[0]
+            x = run_gpt_generate_iterative_comment_utt_new(persona, retrieved, all_news)
         else:
             x = run_gpt_generate_iterative_comment_utt_with_websearch(
                 persona, retrieved, all_news, websearch

@@ -9,28 +9,25 @@ the term we used internally back in 2022, taking from our Social Simulacra
 paper.
 """
 
-import math
-import sys
 import datetime
+import math
 import random
+import sys
 
 sys.path.append("../")
 
 from global_methods import *
-
-from persona.memory_structures.spatial_memory import *
-from persona.memory_structures.associative_memory import *
-from persona.memory_structures.scratch import *
-
+from persona.cognitive_modules.converse import *
+from persona.cognitive_modules.execute import *
 from persona.cognitive_modules.perceive import *
-from persona.cognitive_modules.retrieve import *
 from persona.cognitive_modules.plan import *
 from persona.cognitive_modules.reflect import *
-from persona.cognitive_modules.execute import *
-from persona.cognitive_modules.converse import *
-
+from persona.cognitive_modules.retrieve import *
+from persona.memory_structures.associative_memory import *
+from persona.memory_structures.scratch import *
+from persona.memory_structures.spatial_memory import *
 from persona.workflow import *
-from log import L
+from utils.logs import L
 
 
 class Persona:
@@ -95,6 +92,9 @@ class GaPersona(Persona):
         # to Python variables.
         f_scratch = f"{save_folder}/scratch.json"
         self.scratch.save(f_scratch)
+
+    def open_convo_session(self, convo_mode, vbase, input_queue):
+        open_convo_session(self, convo_mode, vbase, input_queue)
 
 
 class DaiPersona(Persona):

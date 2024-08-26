@@ -1328,9 +1328,11 @@ def plan_dai(persona, retrieved):
     # 使用字典推导式循环取出每个键值对的子字典
     sub_dicts = [{key: value} for key, value in retrieved.items()]
 
+    L.debug(f"sub_dicts={sub_dicts}")
     plan = dict()
     for sub_dict in sub_dicts:
         sub_plan = run_gpt_prompt_decide_to_comment(persona, sub_dict)[0]
+        L.debug(f"[decide_to_comment] persona={repr(persona.name)} retrieved={repr(sub_dict)} result={repr(sub_plan)}")
         plan[list(sub_dict.keys())[0]] = sub_plan
 
     return plan

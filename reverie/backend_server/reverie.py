@@ -19,33 +19,33 @@ to the memory stream, and "reverie" to refer to the overarching simulation
 framework.
 """
 
-import json
-import numpy
+import asyncio
 import datetime
-import pickle
-import time
+import json
 import math
 import os
+import pickle
 import shutil
+import time
 import traceback
+from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
 
-from selenium import webdriver
-
+import numpy
 from global_methods import *
-
-# from utils import *
+from institution import *
 from maze import *
-from persona.persona import *
-from vector_db import *  #
-from institution import *  #
 from memorynode import *
+from persona.persona import *
+from selenium import webdriver
+from utils import config
+from utils.config import *
+from vector_db import *
 
 global_rs = None  # ???
 command_queue = Queue()
-
-global_offline_mode = False  ##false means online
-# TODO Offline模式和Online模式应该在运行时选择
+# online_relation = asyncio.Queue(maxsize=3)
+online_relation = Queue()
 
 
 def return_rs():
@@ -59,8 +59,62 @@ def return_rs():
 ##############################################################################
 
 
+def from_dict(cls, input_dict):
+    # Initialize with default values
+    obj = cls()
+    # Update with the values from input_dict
+    return replace(
+        obj,
+        **{key: value for key, value in input_dict.items() if key in {f.name for f in fields(cls)}},
+    )
+
+
+@dataclass
+class LLMConfig:
+    api_base: str = config.openai_api_base
+    api_key: str = config.openai_api_key
+    engine: str = ""
+    tempreature: float = 1.0
+    max_tokens: int = 512
+    top_p: float = 0.7
+    frequency_penalty: float = 0.0
+    presence_penalty: float = 0.0
+    stream: bool = False
+
+
+@dataclass
+class PersonaConfig:
+    name: str
+    daily_plan_req: str = ""
+    first_name: str
+    last_name: str
+    age: int
+    learned: str
+    currently: str
+    lifestyle: str
+    living_area: str
+    bibliography: str  # This one is additional field
+
+
+# The data class representing the meta information of a simulation.
+# Passed as an argument when creating a new simulation
+# If a field is none, it will be inherited from the forking template
+@dataclass
+class ReverieConfig:
+    sim_code: str = ""  # current simulation code
+    sim_mode: str | None = ""  # simulation mode.
+    start_date: str | None = ""  # simulation start date
+    curr_time: str | None = ""  # simulation current time
+    maze_name: str | None = ""  # map name
+    step: int | None = 0  # current steps
+    llm_config: LLMConfig | None = field(default_factory=LLMConfig)  # llm config
+    persona_configs: dict[str, PersonaConfig]
+    public_event: List[str] = field(default_factory=list)  # public events
+    direction: str | None = ""  # The instruction of what the agents should do with each other
+
+
 class ReverieServer:
-    def __init__(self, fork_sim_code, sim_code):
+    def __init__(self, fork_sim_code, sim_meta: ReverieConfig):
         # FORKING FROM A PRIOR SIMULATION:
         # <fork_sim_code> indicates the simulation we are forking from.
         # Interestingly, all simulations must be forked from some initial
@@ -68,21 +122,48 @@ class ReverieServer:
         self.fork_sim_code = fork_sim_code
         fork_folder = f"{fs_storage}/{self.fork_sim_code}"
 
+        # init_api(model)
+
         # <sim_code> indicates our current simulation. The first step here is to
         # copy everything that's in <fork_sim_code>, but edit its
         # reverie/meta/json's fork variable.
-        self.sim_code = sim_code
+        self.sim_code = sim_meta.sim_code
         sim_folder = f"{fs_storage}/{self.sim_code}"
+        if check_if_dir_exists(sim_folder):
+            L.warning(
+                f"Simulation {sim_folder} exists. It will be overwritten by the new environment."
+            )
+            removeanything(sim_folder)
         copyanything(fork_folder, sim_folder)
-
         with open(f"{sim_folder}/reverie/meta.json") as json_file:
             reverie_meta = json.load(json_file)
+            if sim_meta.curr_time:
+                reverie_meta["curr_time"] = sim_meta.curr_time
+            if sim_meta.step:
+                reverie_meta["step"] = sim_meta.step
+            if sim_meta.persona_names is not None and (len(sim_meta.persona_names) > 0):
+                reverie_meta["persona_names"] = sim_meta.persona_names
+            if sim_meta.maze_name:
+                reverie_meta["maze_name"] = sim_meta.maze_name
+            if sim_meta.sim_mode:
+                reverie_meta["sim_mode"] = sim_meta.sim_mode
+            if sim_meta.start_date:
+                reverie_meta["start_date"] = sim_meta.start_date
+            if sim_meta.llm_config:
+                reverie_meta["llm_config"] = asdict(sim_meta.llm_config)
+
+        # check fields for reverie_meta
+
+        if "sim_mode" not in reverie_meta:
+            reverie_meta["sim_mode"] = "offline"
 
         with open(f"{sim_folder}/reverie/meta.json", "w") as outfile:
             reverie_meta["fork_sim_code"] = fork_sim_code
             outfile.write(json.dumps(reverie_meta, indent=2))
 
         # LOADING REVERIE'S GLOBAL VARIABLES
+        # Whether the reverie runs in offline mode or online mode
+
         # The start datetime of the Reverie:
         # <start_datetime> is the datetime instance for the start datetime of
         # the Reverie instance. Once it is set, this is not really meant to
@@ -110,7 +191,8 @@ class ReverieServer:
         # <maze> is the main Maze instance. Note that we pass in the maze_name
         # (e.g., "double_studio") to instantiate Maze.
         # e.g., Maze("double_studio")
-        if global_offline_mode:
+        self.is_offline_mode = reverie_meta["sim_mode"] == "offline"
+        if self.is_offline_mode:
             self.maze = OfflineMaze(reverie_meta["maze_name"])
         else:
             self.maze = OnlineMaze(reverie_meta["maze_name"])
@@ -131,7 +213,7 @@ class ReverieServer:
         # the personas (!-> NOT px tile, but the actual tile coordinate).
         # The tile take the form of a set, (row, col).
         # e.g., ["Isabella Rodriguez"] = (58, 39)
-        if global_offline_mode:
+        if self.is_offline_mode:
             self.personas_tile = dict()
 
         # # <persona_convo_match> is a dictionary that describes which of the two
@@ -151,7 +233,7 @@ class ReverieServer:
         init_env = json.load(open(init_env_file))
         for persona_name in reverie_meta["persona_names"]:
             persona_folder = f"{sim_folder}/personas/{persona_name}"
-            if global_offline_mode:
+            if self.is_offline_mode:
                 p_x = init_env[persona_name]["x"]
                 p_y = init_env[persona_name]["y"]
                 curr_persona = GaPersona(persona_name, persona_folder)
@@ -234,11 +316,11 @@ class ReverieServer:
         open the front-end side of the browser.
 
         INPUT
-          None
+            None
         OUTPUT
-          None
-          * Saves the spatial memory of the test agent to the path_tester_env.json
-            of the temp storage.
+            None
+            * Saves the spatial memory of the test agent to the path_tester_env.json
+                of the temp storage.
         """
 
         def print_tree(tree):
@@ -299,9 +381,7 @@ class ReverieServer:
                                     s_mem[world][i_det["sector"]] = dict()
                             if i_det["arena"] != "":
                                 if i_det["arena"] not in s_mem[world][i_det["sector"]]:
-                                    s_mem[world][i_det["sector"]][
-                                        i_det["arena"]
-                                    ] = list()
+                                    s_mem[world][i_det["sector"]][i_det["arena"]] = list()
                             if i_det["game_object"] != "":
                                 if (
                                     i_det["game_object"]
@@ -356,7 +436,7 @@ class ReverieServer:
             if int_counter == 0:
                 break
 
-            if global_offline_mode:
+            if self.is_offline_mode:
                 # <curr_env_file> file is the file that our frontend outputs. When the
                 # frontend has done its job and moved the personas, then it will put a
                 # new environment file that matches our step count. That's when we run
@@ -389,16 +469,11 @@ class ReverieServer:
                             curr_tile = self.personas_tile[persona_name]
                             # <new_tile> is the tile that the persona will move to right now,
                             # during this cycle.
-                            new_tile = (
-                                new_env[persona_name]["x"],
-                                new_env[persona_name]["y"],
-                            )
+                            new_tile = (new_env[persona_name]["x"], new_env[persona_name]["y"])
 
                             # We actually move the persona on the backend tile map here.
                             self.personas_tile[persona_name] = new_tile
-                            self.maze.remove_subject_events_from_tile(
-                                persona.name, curr_tile
-                            )
+                            self.maze.remove_subject_events_from_tile(persona.name, curr_tile)
                             self.maze.add_event_from_tile(
                                 persona.scratch.get_curr_event_and_desc(), new_tile
                             )
@@ -408,12 +483,11 @@ class ReverieServer:
                             if not persona.scratch.planned_path:
                                 # We add that new object action event to the backend tile map.
                                 # At its creation, it is stored in the persona's backend.
-                                game_obj_cleanup[
-                                    persona.scratch.get_curr_obj_event_and_desc()
-                                ] = new_tile
+                                game_obj_cleanup[persona.scratch.get_curr_obj_event_and_desc()] = (
+                                    new_tile
+                                )
                                 self.maze.add_event_from_tile(
-                                    persona.scratch.get_curr_obj_event_and_desc(),
-                                    new_tile,
+                                    persona.scratch.get_curr_obj_event_and_desc(), new_tile
                                 )
                                 # We also need to remove the temporary blank action for the
                                 # object that is currently taking the action.
@@ -437,25 +511,17 @@ class ReverieServer:
                             #   writing her next novel (editing her novel)
                             #   @ double studio:double studio:common room:sofa
                             # next_tile, pronunciatio, description = persona.move(
-                            next_tile, pronunciatio, description = (
-                                persona.single_workflow(
-                                    self.maze,
-                                    self.personas,
-                                    self.personas_tile[persona_name],
-                                    self.curr_time,
-                                )
+                            next_tile, pronunciatio, description = persona.single_workflow(
+                                self.maze,
+                                self.personas,
+                                self.personas_tile[persona_name],
+                                self.curr_time,
                             )
                             movements["persona"][persona_name] = {}
                             movements["persona"][persona_name]["movement"] = next_tile
-                            movements["persona"][persona_name][
-                                "pronunciatio"
-                            ] = pronunciatio
-                            movements["persona"][persona_name][
-                                "description"
-                            ] = description
-                            movements["persona"][persona_name][
-                                "chat"
-                            ] = persona.scratch.chat
+                            movements["persona"][persona_name]["pronunciatio"] = pronunciatio
+                            movements["persona"][persona_name]["description"] = description
+                            movements["persona"][persona_name]["chat"] = persona.scratch.chat
 
                         # Include the meta information about the current stage in the
                         # movements dictionary.
@@ -503,9 +569,7 @@ class ReverieServer:
                 n += 1
                 self.step += 1
                 self.curr_time += datetime.timedelta(seconds=self.sec_per_step)
-                print(
-                    "❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ next step ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤"
-                )
+                print("❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ next step ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤")
                 int_counter -= 1
 
             # Sleep so we don't burn our machines.
@@ -583,9 +647,7 @@ class ReverieServer:
                     # Example: print all persona schedule
                     for persona_name, persona in self.personas.items():
                         ret_str += f"{persona_name}\n"
-                        ret_str += (
-                            f"{persona.scratch.get_str_daily_schedule_summary()}\n"
-                        )
+                        ret_str += f"{persona.scratch.get_str_daily_schedule_summary()}\n"
                         ret_str += f"---\n"
 
                 elif "print hourly org persona schedule" in sim_command.lower():
@@ -601,10 +663,10 @@ class ReverieServer:
                     # Print the x y tile coordinate of the persona specified in the
                     # prompt.
                     # Ex: print persona current tile Isabella Rodriguez
-                    ret_str += str(
-                        self.personas[
-                            " ".join(sim_command.split()[-2:])
-                        ].scratch.curr_tile
+                    persona = self.personas[" ".join(sim_command.split()[-2:])]
+                    ret_str += str(persona.scratch.curr_tile)
+                    ret_str += "\n" + repr(
+                        self.maze.access_tile(persona.scratch.curr_tile)["sector"]
                     )
 
                 elif "print persona chatting with buffer" in sim_command.lower():
@@ -624,9 +686,7 @@ class ReverieServer:
                         " ".join(sim_command.split()[-2:])
                     ].a_mem.get_str_seq_events()
 
-                elif (
-                    "print persona associative memory (thought)" in sim_command.lower()
-                ):
+                elif "print persona associative memory (thought)" in sim_command.lower():
                     # Print the associative memory (thought) of the persona specified in
                     # the prompt
                     # Ex: print persona associative memory (thought) Isabella Rodriguez
@@ -668,6 +728,9 @@ class ReverieServer:
                     cooordinate = [int(i.strip()) for i in sim_command[18:].split(",")]
                     for key, val in self.maze.access_tile(cooordinate).items():
                         ret_str += f"{key}: {val}\n"
+                elif "print llm stats" in sim_command.lower():
+                    # Print the LLM stats
+                    L.print_stats()
 
                 elif "call -- analysis" in sim_command.lower():
                     # Starts a stateless chat session with the agent. It does not save
@@ -678,20 +741,16 @@ class ReverieServer:
                     ].strip()  # Do you support Isabella Rodriguez as mayor?
                     # self.personas[persona_name].open_convo_session("analysis")#Do you want to run for mayor in the local election?
                     self.personas[persona_name].open_convo_session(
-                        "analysis", self.maze.vbase
+                        "analysis", self.maze.vbase, command_queue
                     )  # Do you want to run for mayor in the local election?
 
                 elif "call -- load history" in sim_command.lower():
                     curr_file = (
-                        maze_assets_loc
-                        + "/"
-                        + sim_command[len("call -- load history") :].strip()
+                        maze_assets_loc + "/" + sim_command[len("call -- load history") :].strip()
                     )
                     # call -- load history the_ville/agent_history_init_n3.csv #必须要在run之后执行
 
-                    rows = read_file_to_list(curr_file, header=True, strip_trail=True)[
-                        1
-                    ]
+                    rows = read_file_to_list(curr_file, header=True, strip_trail=True)[1]
                     clean_whispers = []
                     for row in rows:
                         agent_name = row[0].strip()
@@ -725,9 +784,7 @@ class ReverieServer:
                         # self.maze.content = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
                         # self.maze.policy = run(args, case=self.maze.content)
                         self.maze.content = "Marine biologists at the Oceanic Institute of Marine Sciences made a groundbreaking discovery this week, uncovering a previously unknown species of bioluminescent jellyfish in the depths of the Pacific Ocean. The newly identified species, named Aurelia noctiluca, emits a mesmerizing blue-green glow, illuminating the dark ocean depths where it resides."
-                        self.maze.policy = self.maze.institution.run(
-                            case=self.maze.content
-                        )
+                        self.maze.policy = self.maze.institution.run(case=self.maze.content)
                     else:
                         # run(args, case=None)#
                         self.maze.institution.run(case=None)  #
@@ -736,6 +793,7 @@ class ReverieServer:
                     # Initialize domain knowledge
                     content = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
                     # self.maze.vbase = Storage(content=content)
+                    # FIX: who told you to write like this?
                     self.maze.vbase = Storage(case=content)
                     query = "nuclear"
                     texts = self.maze.vbase.get_texts(query, 2)
@@ -743,20 +801,13 @@ class ReverieServer:
                     print(texts)
                     print("################################")
 
-                elif (
-                    "call -- load case"  # 将事件广播给每个智能体。
-                    in sim_command.lower()
-                ):
+                elif "call -- load case" in sim_command.lower():  # 将事件广播给每个智能体。
                     curr_file = (
-                        maze_assets_loc
-                        + "/"
-                        + sim_command[len("call -- load case") :].strip()
+                        maze_assets_loc + "/" + sim_command[len("call -- load case") :].strip()
                     )
                     # call -- load case the_ville/agent_history_init_n3.csv
 
-                    rows = read_file_to_list(curr_file, header=True, strip_trail=True)[
-                        1
-                    ]
+                    rows = read_file_to_list(curr_file, header=True, strip_trail=True)[1]
                     clean_whispers = []
                     # Your_content = input("Input your content: ")
                     print("Input your content: ")
@@ -776,10 +827,7 @@ class ReverieServer:
                     load_history_via_whisper(self.personas, clean_whispers)
                     self.tag = True  # case
 
-                elif (
-                    "call -- release policy"  # 将政策发布到所有智能体。
-                    in sim_command.lower()
-                ):
+                elif "call -- release policy" in sim_command.lower():  # 将政策发布到所有智能体。
                     if self.tag == True:
                         curr_file = (
                             maze_assets_loc
@@ -788,9 +836,7 @@ class ReverieServer:
                         )
                         # call -- release policy the_ville/agent_history_init_n3.csv
 
-                        rows = read_file_to_list(
-                            curr_file, header=True, strip_trail=True
-                        )[1]
+                        rows = read_file_to_list(curr_file, header=True, strip_trail=True)[1]
                         clean_whispers = []
                         policy = "The policy is as follows: " + self.maze.policy[0]
                         for row in rows:
@@ -804,11 +850,19 @@ class ReverieServer:
                         load_history_via_whisper(self.personas, clean_whispers)
                     else:
                         print("<---There is no case.--->")
-
-                elif (
-                    "call -- load online event"  # 将事件广播给每个智能体。
-                    in sim_command.lower()
-                ):
+                elif "call -- zjy test 1" in sim_command.lower():
+                    commands = [
+                        "call -- load online event",
+                        "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters.",
+                        "Isabella Rodriguez",
+                        "call -- load online event",
+                        "Marine biologists at the Oceanic Institute of Marine Sciences made a groundbreaking discovery this week, uncovering a previously unknown species of bioluminescent jellyfish in the depths of the Pacific Ocean. The newly identified species, named Aurelia noctiluca, emits a mesmerizing blue-green glow, illuminating the dark ocean depths where it resides.",
+                        "Isabella Rodriguez, Klaus Mueller, Maria Lopez",
+                        "run 2",
+                    ]
+                    for cmd in commands:
+                        command_queue.put(cmd)
+                elif "call -- load online event" in sim_command.lower():  # 将事件广播给每个智能体。
                     # tyn
                     print("Input your content: ")
                     # truth = input("Input your content: ")
@@ -817,10 +871,12 @@ class ReverieServer:
                     print(word_command)
                     word_command = word_command.strip()
                     s, p, o = generate_action_event_triple_new(word_command)
+                    # TODO 只用spo来完整表示一个事件是远远不够的
                     # s = "日本"
                     # p = "排放"
                     # o = "核废水"
                     description = word_command
+                    # OfflineMaze does not have events
                     event_id = len(self.maze.events)
                     print("Input access name: ")
 
@@ -831,14 +887,14 @@ class ReverieServer:
 
                     # 创建一个memory_node
                     memory_node = MemoryNode("public", s, p, o, description, True)
-                    self.maze.add_event(event_id, name)
+                    access_list = [name.strip() for name in word_command.split(",")]
+                    self.maze.add_event(event_id, access_list)
 
                     self.maze.add_memory_to_event(event_id, memory_node)
 
                 elif (
-                    "call -- with policy load online event"  # 将事件广播给每个智能体。
-                    in sim_command.lower()
-                ):
+                    "call -- with policy load online event" in sim_command.lower()
+                ):  # 将事件广播给每个智能体。
                     # tyn
                     print("Input your content without policy: ")
                     # truth = input("Input your content: ")
@@ -847,6 +903,7 @@ class ReverieServer:
                     print(word_command)
                     word_command = word_command.strip()
                     s, p, o = generate_action_event_triple_new(word_command)
+                    # TODO 只用spo来完整表示一个事件是远远不够的
                     # s = "日本"
                     # p = "排放"
                     # o = "核废水"
@@ -870,9 +927,8 @@ class ReverieServer:
                     self.maze.add_events_policy(event_id, policy)
 
                 elif (
-                    "call -- with websearch load online event"  # 将事件广播给每个智能体。
-                    in sim_command.lower()
-                ):
+                    "call -- with websearch load online event" in sim_command.lower()
+                ):  # 将事件广播给每个智能体。
                     # tyn
                     print("Input your content: ")
                     # truth = input("Input your content: ")
@@ -884,6 +940,7 @@ class ReverieServer:
                     # s = "日本"
                     # p = "排放"
                     # o = "核废水"
+                    # TODO 只用spo来完整表示一个事件是远远不够的
                     description = word_command
                     event_id = len(self.maze.events)
                     print("Input access name: ")
@@ -912,271 +969,13 @@ class ReverieServer:
                 pass
 
 
-################SPP###############
-# # import os
-# # import json
-# import argparse
-# from models import OpenAIWrapper
-# from tasks import get_task
-# # import time
-
-
-# SLEEP_RATE = 30 # sleep between calls
-
-
-# def output_log_jsonl(log_file, all_logs):
-#     with open(log_file, "w") as f:
-#         for log in all_logs:
-#             f.write(json.dumps(log) + "\n")
-
-# def _post_process_raw_response(task, raw_output_batch, method):
-#     unwrapped_output_batch = []
-#     if_success_batch = []
-#     for output in raw_output_batch:
-#         unwrapped_output, if_success_flag = task.prompt_unwrap(output, method)
-#         unwrapped_output_batch.append(unwrapped_output)
-#         if_success_batch.append(if_success_flag)
-#     return unwrapped_output_batch, if_success_batch
-
-# def _run_task(task_name, gpt, task, i, method, num_generation, args):#
-#     if task_name in ['trivia_creative_writing', 'logic_grid_puzzle']:
-#         # get prompt
-#         prompt = task.get_input_prompt(i, method=method)
-#         # get raw response
-#         raw_output_batch, raw_response_batch = gpt.run(prompt=prompt, n=num_generation)
-#         if raw_output_batch == [] or raw_response_batch == []: # handle exception
-#             return {}
-#         # get parsed response, and the success flags (whether or not the parsing is success) (standard prompt always success)
-#         unwrapped_output_batch, if_success_batch = _post_process_raw_response(task, raw_output_batch, method)
-#         # compute automatic metric (different for each task), e.g., if the output contains all the answers
-#         test_output_infos = [task.test_output(i, output) for output in unwrapped_output_batch]
-#         # log output
-#         log_output = {
-#             "idx": i,
-#             "raw_response": raw_response_batch,
-#             "unwrapped_output": unwrapped_output_batch,
-#             "parsing_success_flag": if_success_batch,
-#             "test_output_infos": test_output_infos
-#         }
-#     elif task_name in ['institution']:
-#       # get prompt
-#         prompt = task.get_input_prompt(i, method=method)
-#         # get raw response
-#         raw_output_batch, raw_response_batch = gpt.run(prompt=prompt, n=num_generation)
-#         if raw_output_batch == [] or raw_response_batch == []: # handle exception
-#             return {}
-#         # get parsed response, and the success flags (whether or not the parsing is success) (standard prompt always success)
-#         unwrapped_output_batch, if_success_batch = _post_process_raw_response(task, raw_output_batch, method)
-#         # print policy
-#         print('################---Policy begin---################')
-#         print(unwrapped_output_batch)
-#         print('################---Policy end---################')
-#         # log output
-#         log_output = {
-#             "raw_response": raw_response_batch,
-#             "unwrapped_output": unwrapped_output_batch,
-#             "parsing_success_flag": if_success_batch
-#         }
-#         return log_output#
-#     elif task_name == 'codenames_collaborative':
-#         # get spymaster hint word
-#         spymaster_prompt = task.get_input_prompt(i, method=method, role='spymaster')
-#         raw_spymaster_output, raw_response_spymaster = gpt.run(prompt=spymaster_prompt, n=1)
-#         # raw_spymaster_output, raw_response_spymaster = gpt.run(prompt=spymaster_prompt, n=1, system_message="You are an AI assistant that plays the Spymaster role in Codenames.")
-#         if raw_spymaster_output == [] or raw_response_spymaster == []: # handle exception
-#             return {}
-#         spymaster_output, if_success_batch_spymaster = _post_process_raw_response(task, raw_spymaster_output, method)
-#         hint_word = spymaster_output[0].replace(".", "").strip()
-#         print(f"\tidx: {i} | done spymaster, hint word: {hint_word}")
-#         # sleep before calling guesser
-#         time.sleep(SLEEP_RATE)
-#         # get guesser result
-#         guesser_prompt = task.get_input_prompt(i, method=method, role='guesser', hint_word=hint_word)
-#         raw_guesser_output, raw_response_batch_guesser = gpt.run(prompt=guesser_prompt, n=num_generation)
-#         # raw_guesser_output, raw_response_batch_guesser = gpt.run(prompt=guesser_prompt, n=num_generation, system_message="You are an AI assistant that plays the Guesser role in Codenames.")
-#         if raw_guesser_output == [] or raw_response_batch_guesser == []: # handle exception
-#             return {}
-#         guesser_output_batch, if_success_batch_guesser = _post_process_raw_response(task, raw_guesser_output, method)
-#         # compute automatic metric (different for each task), e.g., if the output contains all the answers
-#         test_output_infos = [task.test_output(i, output) for output in guesser_output_batch]
-#         # log output
-#         log_output = {
-#             "idx": i,
-#             "raw_response_spymaster": raw_response_spymaster,
-#             "raw_response_guesser": raw_response_batch_guesser,
-#             "spymaster_output": spymaster_output,
-#             "guesser_output": guesser_output_batch,
-#             "hint_word": hint_word,
-#             "parsing_success_flag_spymaster": if_success_batch_spymaster,
-#             "parsing_success_flag_guesser": if_success_batch_guesser,
-#             "test_output_infos": test_output_infos
-#         }
-#     else:
-#         raise NotImplementedError(f"task {task_name} not implemented; please choose from ['trivia_creative_writing', 'logic_grid_puzzle', 'codenames_collaborative']")
-
-#     # log everything else that is related
-#     log_output.update(args)
-#     log_output.update({"task_data":task.get_input(i)})
-#     return log_output
-
-# def run(args, case):
-#     # get configs
-#     gpt_config = args['gpt_config']
-#     task_name = args['task']
-#     method = args['method']
-#     start_idx, end_idx = args['task_start_index'], args['task_end_index']
-#     task_data_file = args['task_data_file']
-#     num_generation = args['num_generation']
-
-#     additional_output_note = args['additional_output_note']
-#     system_message = args['system_message']
-#     print(f"setting default system message: {system_message}")
-
-#     # setup gpt api
-#     gpt = OpenAIWrapper(config=gpt_config, system_message=system_message)
-
-#     # setup log file
-#     if system_message == "":
-#         log_file = f"logs/{task_name}/{task_data_file}__method-{method}_model-{gpt_config['model']}_temp-{gpt_config['temperature']}_topp-{gpt_config['top_p']}_start{start_idx}-end{end_idx}{additional_output_note}__without_sys_mes.jsonl"
-#     else:
-#         log_file = f"logs/{task_name}/{task_data_file}__method-{method}_model-{gpt_config['model']}_temp-{gpt_config['temperature']}_topp-{gpt_config['top_p']}_start{start_idx}-end{end_idx}{additional_output_note}__with_sys_mes.jsonl"
-#     # if system_message == "":
-#     #     log_file = f"logs/{task_name}/{task_data_file}__method-{method}_engine-{gpt_config['engine']}_temp-{gpt_config['temperature']}_topp-{gpt_config['top_p']}_start{start_idx}-end{end_idx}{additional_output_note}__without_sys_mes.jsonl"
-#     # else:
-#     #     log_file = f"logs/{task_name}/{task_data_file}__method-{method}_engine-{gpt_config['engine']}_temp-{gpt_config['temperature']}_topp-{gpt_config['top_p']}_start{start_idx}-end{end_idx}{additional_output_note}__with_sys_mes.jsonl"
-
-#     os.makedirs(os.path.dirname(log_file), exist_ok=True)
-
-#     ###---Institution begin---###
-#     if case is not None:
-#       task = get_task("institution", file=case)
-#       log_output = _run_task("institution", gpt, task, 0, method, num_generation, args)#
-#       return log_output["unwrapped_output"]
-#     ###---Institution end---###
-
-#     # setup task
-#     task = get_task(task_name, file=task_data_file)
-
-#     all_logs = []
-#     print("start running ... log file:", log_file)
-
-#     print()
-#     start = max(start_idx, 0)
-#     end = min(end_idx, len(task))
-#     print("total num of instances:", end - start)
-#     for i in range(start, end):
-#         log_output = _run_task(task_name, gpt, task, i, method, num_generation, args)#
-#         all_logs.append(log_output)
-#         print("\tidx:", i, "done | usage so far:", gpt.compute_gpt_usage())
-#         # output log at each iteration
-#         output_log_jsonl(log_file, all_logs)
-#         # sleep
-#         time.sleep(SLEEP_RATE)
-
-
-# # TODO: add your custom model config here:
-# gpt_configs = {
-#     "gpt4-32k": {
-#         "engine": "gpt-4-32k",#《可以自己命名》
-#         "temperature": 0.0,
-#         "max_tokens": 5000,
-#         "top_p": 1.0,
-#         "frequency_penalty": 0.0,
-#         "presence_penalty": 0.0,
-#         "stop": None
-#     },
-#     "gpt3.5": {
-#         # "engine": "gpt-35-turbo",#《可以自己命名》
-#         "model": "gpt-3.5-turbo",#《可以自己命名》
-#         "temperature": 0.0,
-#         "max_tokens": 2000,
-#         "top_p": 1.0,
-#         "frequency_penalty": 0.0,
-#         "presence_penalty": 0.0,
-#         "stop": None
-#     },
-#     "llama2": {
-#         # "engine": "gpt-35-turbo",#《可以自己命名》
-#         "model": "Llama-2-7b-chat-hf",#《可以自己命名》
-#         # "model": "gpt-3.5-turbo",#《可以自己命名》
-#         "temperature": 0.0,
-#         "max_tokens": 2000,
-#         "top_p": 1.0,
-#         "frequency_penalty": 0.0,
-#         "presence_penalty": 0.0,
-#         "stop": None
-#     },
-#     "vicuna": {
-#         # "engine": "gpt-35-turbo",#《可以自己命名》
-#         # "model": "vicuna-13b-v1.5",#《可以自己命名》
-#         "model": "vicuna-13b-v1.5-16k",#《可以自己命名》
-#         # "model": "vicuna-33b-v1.3",#《可以自己命名》
-#         # "model": "gpt-3.5-turbo",#《可以自己命名》
-#         "temperature": 0.0,
-#         "max_tokens": 2000,
-#         "top_p": 1.0,
-#         "frequency_penalty": 0.0,
-#         "presence_penalty": 0.0,
-#         "stop": None
-#     }
-# }
-
-# default_gpt_config = {
-#     "engine": None,
-#     "temperature": 0.0,
-#     "max_tokens": 5000,
-#     "top_p": 1.0,
-#     "frequency_penalty": 0.0,
-#     "presence_penalty": 0.0,
-#     "stop": None
-# }
-
-# def parse_args():
-#     model_choices = list(gpt_configs.keys())
-#     args = argparse.ArgumentParser()
-#     # args.add_argument('--model', type=str, choices=model_choices, required=True)
-#     # args.add_argument('--method', type=str, choices=['standard','cot','spp','spp_profile', 'spp_fixed_persona'], required=True)
-#     # args.add_argument('--task', type=str, choices=['trivia_creative_writing', 'logic_grid_puzzle', 'codenames_collaborative'], required=True)
-#     # args.add_argument('--task_data_file', type=str, required=True)
-#     # args.add_argument('--task_start_index', type=int, required=True)
-#     # args.add_argument('--task_end_index', type=int, required=True)
-#     # args.add_argument('--num_generation', type=int, default=1)
-#     # args.add_argument('--additional_output_note', type=str, default="")
-#     # args.add_argument('--temperature', type=float, default=0.0)
-#     # args.add_argument('--top_p', type=float, default=1.0)
-#     # args.add_argument('--system_message', type=str, default="")
-#     # args.add_argument('--model', type=str, default="llama2")
-#     args.add_argument('--model', type=str, default="vicuna")
-#     # args.add_argument('--model', type=str, default="gpt3.5")#20231108#3
-#     args.add_argument('--method', type=str, default='spp')
-#     args.add_argument('--task', type=str, default='trivia_creative_writing')
-#     args.add_argument('--task_data_file', type=str, default="trivia_creative_writing_100_n_5.jsonl")
-#     args.add_argument('--task_start_index', type=int, default=66)
-#     args.add_argument('--task_end_index', type=int, default=68)
-#     args.add_argument('--num_generation', type=int, default=1)
-#     args.add_argument('--additional_output_note', type=str, default="")
-#     args.add_argument('--temperature', type=float, default=0.0)
-#     args.add_argument('--top_p', type=float, default=1.0)
-#     args.add_argument('--system_message', type=str, default="")
-
-#     args = args.parse_args()
-#     return args
-################SPP###############
-
-
-def start_sim(forked_sim_name, new_sim_name):
+def start_sim(template_sim_name, new_sim_meta):
     global rs
-    rs = ReverieServer(forked_sim_name, new_sim_name)
-    global_rs = rs  #
+    rs = ReverieServer(template_sim_name, new_sim_meta)
     rs.open_server()
 
 
 if __name__ == "__main__":
-    # rs = ReverieServer("base_the_ville_isabella_maria_klaus",
-    #                    "July1_the_ville_isabella_maria_klaus-step-3-1")
-    # rs = ReverieServer("July1_the_ville_isabella_maria_klaus-step-3-20",
-    #                    "July1_the_ville_isabella_maria_klaus-step-3-21")
-    # rs.open_server()
 
     origin = input("Enter the name of the forked simulation: ").strip()
     target = input("Enter the name of the new simulation: ").strip()
@@ -1184,13 +983,3 @@ if __name__ == "__main__":
     rs = ReverieServer(origin, target)
     global_rs = rs  #
     rs.open_server()
-
-# 自动加载初始化文件未找到。
-
-# test1
-
-# test2
-
-# test3
-
-# test4

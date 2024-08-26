@@ -7,10 +7,10 @@ Description: Wrapper functions for calling OpenAI APIs.
 
 import json
 import random
-import openai
 import time
 
-from utils import *
+import openai
+from utils.config import *
 
 openai.api_key = openai_api_key
 
