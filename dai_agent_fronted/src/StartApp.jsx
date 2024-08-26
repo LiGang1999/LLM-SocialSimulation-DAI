@@ -405,7 +405,7 @@ function StartApp() {
                   className="ml-2 text-red-600 hover:text-red-800"
                   onClick={(e) => {
                     e.stopPropagation();
-                    const newEvents = events.filter(a => a.id !== agent.id);
+                    const newEvents = events.filter(a => a.id !== event.id);
                     setEvents(newEvents);
                     if (selectedEventId === event.id) {
                       setSelectedEventId(newEvents[0]?.id || null);
