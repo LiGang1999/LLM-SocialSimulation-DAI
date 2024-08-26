@@ -8,6 +8,9 @@ function StartApp() {
 
   const [activeTab, setActiveTab] = useState('basic');
   const [agents, setAgents] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [selectedEventId, setSelectedEventId] = useState(null);
+  const [nextEventId, setNextEventId] = useState(1);
   const [selectedAgentId, setSelectedAgentId] = useState(null);
   const [nextAgentId, setNextAgentId] = useState(1);
   const [templates, setTemplates] = useState([]);
@@ -53,6 +56,18 @@ function StartApp() {
     setNextAgentId(nextAgentId + 1);
   };
 
+  const addNewEvent = () => {
+    const newEvent = {
+      id: nextEventId,
+      name: `Event ${nextEventId}`,
+      access_list: "",
+      description: ""
+    };
+    setEvents([...events, newEvent]);
+    setSelectedEventId(newEvent.id);
+    setNextEventId(nextEventId + 1);
+  }
+
   const updateAgent = (field, value) => {
     const updatedAgents = agents.map(agent =>
       agent.id === selectedAgentId ? { ...agent, [field]: value } : agent
@@ -60,7 +75,15 @@ function StartApp() {
     setAgents(updatedAgents);
   };
 
+  const updateEvent = (field, value) => {
+    const updatedEvents = events.map(event =>
+      event.id === selectedEventId ? { ...event, [field]: value } : event
+    );
+    setEvents(updatedEvents);
+  }
+
   const selectedAgent = agents.find(agent => agent.id === selectedAgentId);
+  const selectedEvent = events.find(event => event.id === selectedEventId);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -249,7 +272,6 @@ function StartApp() {
     agent: (
       <div className="flex">
         <div className="w-1/3 pr-4 border-r flex flex-col">
-          <h3 className="text-lg font-medium mb-2">Agents</h3>
           <ul className="flex-grow overflow-auto">
             {agents.map((agent) => (
               <li
@@ -355,6 +377,69 @@ function StartApp() {
                     name={field}
                     value={selectedAgent[field]}
                     onChange={(e) => updateAgent(field, e.target.value)}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    ),
+    event: (
+      <div className="flex">
+        <div className="w-1/3 pr-4 border-r flex flex-col">
+          <ul className="flex-grow overflow-auto">
+            {events.map((event) => (
+              <li
+                key={event.id}
+                className={`flex justify-between items-center p-2 ${selectedEventId === event.id ? 'bg-blue-100' : ''}`}
+              >
+                <span
+                  className="cursor-pointer flex-grow"
+                  onClick={() => setSelectedEventId(event.id)}
+                >
+                  {event.name}
+                </span>
+                <button
+                  className="ml-2 text-red-600 hover:text-red-800"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newEvents = events.filter(a => a.id !== event.id);
+                    setEvents(newEvents);
+                    if (selectedEventId === event.id) {
+                      setSelectedEventId(newEvents[0]?.id || null);
+                    }
+                  }}
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+            <li
+              className="cursor-pointer p-2 text-blue-600"
+              onClick={addNewEvent}
+            >
+              + Add New Event
+            </li>
+          </ul>
+        </div>
+
+        <div className="w-2/3 pl-4">
+          {selectedEvent && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium mb-2">Event Configuration</h3>
+              {Object.keys(selectedEvent).filter(key => !['id'].includes(key)).map((field) => (
+                <div key={field}>
+                  <label className="block text-sm font-medium mb-1" htmlFor={field}>
+                    {field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')}:
+                  </label>
+                  <input
+                    type={field === 'age' ? 'number' : 'text'}
+                    id={field}
+                    name={field}
+                    value={selectedEvent[field]}
+                    onChange={(e) => updateEvent(field, e.target.value)}
                     className="w-full p-2 border rounded"
                   />
                 </div>
@@ -515,7 +600,7 @@ function StartApp() {
         <h2 className="text-2xl font-bold mb-6">Start Simulation</h2>
 
         <div className="flex mb-4 border-b">
-          {['basic', 'agent', 'llm'].map((tab) => (
+          {['basic', 'agent', 'event', 'llm',].map((tab) => (
             <button
               key={tab}
               className={`px-4 py-2 ${activeTab === tab ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'}`}
