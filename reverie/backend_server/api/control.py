@@ -36,6 +36,37 @@ def start(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+def get_env_info(request):
+    env_name = request.GET.get("env_name")
+    storage_folder = "../../environment/frontend_server/storage"
+    if env_name:
+        # load environment meat information
+        with open(f"{storage_folder}/{env_name}/reverie/meta.json", "r") as f:
+            env_meta = json.load(f)
+        persona_names = env_meta["persona_names"]
+        persona_info = {}
+        for persona in persona_names:
+            persona_scratch_file = (
+                f"{storage_folder}/{env_name}/personas/{persona}/bootstrap_memory/scratch.json"
+            )
+            f2 = open(persona_scratch_file, "r")
+            scratch = json.load(f2)
+            persona_info[persona] = {
+                "name": scratch["name"],
+                "first_name": scratch["first_name"],
+                "last_name": scratch["last_name"],
+                "age": scratch["age"],
+                "innate": scratch["innate"],
+                "learned": scratch["learned"],
+                "currently": scratch["currently"],
+                "lifestyle": scratch["lifestyle"],
+                "living_area": scratch["living_area"],
+                "bibliography": "",  # WIP
+            }
+
+    return JsonResponse(safe=False, data={"meta": env_meta, "personas": persona_info})
+
+
 def add_command(request):
     command = request.GET.get("command")
     command_queue.put(command)

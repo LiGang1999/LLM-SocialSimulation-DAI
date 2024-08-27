@@ -14,9 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from api import control
 from django.contrib import admin
 from django.urls import path
-from translator import control
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -24,4 +24,5 @@ urlpatterns = [
     path("command/", control.add_command, name="add_command"),
     path("list_envs/", control.list_envs, name="list_envs"),
     path("persona/", control.get_persona, name="persona"),
+    path("env_info/", control.get_env_info, name="env_info"),
 ]

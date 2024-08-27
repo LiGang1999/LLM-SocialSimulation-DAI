@@ -45,6 +45,7 @@ function StartApp() {
       first_name: "",
       last_name: "",
       age: 0,
+      innate: "",
       learned: "",
       currently: "",
       lifestyle: "",
@@ -85,18 +86,6 @@ function StartApp() {
   const selectedAgent = agents.find(agent => agent.id === selectedAgentId);
   const selectedEvent = events.find(event => event.id === selectedEventId);
 
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      const envs = await get_envs();
-      setTemplates(envs);
-      setSimConfig(prev => ({
-        ...prev,
-        template: envs[0]
-      }));
-    };
-    fetchTemplates();
-  }, []);
-
   const get_envs = async () => {
     var url = `http://${server_ip}:${back_port}/list_envs/`;
     try {
@@ -107,6 +96,64 @@ function StartApp() {
       console.error("Error fetching environments:", error);
       return [];
     }
+  };
+
+  const fetchEnvInfo = async (template) => {
+    var params = new URLSearchParams();
+    params.append('env_name', template);
+    var url = `http://${server_ip}:${back_port}/env_info/?${params.toString()}`;
+    try {
+      const response = await fetch(url, { method: 'GET' });
+      const data = await response.json();
+      setSimConfig(prev => ({
+        ...prev,
+        start_date: data.meta.start_date,
+        curr_time: data.meta.curr_time,
+        maze_name: data.meta.maze_name,
+        step: data.meta.step,
+        sim_mode: data.meta.sim_mode,
+        persona_names: data.meta.persona_names
+      }))
+
+      setAgents(
+        Object.values(data.personas).map(
+          (persona, index) => {
+            const ret = {
+              id: index,
+              name: persona.name,
+              daily_plan_req: persona.daily_plan_req, // Ensure this exists in persona data, otherwise remove this line
+              first_name: persona.first_name,
+              last_name: persona.last_name,
+              age: persona.age,
+              innate: persona.innate,
+              learned: persona.learned,
+              currently: persona.currently,
+              lifestyle: persona.lifestyle,
+              living_area: persona.living_area,
+              bibliography: persona.bibliography,
+            };
+            return ret;
+          }
+        )
+      )
+
+      setNextAgentId(Object.values(data.personas).length);
+
+
+    } catch (error) {
+      console.error("Error fetching environment info:", error);
+
+    }
+  }
+
+  const fetchTemplates = async () => {
+    const envs = await get_envs();
+    setTemplates(envs);
+    fetchEnvInfo(envs[0]);
+    setSimConfig(prev => ({
+      ...prev,
+      template: envs[0]
+    }));
   };
 
   const handleInputChange = (e) => {
@@ -181,6 +228,26 @@ function StartApp() {
     }
   };
 
+  useEffect(() => {
+    fetchTemplates();
+    // fetchEnvInfo();
+  }, []);
+
+  useEffect(() => {
+    // Function to resize all textareas dynamically
+    const resizeTextAreas = () => {
+      const textareas = document.querySelectorAll('.dynamic-textarea'); // Select all textareas with this class
+      textareas.forEach((textarea) => {
+        textarea.style.height = 'auto'; // Reset height to auto to recalculate
+        textarea.style.height = `${textarea.scrollHeight}px`; // Set height based on content
+      });
+    };
+
+    // Call the resize function when component mounts or selectedAgent changes
+    resizeTextAreas();
+  }, [selectedAgent, selectedEvent]); // Trigger on change of selectedAgent
+
+
   const tabContent = {
     basic: (
       <div className="space-y-4">
@@ -190,7 +257,10 @@ function StartApp() {
             id="template"
             name="template"
             value={simConfig.template}
-            onChange={handleInputChange}
+            onChange={(e) => {
+              handleInputChange(e); // Call your existing input change handler
+              fetchEnvInfo(e.target.value); // Call fetchEnvInfo after the change
+            }}
             className="w-full p-2 border rounded"
             required
           >
@@ -228,32 +298,6 @@ function StartApp() {
           </select>
         </div>
 
-
-
-        {/* <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="start_date">Start Date:</label>
-            <input
-              type="date"
-              id="start_date"
-              name="start_date"
-              value={simConfig.start_date}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="curr_time">Current Time:</label>
-            <input
-              type="datetime-local"
-              id="curr_time"
-              name="curr_time"
-              value={simConfig.curr_time}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded"
-            />
-          </div> */}
-
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="maze_name">Maze Name:</label>
           <input
@@ -270,7 +314,7 @@ function StartApp() {
       </div>
     ),
     agent: (
-      <div className="flex">
+      <div className="flex h-[500px]">
         <div className="w-1/3 pr-4 border-r flex flex-col">
           <ul className="flex-grow overflow-auto">
             {agents.map((agent) => (
@@ -308,10 +352,9 @@ function StartApp() {
           </ul>
         </div>
 
-        <div className="w-2/3 pl-4">
-          {selectedAgent && (
+        <div className="w-2/3 pl-4 overflow-auto">
+          {selectedAgent ? (
             <div className="space-y-4">
-              <h3 className="text-lg font-medium mb-2">Agent Configuration</h3>
               <div className="grid grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1" htmlFor="name">
@@ -321,7 +364,7 @@ function StartApp() {
                     type="text"
                     id="name"
                     name="name"
-                    value={selectedAgent.name}
+                    value={selectedAgent?.name || ""}
                     onChange={(e) => updateAgent('name', e.target.value)}
                     className="w-full p-2 border rounded"
                   />
@@ -334,7 +377,7 @@ function StartApp() {
                     type="text"
                     id="first_name"
                     name="first_name"
-                    value={selectedAgent.first_name}
+                    value={selectedAgent?.first_name || ""}
                     onChange={(e) => updateAgent('first_name', e.target.value)}
                     className="w-full p-2 border rounded"
                   />
@@ -347,7 +390,7 @@ function StartApp() {
                     type="text"
                     id="last_name"
                     name="last_name"
-                    value={selectedAgent.last_name}
+                    value={selectedAgent?.last_name || ""}
                     onChange={(e) => updateAgent('last_name', e.target.value)}
                     className="w-full p-2 border rounded"
                   />
@@ -367,22 +410,31 @@ function StartApp() {
                 </div>
               </div>
               {Object.keys(selectedAgent).filter(key => !['id', 'name', 'first_name', 'last_name', 'age'].includes(key)).map((field) => (
-                <div key={field}>
+                <div key={field} className="flex flex-col mb-4">
                   <label className="block text-sm font-medium mb-1" htmlFor={field}>
                     {field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')}:
                   </label>
-                  <input
-                    type={field === 'age' ? 'number' : 'text'}
+                  <textarea
                     id={field}
                     name={field}
                     value={selectedAgent[field]}
-                    onChange={(e) => updateAgent(field, e.target.value)}
-                    className="w-full p-2 border rounded"
+                    onChange={(e) => {
+                      updateAgent(field, e.target.value)
+                    }
+                    }
+                    className="p-2 border rounded w-full resize-none dynamic-textarea"
+                    rows={1}
+                    style={{ overflow: 'hidden', height: 'auto' }}
+                    onInput={(e) => {
+                      e.target.style.height = '';
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
                   />
                 </div>
               ))}
             </div>
-          )}
+          ) : <div class="text-lg font-medium mb-2">Click on an agent to view or edit their details, or add a new agent.
+          </div>}
         </div>
       </div>
     ),
@@ -434,13 +486,15 @@ function StartApp() {
                   <label className="block text-sm font-medium mb-1" htmlFor={field}>
                     {field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')}:
                   </label>
-                  <input
+                  <textarea
                     type={field === 'age' ? 'number' : 'text'}
                     id={field}
                     name={field}
+                    rows={1}
+                    style={{ overflow: 'hidden', height: 'auto' }}
                     value={selectedEvent[field]}
                     onChange={(e) => updateEvent(field, e.target.value)}
-                    className="w-full p-2 border rounded"
+                    className="p-2 border rounded w-full resize-none dynamic-textarea"
                   />
                 </div>
               ))}
@@ -611,7 +665,7 @@ function StartApp() {
           ))}
         </div>
 
-        <div className="mt-4 mb-6 min-h-[500px]">
+        <div className="mt-4 mb-6 h-[500px]" style={{ "padding": "15px" }}>
           {tabContent[activeTab]}
         </div>
 
