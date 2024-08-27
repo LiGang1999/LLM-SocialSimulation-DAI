@@ -7,6 +7,8 @@ import sys
 import threading
 import time
 
+import yaml
+
 # ANSI color codes
 COLORS = {
     "frontend": "\033[94m[frontend]\033[0m",
@@ -56,6 +58,12 @@ def run_command(command, cwd, color, log_file=None):
 
 def start_servers(quiet):
     """Start all servers with threading."""
+    with open("config.yaml", "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    front_port1 = data.get("front_port")
+    front_port2 = data.get("front_port2")
+    back_port = data.get("back_port")
     commands = [
         {
             "command": "npm run dev",
@@ -65,14 +73,14 @@ def start_servers(quiet):
             "hint": "Starting frontend server...",
         },
         {
-            "command": "python manage.py runserver",
+            "command": f"python manage.py runserver --skip-checks 0.0.0.0:{front_port2}",
             "directory": "environment/frontend_server",
             "color": COLORS["webpage"],
             "log_file": "webpage.log" if quiet else None,
             "hint": "Starting webpage server...",
         },
         {
-            "command": "python3 manage.py runserver",
+            "command": f"python3 manage.py runserver --skip-checks 0.0.0.0:{back_port}",
             "directory": "reverie/backend_server",
             "color": COLORS["backend"],
             "log_file": "backend.log" if quiet else None,

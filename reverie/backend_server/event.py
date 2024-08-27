@@ -15,7 +15,7 @@ class Event:
 
     def get_histories(self, name):
         print(name)
-        if name in self.access_list or len(self.access_list == 0):
+        if name in self.access_list or len(self.access_list) == 0:
             # TODO improve access management
             return self.public_history
         else:
@@ -23,7 +23,7 @@ class Event:
 
     def get_description(self, name):
         print(name)
-        if name in self.access_list or len(self.access_list == 0):
+        if name in self.access_list or len(self.access_list) == 0:
             return self.description
         else:
             return ""

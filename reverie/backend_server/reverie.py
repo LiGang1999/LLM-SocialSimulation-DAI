@@ -44,15 +44,7 @@ from vector_db import *
 
 global_rs = None  # ???
 command_queue = Queue()
-# online_relation = asyncio.Queue(maxsize=3)
 online_relation = Queue()
-
-
-def return_rs():
-    global global_rs
-    print("lg:", global_rs)
-    return global_rs
-
 
 ##############################################################################
 #                                  REVERIE                                   #
@@ -67,6 +59,14 @@ def from_dict(cls, input_dict):
         obj,
         **{key: value for key, value in input_dict.items() if key in {f.name for f in fields(cls)}},
     )
+
+
+@dataclass
+class EventInfo:
+    description: str = ""
+    websearch: str = ""
+    policy: str = ""  # TODO: the policy and websearch should be two lists
+    access_list: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -204,18 +204,18 @@ def bootstrap_persona(path: str, config: PersonaConfig):
 
 
 class ReverieServer:
-    def __init__(self, fork_sim_code, sim_config: ReverieConfig):
+    def __init__(self, template_sim_code, sim_config: ReverieConfig):
         # FORKING FROM A PRIOR SIMULATION:
-        # <fork_sim_code> indicates the simulation we are forking from.
+        # <template_sim_code> indicates the simulation we are forking from.
         # Interestingly, all simulations must be forked from some initial
         # simulation, where the first simulation is "hand-crafted".
-        self.fork_sim_code = fork_sim_code
-        fork_folder = f"{fs_storage}/{self.fork_sim_code}"
+        self.template_sim_code = template_sim_code
+        template_folder = f"{fs_storage}/{self.template_sim_code}"
 
         # init_api(model)
 
         # <sim_code> indicates our current simulation. The first step here is to
-        # copy everything that's in <fork_sim_code>, but edit its
+        # copy everything that's in <template_sim_code>, but edit its
         # reverie/meta/json's fork variable.
         self.sim_code = sim_config.sim_code
         sim_folder = f"{fs_storage}/{self.sim_code}"
@@ -224,11 +224,15 @@ class ReverieServer:
                 f"Simulation {sim_folder} exists. It will be overwritten by the new environment."
             )
             removeanything(sim_folder)
-        copyanything(fork_folder, sim_folder)
+        copyanything(template_folder, sim_folder)
 
         self.sim_mode = sim_config.sim_mode
 
         reverie_meta = {}
+        # reverie_meta is loaded from the meta.json file in the simulation folder. This is only for backward compatibility
+
+        with open(f"{sim_folder}/reverie/meta.json", "r") as infile:
+            reverie_meta = json.load(infile)
         reverie_meta["curr_time"] = sim_config.curr_time
         reverie_meta["step"] = sim_config.step
         reverie_meta["persona_names"] = [
@@ -239,8 +243,8 @@ class ReverieServer:
         reverie_meta["start_date"] = sim_config.start_date
         reverie_meta["llm_config"] = asdict(sim_config.llm_config)
 
-        # This one should be called sim_code, but call it fork_sim_code to maintain backward compatability
-        reverie_meta["fork_sim_code"] = sim_config.sim_code
+        # This one should be called sim_code, but call it template_sim_code to maintain backward compatability
+        reverie_meta["template_sim_code"] = sim_config.sim_code
         self.storage_home = f"{fs_storage}/{self.sim_code}"
 
         # check fields for reverie_meta
@@ -374,8 +378,8 @@ class ReverieServer:
         # Load all online events
         if self.sim_mode == "online":
             for event in sim_config.public_events:
-                self.maze.load_online_event(
-                    event_desc=event["name"],
+                self.load_online_event(
+                    event_desc=event["description"],
                     policy=event["policy"],
                     websearch=event["websearch"],
                     access_list=event["access_list"],
@@ -397,7 +401,7 @@ class ReverieServer:
 
         # Save Reverie meta information.
         reverie_meta = dict()
-        reverie_meta["fork_sim_code"] = self.fork_sim_code
+        reverie_meta["template_sim_code"] = self.template_sim_code
         reverie_meta["start_date"] = self.start_time.strftime("%B %d, %Y")
         reverie_meta["curr_time"] = self.curr_time.strftime("%B %d, %Y, %H:%M:%S")
         reverie_meta["sec_per_step"] = self.sec_per_step
@@ -686,6 +690,7 @@ class ReverieServer:
         # TODO 只用spo来完整表示一个事件是远远不够的
         description = event_desc
         event_id = len(self.maze.events)
+        L.debug(f"Adding event: {event_desc}, {policy} {websearch} {access_list}")
 
         memory_node = MemoryNode("public", s, p, o, description, True)
         self.maze.add_event(event_id, access_list)
@@ -985,8 +990,6 @@ class ReverieServer:
                         command_queue.put(cmd)
                 elif "call -- load online event" in sim_command.lower():  # 将事件广播给每个智能体。
                     # tyn
-                    print("Input your content: ")
-                    # truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
                     word_command = command_queue.get().strip()
                     names = command_queue.get().strip()
 
@@ -1021,6 +1024,21 @@ class ReverieServer:
                     self.load_online_event(
                         event_desc=word_command,
                         access_list=[name.strip() for name in names.split(",")],
+                        websearch=websearch,
+                    )
+                elif (
+                    "call -- with policy and websearch load online event"
+                    in sim_command.lower()
+                ):  # 将事件广播给每个智能体。
+                    word_command = command_queue.get().strip()
+                    names = command_queue.get().strip()
+                    policy = command_queue.get().strip()
+                    websearch = command_queue.get().strip()
+
+                    self.load_online_event(
+                        event_desc=word_command,
+                        access_list=[name.strip() for name in names.split(",")],
+                        policy=policy,
                         websearch=websearch,
                     )
 

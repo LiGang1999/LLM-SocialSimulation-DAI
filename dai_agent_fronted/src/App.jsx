@@ -2,6 +2,12 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
+import { CheckIcon } from '@heroicons/react/20/solid'
+
+import { Menu, MenuItem, MenuItems, Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react';
+import { FaCog } from 'react-icons/fa'; // For the settings icon
+
+
 /**
  * v0 by Vercel.
  * @see https://v0.dev/t/TPKUJgBr1Wy
@@ -32,16 +38,79 @@ const AvatarImg = () => {
   )
 }
 
+const people = [
+  { id: 1, name: 'Durward Reynolds' },
+  { id: 2, name: 'Kenton Towne' },
+  { id: 3, name: 'Therese Wunsch' },
+  { id: 4, name: 'Benedict Kessler' },
+  { id: 5, name: 'Katelyn Rohan' },
+]
+
+
+const chatTypes = [
+  { id: 1, name: 'Command' },
+  { id: 2, name: 'Chat' },
+];
+
+const users = [
+  { id: 1, name: 'John Doe' },
+  { id: 2, name: 'Jane Smith' },
+  { id: 3, name: 'Bob Johnson' },
+];
+
 import { useState, useRef, useEffect } from 'react'
 
+const SelectionListbox = ({ value, onChange, options, label }) => (
+  <div className='relative flex w-full items-center'>
+    <Label className="font-medium whitespace-nowrap mr-2">{label} :</Label>
+    <Listbox value={value} onChange={onChange}>
+      <ListboxButton className="relative cursor-pointer w-full rounded-md border border-gray-300 bg-white py-1 pl-3 pr-10 text-left shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm flex items-center">
+        {value.name}
+        <ChevronDownIcon
+          className="absolute pointer-events-none right-1 size-4 fill-white/60"
+        />
+      </ListboxButton>
+      <ListboxOptions anchor="bottom" className="z-10 max-h-60 overflow-auto rounded-md bg-white text-base shadow-lg ring-1 ring-black ring-opacity-15 focus:outline-none sm:text-sm w-[var(--button-width)]">
+        {options.map((option) => (
+          <ListboxOption
+            key={option.id}
+            value={option}
+            className={({ active, selected }) => `
+              relative cursor-default select-none pl-4 pr-4 sm:text-sm
+              ${active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'}
+              ${selected ? 'bg-indigo-200' : ''}
+            `}
+          >
+            {({ selected }) => (
+              <div className="py-1">
+                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                  {option.name}
+                </span>
+                {selected && (
+                  <span className="absolute inset-y-0 right-2 flex items-center pl-2 text-indigo-600">
+                    <CheckIcon className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                )}
+              </div>
+            )}
+          </ListboxOption>
+        ))}
+      </ListboxOptions>
+    </Listbox>
+  </div>
+);
 function App() {
   const config_data = import.meta.env;
   const server_ip = config_data.VITE_server_ip;
   const back_port = config_data.VITE_back_port;
-  const [chatType, setChatType] = useState('Command');
   const [showLogs, setShowLogs] = useState(false);
   const [logs, setLogs] = useState([]);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [count, setCount] = useState(1); // State for the input count
+
+  const [chatType, setChatType] = useState(chatTypes[0]);
+  const [selectedUser, setSelectedUser] = useState(users[0]);
+
 
 
   const chatBoxRef = useRef(null);
@@ -50,6 +119,11 @@ function App() {
   const logWebSocket = useRef(null);
   const logPanelRef = useRef(null);
   const [chatList, setChatList] = useState([]);
+  const [showSettings, setShowSettings] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState(people[0])
+
+  const settingsButtonRef = useRef(null);
+  const settingsPopupRef = useRef(null);
 
   function add_chat(role, username, content) {
     setChatList(prevList => [...prevList, { role, username, content }]);
@@ -158,6 +232,20 @@ function App() {
   }, [server_ip, back_port]);
 
   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (settingsButtonRef.current && !settingsButtonRef.current.contains(event.target) &&
+        settingsPopupRef.current && !settingsPopupRef.current.contains(event.target)) {
+        setShowSettings(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
     const chatWebSocket = new WebSocket(`ws://${server_ip}:${back_port}/ws/chat`);
 
     chatWebSocket.onmessage = (event) => {
@@ -226,33 +314,22 @@ function App() {
           </div>
           <div className="flex flex-col gap-2 border-t p-4">
             <div className="flex items-center gap-2">
-              <Label className="font-medium" htmlFor="chat-type">
-                Chat Type:
-              </Label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="flex-1 justify-between" size="sm" variant="outline">
-                    <span>{chatType}</span>
-                    <ChevronDownIcon className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setChatType('Command')}>Command</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setChatType('Chat')}>Chat</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Label className="font-medium" htmlFor="chat-user">
-                Chat User:
-              </Label>
-              <select
-                className="block flex-1 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                id="chat_user"
-                ref={chatUserRef}
-              >
-                <option>John Doe</option>
-                <option>Jane Smith</option>
-                <option>Bob Johnson</option>
-              </select>
+              <div className="flex items-center gap-4 w-full ">
+                <SelectionListbox
+                  value={chatType}
+                  onChange={setChatType}
+                  options={chatTypes}
+                  label="Chat Type"
+                  className="w-1/2"
+                />
+                <SelectionListbox
+                  value={selectedUser}
+                  onChange={setSelectedUser}
+                  options={users}
+                  label="Chat User"
+                  className="w-1/2"
+                />
+              </div>
             </div>
             <div className="flex items-center">
               <Input
@@ -265,9 +342,78 @@ function App() {
               <Button className="ml-2" size="sm" variant="primary" onClick={interact}>
                 <SendIcon className="h-4 w-4" />
               </Button>
-              <Button className="ml-2" size="sm" variant="secondary" onClick={toggleLogs}>
-                {showLogs ? 'Hide Logs' : 'Show Logs'}
+              <div className="relative w-24 ml-2">
+                <Input
+                  className="pr-10" // Add padding to the right for the button
+                  type="number"
+                  value={count}
+                  onChange={(e) => setCount(e.target.value)}
+                  placeholder="1"
+                  min="1"
+                />
+                <button
+                  className="absolute inset-y-0 right-0 flex items-center pr-2"
+                  onClick={() => runCommand()}
+                >
+                  <RunIcon className="h-4 w-4 text-gray-500" />
+                </button>
+              </div>
+              <Button
+                className={`ml-2 flex items-center justify-center ${showLogs
+                  ? 'bg-gray-300 text-white' // Grey background with white text when logs are shown
+                  : 'bg-white text-gray-300 border-gray-250 border' // White background with grey border when logs are hidden
+                  }`}
+                size="sm"
+                variant="secondary"
+                onClick={toggleLogs}
+              >
+                <LogsIcon className="h-4 w-4 text-gray-500" />
               </Button>
+              {/* Headless UI Settings Menu */}
+              <Menu as="div" className="relative ml-auto">
+                <Menu.Button className="flex items-center justify-center bg-white text-gray-1000 ml-2 border-gray-250 border p-2 rounded-md">
+                  <FaCog className="h-4 w-4" />
+                </Menu.Button>
+                <MenuItems
+                  className="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-gray-300 rounded-lg z-10 overflow-hidden"
+                >
+                  <MenuItem>
+                    {({ active }) => (
+                      <button
+                        className={`${active ? 'bg-gray-100' : ''
+                          } block w-full text-left px-4 py-2 text-sm`}
+                      >
+                        Publish events
+                      </button>
+                    )}
+                  </MenuItem>
+                  <MenuItem>
+                    {({ active }) => (
+                      <button
+                        className={`${active ? 'bg-gray-100' : ''
+                          } block w-full text-left px-4 py-2 text-sm`}
+                      >
+                        More settings
+                      </button>
+                    )}
+                  </MenuItem>
+                </MenuItems>
+              </Menu>
+
+              {/* Settings Popup */}
+              {showSettings && (
+                <div
+                  ref={settingsPopupRef}
+                  className="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-gray-300 rounded-lg z-10"
+                  style={{ top: '100%', right: 0 }}
+                >
+                  <ul className="py-2">
+                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Setting 1</li>
+                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Setting 2</li>
+                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Setting 3</li>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -303,6 +449,67 @@ function App() {
         )}
       </div>
     </div>
+  );
+}
+
+
+function SettingsIcon(props) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="black"
+      strokeWidth="2"  // Thicker stroke width for consistency
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V20a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H4a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 10 4.09V4a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 .33h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1 1h.09a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
+
+
+
+function LogsIcon(props) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="black"
+      strokeWidth="2"  // Thicker stroke width for consistency
+      strokeLinecap="" // Do not use rounded corners
+      strokeLinejoin=""
+    >
+      <rect x="3" y="4" width="18" height="18" rx="0" ry="0" />
+      <line x1="9" y1="9" x2="15" y2="9" />
+      <line x1="9" y1="13" x2="15" y2="13" />
+      <line x1="9" y1="17" x2="15" y2="17" />
+    </svg>
+  );
+}
+
+
+function RunIcon(props) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="black"
+      strokeWidth="2.5"
+    >
+      <path d="M5 3l14 9-14 9V3z" />
+    </svg>
   );
 }
 

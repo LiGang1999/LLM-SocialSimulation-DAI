@@ -7,6 +7,8 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from utils import config
+from utils.logs import L
 
 from reverie import LLMConfig, PersonaConfig, ReverieConfig, command_queue, start_sim
 
@@ -16,11 +18,24 @@ from reverie import LLMConfig, PersonaConfig, ReverieConfig, command_queue, star
 def start(request):
     try:
         data = json.loads(request.body)
+        L.debug(f"Received data: {data}")
         template_name = data.get("template")
         config_data = data.get("config")
 
+        if not config_data.get("sim_code", ""):
+            return JsonResponse({"error": "Missing sim_code in config"}, status=400)
+
         if not template_name or not config_data:
             return JsonResponse({"error": "Missing required parameters"}, status=400)
+
+        base_templates = [
+            "base_the_villie_isabella_maria_klaus",
+            "base_the_villie_isabella_maria_klaus_online",
+            "base_the_villie_n25",
+        ]
+        if template_name in base_templates:
+            # Cannot overwrite base template
+            return JsonResponse({"error": "Cannot overwrite base template"}, status=400)
 
         # Parsing the LLMConfig from config_data if available
         llm_config_data = config_data.get("llm_config", {})
@@ -39,7 +54,7 @@ def start(request):
         # Parsing PersonaConfig objects from the "personas" key in config_data
         personas_data = config_data.get("personas", {})
         persona_configs = {
-            name: PersonaConfig(
+            persona.get("name", ""): PersonaConfig(
                 name=persona.get("name", ""),
                 daily_plan_req=persona.get("daily_plan_req", ""),
                 first_name=persona.get("first_name", ""),
@@ -52,14 +67,14 @@ def start(request):
                 living_area=persona.get("living_area", ""),
                 bibliography=persona.get("bibliography", ""),
             )
-            for name, persona in personas_data.items()
+            for persona in personas_data
         }
 
         # Parsing public events from config_data
         public_events = config_data.get("events", [])
 
         # Building the ReverieConfig object
-        config = ReverieConfig(
+        reverie_config = ReverieConfig(
             sim_code=config_data.get("sim_code", ""),
             sim_mode=config_data.get("sim_mode", ""),
             start_date=config_data.get("start_date", ""),
@@ -84,10 +99,36 @@ def start(request):
         )
 
         # Starting the simulation in a new thread
-        thread = threading.Thread(target=start_sim, args=(template_name, config))
+        # L.debug(f"Starting simulation with config: {reverie_config} ")
+        thread = threading.Thread(target=start_sim, args=(template_name, reverie_config))
         thread.start()
 
         return JsonResponse({"status": "success", "message": "Simulation started"})
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def publish_event(request):
+    try:
+        data = json.loads(request.body)
+        L.debug(f"Received data: {data}")
+        event_desciption = data.get("template")
+        event_websearch = data.get("websearch")
+        event_policy = data.get("policy")
+        event_access_list = [name.strip() for name in data.get("access_list").split(",")]
+
+        command_queue.put("call -- with policy and websearch load online event")
+        command_queue.put(event_desciption)
+        command_queue.put(",".join(event_access_list))
+        command_queue.put(event_policy)
+        command_queue.put(event_websearch)
+
+        return JsonResponse({"status": "success", "message": "Event published"})
 
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
@@ -99,6 +140,9 @@ def get_env_info(request):
     env_name = request.GET.get("env_name")
     storage_folder = "../../environment/frontend_server/storage"
     if env_name:
+        # firstly make sure the environment exists
+        if not os.path.exists(f"{storage_folder}/{env_name}"):
+            return JsonResponse(safe=False, data={"error": "Environment does not exist"})
         # load environment meat information
         with open(f"{storage_folder}/{env_name}/reverie/meta.json", "r") as f:
             env_meta = json.load(f)
@@ -115,6 +159,7 @@ def get_env_info(request):
                 "first_name": scratch["first_name"],
                 "last_name": scratch["last_name"],
                 "age": scratch["age"],
+                "daily_plan_req": scratch["daily_plan_req"],
                 "innate": scratch["innate"],
                 "learned": scratch["learned"],
                 "currently": scratch["currently"],
@@ -123,12 +168,23 @@ def get_env_info(request):
                 "bibliography": "",  # WIP
             }
 
-    return JsonResponse(safe=False, data={"meta": env_meta, "personas": persona_info})
+        with open(f"{storage_folder}/{env_name}/reverie/events.json", "r") as f:
+            events = json.load(f)
+
+    return JsonResponse(
+        safe=False, data={"meta": env_meta, "personas": persona_info, "events": events}
+    )
 
 
 def add_command(request):
     command = request.GET.get("command")
     command_queue.put(command)
+    return HttpResponse("success")
+
+
+def run(request):
+    count = request.GET.get("count")
+    command_queue.put(f"run {count}")
     return HttpResponse("success")
 
 
