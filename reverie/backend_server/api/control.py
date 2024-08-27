@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from reverie import ReverieConfig, command_queue, start_sim
+from reverie import LLMConfig, PersonaConfig, ReverieConfig, command_queue, start_sim
 
 
 @csrf_exempt
@@ -16,16 +16,63 @@ from reverie import ReverieConfig, command_queue, start_sim
 def start(request):
     try:
         data = json.loads(request.body)
-        template = data.get("template")
-        config = data.get("config")
+        template_name = data.get("template")
+        config_data = data.get("config")
 
-        if not template or not config:
+        if not template_name or not config_data:
             return JsonResponse({"error": "Missing required parameters"}, status=400)
 
-        # Convert the config dictionary to ReverieConfig object
-        config = ReverieConfig(**config)
+        # Parsing the LLMConfig from config_data if available
+        llm_config_data = config_data.get("llm_config", {})
+        llm_config = LLMConfig(
+            api_base=llm_config_data.get("api_base", config.openai_api_base),
+            api_key=llm_config_data.get("api_key", config.openai_api_key),
+            engine=llm_config_data.get("engine", ""),
+            tempreature=float(llm_config_data.get("temperature", 1.0)),
+            max_tokens=int(llm_config_data.get("max_tokens", 512)),
+            top_p=float(llm_config_data.get("top_p", 0.7)),
+            frequency_penalty=float(llm_config_data.get("frequency_penalty", 0.0)),
+            presence_penalty=float(llm_config_data.get("presence_penalty", 0.0)),
+            stream=llm_config_data.get("stream", False),
+        )
 
-        thread = threading.Thread(target=start_sim, args=(template, config))
+        # Parsing PersonaConfig objects from the "personas" key in config_data
+        personas_data = config_data.get("personas", {})
+        persona_configs = {
+            name: PersonaConfig(
+                name=persona.get("name", ""),
+                daily_plan_req=persona.get("daily_plan_req", ""),
+                first_name=persona.get("first_name", ""),
+                last_name=persona.get("last_name", ""),
+                age=int(persona.get("age", 0)),
+                learned=persona.get("learned", ""),
+                currently=persona.get("currently", ""),
+                lifestyle=persona.get("lifestyle", ""),
+                living_area=persona.get("living_area", ""),
+                bibliography=persona.get("bibliography", ""),
+            )
+            for name, persona in personas_data.items()
+        }
+
+        # Parsing public events from config_data
+        public_events = config_data.get("events", [])
+
+        # Building the ReverieConfig object
+        config = ReverieConfig(
+            sim_code=config_data.get("sim_code", ""),
+            sim_mode=config_data.get("sim_mode", ""),
+            start_date=config_data.get("start_date", ""),
+            curr_time=config_data.get("curr_time", ""),
+            maze_name=config_data.get("maze_name", ""),
+            step=int(config_data.get("step", 0)),
+            llm_config=llm_config,
+            persona_configs=persona_configs,
+            public_events=public_events,
+            direction=config_data.get("direction", ""),
+        )
+
+        # Starting the simulation in a new thread
+        thread = threading.Thread(target=start_sim, args=(template_name, config))
         thread.start()
 
         return JsonResponse({"status": "success", "message": "Simulation started"})
