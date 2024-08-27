@@ -3,20 +3,19 @@ Author: Joon Sung Park (joonspk@stanford.edu)
 File: views.py
 """
 
-import os
-import string
-import random
-import json
-from os import listdir
-import os
-import yaml
-
 import datetime
-from django.shortcuts import render, redirect, HttpResponseRedirect
+import json
+import os
+import random
+import string
+from os import listdir
+
+import yaml
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import HttpResponseRedirect, redirect, render
+from django.templatetags.static import static
 from global_methods import *
 
-from django.templatetags.static import static
 from .models import *
 
 

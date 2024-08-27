@@ -1,9 +1,10 @@
-import subprocess
-import threading
-import os
 import argparse
+import os
 import re
+import shutil
+import subprocess
 import sys
+import threading
 import time
 
 # ANSI color codes
@@ -99,6 +100,18 @@ def start_servers(quiet):
 
 
 def main(quiet):
+    # Check whether config.yaml exists. If not, copy config.template.yaml to config.yaml
+    if not os.path.exists("config.yaml"):
+        shutil.copy("config.template.yaml", "config.yaml")
+        print(f"{COLORS['manage']} Created config.yaml from config.template.yaml")
+
+    # Check wheter backend_server/utils/config.py exists. If not, exit program
+    if not os.path.exists("reverie/backend_server/utils/config.py"):
+        print(
+            f"{COLORS['manage']} ERROR: backend_server/utils/config.py not found. You should manually create it. Exiting..."
+        )
+        sys.exit(1)
+
     threads = start_servers(quiet)
 
     try:

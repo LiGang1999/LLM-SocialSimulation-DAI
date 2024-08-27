@@ -84,16 +84,16 @@ class LLMConfig:
 
 @dataclass
 class PersonaConfig:
-    name: str
+    name: str = ""
     daily_plan_req: str = ""
-    first_name: str
-    last_name: str
-    age: int
-    learned: str
-    currently: str
-    lifestyle: str
-    living_area: str
-    bibliography: str  # This one is additional field
+    first_name: str = ""
+    last_name: str = ""
+    age: int = 0
+    learned: str = ""
+    currently: str = ""
+    lifestyle: str = ""
+    living_area: str = ""
+    bibliography: str = ""  # This one is additional field
 
 
 # The data class representing the meta information of a simulation.
@@ -108,7 +108,7 @@ class ReverieConfig:
     maze_name: str | None = ""  # map name
     step: int | None = 0  # current steps
     llm_config: LLMConfig | None = field(default_factory=LLMConfig)  # llm config
-    persona_configs: dict[str, PersonaConfig]
+    persona_configs: dict[str, PersonaConfig] = field(default_factory=dict)  # persona config
     public_event: List[str] = field(default_factory=list)  # public events
     direction: str | None = ""  # The instruction of what the agents should do with each other
 
