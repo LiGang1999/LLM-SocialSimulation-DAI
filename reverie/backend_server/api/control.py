@@ -45,6 +45,7 @@ def start(request):
                 first_name=persona.get("first_name", ""),
                 last_name=persona.get("last_name", ""),
                 age=int(persona.get("age", 0)),
+                innate=persona.get("innate", ""),
                 learned=persona.get("learned", ""),
                 currently=persona.get("currently", ""),
                 lifestyle=persona.get("lifestyle", ""),
@@ -67,7 +68,18 @@ def start(request):
             step=int(config_data.get("step", 0)),
             llm_config=llm_config,
             persona_configs=persona_configs,
-            public_events=public_events,
+            public_events=[
+                {
+                    "name": event.get("name", ""),
+                    "access_list": [
+                        name.strip() for name in event.get("access_list").strip().split(",")
+                    ],
+                    "websearch": event.get("websearch", ""),
+                    "policy": event.get("policy", ""),
+                    "description": event.get("description", ""),
+                }
+                for event in public_events
+            ],
             direction=config_data.get("direction", ""),
         )
 

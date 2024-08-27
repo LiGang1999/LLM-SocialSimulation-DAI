@@ -1,6 +1,6 @@
 class Event:
-    def __init__(self, event_name, access_list=[], description=[]):
-        self.event_name = event_name
+    def __init__(self, event_id, access_list=[], description=[]):
+        self.event_id = event_id
         self.public_history = []
         self.access_list = access_list
         self.description = description
@@ -15,7 +15,7 @@ class Event:
 
     def get_histories(self, name):
         print(name)
-        if name in self.access_list:
+        if name in self.access_list or len(self.access_list == 0):
             # TODO improve access management
             return self.public_history
         else:
@@ -23,7 +23,7 @@ class Event:
 
     def get_description(self, name):
         print(name)
-        if name in self.access_list:
+        if name in self.access_list or len(self.access_list == 0):
             return self.description
         else:
             return ""

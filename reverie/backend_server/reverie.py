@@ -89,6 +89,7 @@ class PersonaConfig:
     first_name: str = ""
     last_name: str = ""
     age: int = 0
+    innate: str = ""
     learned: str = ""
     currently: str = ""
     lifestyle: str = ""
@@ -109,7 +110,7 @@ class ReverieConfig:
     step: int | None = 0  # current steps
     llm_config: LLMConfig | None = field(default_factory=LLMConfig)  # llm config
     persona_configs: dict[str, PersonaConfig] = field(default_factory=dict)  # persona config
-    public_events: List[str] = field(default_factory=list)  # public events
+    public_events: List[dict] = field(default_factory=list)  # public events
     direction: str | None = ""  # The instruction of what the agents should do with each other
 
 
@@ -203,7 +204,7 @@ def bootstrap_persona(path: str, config: PersonaConfig):
 
 
 class ReverieServer:
-    def __init__(self, fork_sim_code, sim_meta: ReverieConfig):
+    def __init__(self, fork_sim_code, sim_config: ReverieConfig):
         # FORKING FROM A PRIOR SIMULATION:
         # <fork_sim_code> indicates the simulation we are forking from.
         # Interestingly, all simulations must be forked from some initial
@@ -216,7 +217,7 @@ class ReverieServer:
         # <sim_code> indicates our current simulation. The first step here is to
         # copy everything that's in <fork_sim_code>, but edit its
         # reverie/meta/json's fork variable.
-        self.sim_code = sim_meta.sim_code
+        self.sim_code = sim_config.sim_code
         sim_folder = f"{fs_storage}/{self.sim_code}"
         if check_if_dir_exists(sim_folder):
             L.warning(
@@ -224,19 +225,22 @@ class ReverieServer:
             )
             removeanything(sim_folder)
         copyanything(fork_folder, sim_folder)
+
+        self.sim_mode = sim_config.sim_mode
+
         reverie_meta = {}
-        reverie_meta["curr_time"] = sim_meta.curr_time
-        reverie_meta["step"] = sim_meta.step
+        reverie_meta["curr_time"] = sim_config.curr_time
+        reverie_meta["step"] = sim_config.step
         reverie_meta["persona_names"] = [
-            persona.name for persona in sim_meta.persona_configs.values()
+            persona.name for persona in sim_config.persona_configs.values()
         ]
-        reverie_meta["maze_name"] = sim_meta.maze_name
-        reverie_meta["sim_mode"] = sim_meta.sim_mode
-        reverie_meta["start_date"] = sim_meta.start_date
-        reverie_meta["llm_config"] = asdict(sim_meta.llm_config)
+        reverie_meta["maze_name"] = sim_config.maze_name
+        reverie_meta["sim_mode"] = sim_config.sim_mode
+        reverie_meta["start_date"] = sim_config.start_date
+        reverie_meta["llm_config"] = asdict(sim_config.llm_config)
 
         # This one should be called sim_code, but call it fork_sim_code to maintain backward compatability
-        reverie_meta["fork_sim_code"] = sim_meta.sim_code
+        reverie_meta["fork_sim_code"] = sim_config.sim_code
         self.storage_home = f"{fs_storage}/{self.sim_code}"
 
         # check fields for reverie_meta
@@ -318,7 +322,7 @@ class ReverieServer:
         # For each persona in the PersonaConfig:
         # 1. If it is a newly created persona, create the folder and files for it.
         # 2. If it is an existing persona, we should update the persona information accordingly.
-        for name, persona in sim_meta.persona_configs.items():
+        for name, persona in sim_config.persona_configs.items():
             bootstrap_persona(f"{self.storage_home}/{name}", persona)
 
         init_env_file = f"{sim_folder}/environment/{str(self.step)}.json"
@@ -366,6 +370,16 @@ class ReverieServer:
             days=-1
         )  # extend planning cycle
         self.maze.need_stagely_planning = True  # extend planning cycle
+
+        # Load all online events
+        if self.sim_mode == "online":
+            for event in sim_config.public_events:
+                self.maze.load_online_event(
+                    event_desc=event["name"],
+                    policy=event["policy"],
+                    websearch=event["websearch"],
+                    access_list=event["access_list"],
+                )
 
     def save(self):
         """
@@ -667,6 +681,21 @@ class ReverieServer:
             # Sleep so we don't burn our machines.
             time.sleep(self.server_sleep)
 
+    def load_online_event(self, event_desc="", policy="", websearch="", access_list=[]):
+        s, p, o = generate_action_event_triple_new(event_desc)
+        # TODO 只用spo来完整表示一个事件是远远不够的
+        description = event_desc
+        event_id = len(self.maze.events)
+
+        memory_node = MemoryNode("public", s, p, o, description, True)
+        self.maze.add_event(event_id, access_list)
+        self.maze.add_memory_to_event(event_id, memory_node)
+
+        if policy:
+            self.maze.add_events_policy(event_id, policy)
+        if websearch:
+            self.maze.add_events_websearch(event_id, websearch)
+
     def open_server(self):
         """
         Open up an interactive terminal prompt that lets you run the simulation
@@ -957,107 +986,47 @@ class ReverieServer:
                 elif "call -- load online event" in sim_command.lower():  # 将事件广播给每个智能体。
                     # tyn
                     print("Input your content: ")
-                    # truth = input("Input your content: ")
                     # truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
-                    word_command = command_queue.get()
-                    print(word_command)
-                    word_command = word_command.strip()
-                    s, p, o = generate_action_event_triple_new(word_command)
-                    # TODO 只用spo来完整表示一个事件是远远不够的
-                    # s = "日本"
-                    # p = "排放"
-                    # o = "核废水"
-                    description = word_command
-                    # OfflineMaze does not have events
-                    event_id = len(self.maze.events)
-                    print("Input access name: ")
+                    word_command = command_queue.get().strip()
+                    names = command_queue.get().strip()
 
-                    # name = input("Input access name: ")
-                    name = command_queue.get()
-                    print(name)
-                    word_command = name.strip()
-
-                    # 创建一个memory_node
-                    memory_node = MemoryNode("public", s, p, o, description, True)
-                    access_list = [name.strip() for name in word_command.split(",")]
-                    self.maze.add_event(event_id, access_list)
-
-                    self.maze.add_memory_to_event(event_id, memory_node)
+                    self.load_online_event(
+                        event_desc=word_command,
+                        access_list=[name.strip() for name in names.split(",")],
+                    )
 
                 elif (
                     "call -- with policy load online event" in sim_command.lower()
                 ):  # 将事件广播给每个智能体。
                     # tyn
-                    print("Input your content without policy: ")
                     # truth = input("Input your content: ")
                     # truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
-                    word_command = command_queue.get()
-                    print(word_command)
-                    word_command = word_command.strip()
-                    s, p, o = generate_action_event_triple_new(word_command)
-                    # TODO 只用spo来完整表示一个事件是远远不够的
-                    # s = "日本"
-                    # p = "排放"
-                    # o = "核废水"
-                    description = word_command
-                    event_id = len(self.maze.events)
-                    print("Input access name: ")
+                    word_command = command_queue.get().strip()
+                    names = command_queue.get().strip()
+                    policy = command_queue.get().strip()
 
-                    # name = input("Input access name: ")
-                    name = command_queue.get()
-                    print(name)
-                    word_command = name.strip()
-
-                    memory_node = MemoryNode("public", s, p, o, description, True)
-                    self.maze.add_event(event_id, name)
-                    self.maze.add_memory_to_event(event_id, memory_node)
-
-                    # 创建一个memory_node
-                    print("Input policy: ")
-                    policy = command_queue.get()
-                    # policy = self.maze.institution.run(case=word_command)
-                    self.maze.add_events_policy(event_id, policy)
+                    self.load_online_event(
+                        event_desc=word_command,
+                        access_list=[name.strip() for name in names.split(",")],
+                        policy=policy,
+                    )
 
                 elif (
                     "call -- with websearch load online event" in sim_command.lower()
                 ):  # 将事件广播给每个智能体。
-                    # tyn
-                    print("Input your content: ")
-                    # truth = input("Input your content: ")
-                    # truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
-                    word_command = command_queue.get()
-                    print(word_command)
-                    word_command = word_command.strip()
-                    s, p, o = generate_action_event_triple_new(word_command)
-                    # s = "日本"
-                    # p = "排放"
-                    # o = "核废水"
-                    # TODO 只用spo来完整表示一个事件是远远不够的
-                    description = word_command
-                    event_id = len(self.maze.events)
-                    print("Input access name: ")
+                    word_command = command_queue.get().strip()
+                    names = command_queue.get().strip()
+                    websearch = command_queue.get().strip()
 
-                    # name = input("Input access name: ")
-                    name = command_queue.get()
-                    print(name)
-                    word_command = name.strip()
+                    self.load_online_event(
+                        event_desc=word_command,
+                        access_list=[name.strip() for name in names.split(",")],
+                        websearch=websearch,
+                    )
 
-                    # 创建一个memory_node
-                    memory_node = MemoryNode("public", s, p, o, description, True)
-                    self.maze.add_event(event_id, name)
-                    self.maze.add_memory_to_event(event_id, memory_node)
-
-                    # 创建一个memory_node
-                    print("Input websearch: ")
-                    websearch = command_queue.get()
-                    # policy = self.maze.institution.run(case=word_command)
-                    self.maze.add_events_websearch(event_id, websearch)
-
-                print(ret_str)
-
-            except:
+            except Exception as e:
                 traceback.print_exc()
-                print("Error.")
+                L.error(f"Error during command execution: {e}")
                 pass
 
 

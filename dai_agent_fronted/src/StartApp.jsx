@@ -62,6 +62,8 @@ function StartApp() {
       id: nextEventId,
       name: `Event ${nextEventId}`,
       access_list: "",
+      websearch: "",
+      policy: "",
       description: ""
     };
     setEvents([...events, newEvent]);
