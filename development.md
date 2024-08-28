@@ -89,7 +89,4 @@ def llm_calculator(input: str) -> str:
     
 }
 
-### 2. llm_function 的使用
-
-#### 2.1. prompt_path
 
