@@ -471,36 +471,36 @@ class OnlineMaze(Maze):
 
         self.user_count = new_user_count
 
-    def add_event(self, event_name, access_list):
-        if event_name not in self.events:
-            self.events[event_name] = Event(event_name, access_list)
+    def add_event(self, event_id, access_list):
+        if event_id not in self.events:
+            self.events[event_id] = Event(event_id, access_list)
 
-    def add_memory_to_event(self, event_name, memory_node):
-        if event_name in self.events:
-            self.events[event_name].add_history(memory_node)
+    def add_memory_to_event(self, event_id, memory_node):
+        if event_id in self.events:
+            self.events[event_id].add_history(memory_node)
         else:
-            L.error(f"Event '{event_name}' does not exist.")
+            L.error(f"Event '{event_id}' does not exist.")
 
-    def get_event_memories(self, event_name):
-        if event_name in self.events:
-            return self.events[event_name].get_histories()
+    def get_event_memories(self, event_id):
+        if event_id in self.events:
+            return self.events[event_id].get_histories()
         else:
-            L.error(f"Event '{event_name}' does not exist.")
+            L.error(f"Event '{event_id}' does not exist.")
 
-    def add_events_policy(self, event_name, policy):
-        self.events_policy[event_name] = policy
+    def add_events_policy(self, event_id, policy):
+        self.events_policy[event_id] = policy
 
-    def get_events_policy(self, event_name):
-        if event_name in self.events_policy:
-            return self.events_policy[event_name]
+    def get_events_policy(self, event_id):
+        if event_id in self.events_policy:
+            return self.events_policy[event_id]
         else:
             return None
 
-    def add_events_websearch(self, event_name, websearch):
-        self.web_search[event_name] = websearch
+    def add_events_websearch(self, event_id, websearch):
+        self.web_search[event_id] = websearch
 
-    def get_events_websearch(self, event_name):
-        if event_name in self.web_search:
-            return self.web_search[event_name]
+    def get_events_websearch(self, event_id):
+        if event_id in self.web_search:
+            return self.web_search[event_id]
         else:
             return None

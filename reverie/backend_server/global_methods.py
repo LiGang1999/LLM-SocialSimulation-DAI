@@ -5,19 +5,15 @@ File: global_methods.py
 Description: Contains functions used throughout my projects.
 """
 
-import random
-import string
 import csv
-import time
 import datetime as dt
-import pathlib
+import errno
+import json
 import os
-import sys
-import numpy
-import math
-import shutil, errno
-
+import shutil
 from os import listdir
+
+import numpy
 
 
 def create_folder_if_not_there(curr_path):
@@ -253,6 +249,34 @@ def removeanything(src):
         shutil.rmtree(src)
     except OSError as exc:
         pass
+
+
+def ensure_directories(base_path: str, directories: list):
+    """
+    Ensure that the given directory structure exists.
+
+    Args:
+    - base_path (str): The base path where the directories should be created.
+    - directories (list): A list of directory paths to ensure.
+    """
+    for directory in directories:
+        full_path = os.path.join(base_path, directory)
+        os.makedirs(full_path, exist_ok=True)
+
+
+def ensure_files_with_default_content(base_path: str, files: dict):
+    """
+    Ensure that the given files exist. If they don't, create them with the specified default content.
+
+    Args:
+    - base_path (str): The base path where the files should be created.
+    - files (dict): A dictionary where keys are file paths and values are the default content for those files.
+    """
+    for file_path, default_content in files.items():
+        full_file_path = os.path.join(base_path, file_path)
+        if not os.path.exists(full_file_path):
+            with open(full_file_path, "w") as f:
+                json.dump(default_content, f, indent=4)
 
 
 if __name__ == "__main__":

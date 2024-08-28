@@ -23,7 +23,6 @@ function StartApp() {
     curr_time: "",
     maze_name: "the_villie",
     step: 0,
-    persona_names: "",
     llm_config: 'inherit',
     api_base: '',
     api_key: '',
@@ -62,6 +61,8 @@ function StartApp() {
       id: nextEventId,
       name: `Event ${nextEventId}`,
       access_list: "",
+      websearch: "",
+      policy: "",
       description: ""
     };
     setEvents([...events, newEvent]);
@@ -112,8 +113,21 @@ function StartApp() {
         maze_name: data.meta.maze_name,
         step: data.meta.step,
         sim_mode: data.meta.sim_mode,
-        persona_names: data.meta.persona_names
       }))
+
+      setEvents(
+        data.events.map((event, index) => {
+          const ret = {
+            id: index + 1,
+            name: `Event ${index + 1}`,
+            access_list: event.access_list.join(","),
+            websearch: event.websearch,
+            policy: event.policy,
+            description: event.description,
+          };
+          return ret;
+        })
+      )
 
       setAgents(
         Object.values(data.personas).map(
@@ -183,10 +197,9 @@ function StartApp() {
       curr_time: simConfig.curr_time,
       maze_name: simConfig.maze_name,
       step: parseInt(simConfig.step),
-      // persona_names: simConfig.persona_names.split(',').map(name => name.trim()).filter(name => name !== ''),
+      sim_mode: simConfig.sim_mode,
       personas: agents,
       events: events,
-      sim_mode: simConfig.sim_mode,
       llm_config: simConfig.llm_config === 'custom' ? {
         api_base: simConfig.api_base,
         api_key: simConfig.api_key,
@@ -441,7 +454,7 @@ function StartApp() {
       </div>
     ),
     event: (
-      <div className="flex">
+      <div className="flex h-[500px]">
         <div className="w-1/3 pr-4 border-r flex flex-col">
           <ul className="flex-grow overflow-auto">
             {events.map((event) => (
@@ -479,7 +492,7 @@ function StartApp() {
           </ul>
         </div>
 
-        <div className="w-2/3 pl-4">
+        <div className="w-2/3 pl-4 overflow-auto">
           {selectedEvent ? (
             <div className="space-y-4">
               {Object.keys(selectedEvent).filter(key => !['id'].includes(key)).map((field) => (
@@ -500,8 +513,7 @@ function StartApp() {
                 </div>
               ))}
             </div>
-          ) : <div class="text-lg font-medium mb-2">
-            Click on an event to view or edit their details, or add a new agent.
+          ) : <div class="text-lg font-medium mb-2">Click on an event to view or edit their details, or add a new agent.
           </div>}
         </div>
       </div>

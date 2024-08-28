@@ -5,23 +5,20 @@ File: converse.py
 Description: An extra cognitive module for generating conversations. 
 """
 
-import math
-import sys
 import datetime
+import math
 import random
+import sys
 
 sys.path.append("../")
 
 from global_methods import *
-
-from persona.memory_structures.spatial_memory import *
+from persona.cognitive_modules.base_sentiment import *
+from persona.cognitive_modules.retrieve import *
 from persona.memory_structures.associative_memory import *
 from persona.memory_structures.scratch import *
-from persona.cognitive_modules.retrieve import *
+from persona.memory_structures.spatial_memory import *
 from persona.prompt_template.run_gpt_prompt import *
-from persona.cognitive_modules.base_sentiment import *  #
-
-# from reverie import return_rs#
 
 
 def generate_agent_chat_summarize_ideas(init_persona, target_persona, retrieved, curr_context):
@@ -215,7 +212,6 @@ def generate_next_line(persona, interlocutor_desc, curr_convo, summarized_idea, 
     print("################################")
     print(res_sentiment)
     print("################################")
-    # vbase=return_rs().vbase#
     domain_knowledge = ""  # vbase.get_texts(prev_convo,2)#
     print("################################")  #
     print(domain_knowledge)  #

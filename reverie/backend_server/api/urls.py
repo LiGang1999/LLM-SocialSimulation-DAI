@@ -25,4 +25,6 @@ urlpatterns = [
     path("list_envs/", control.list_envs, name="list_envs"),
     path("persona/", control.get_persona, name="persona"),
     path("env_info/", control.get_env_info, name="env_info"),
+    path("publish_event/", control.publish_event, name="publish_event"),
+    path("run/", control.run, name="run"),
 ]

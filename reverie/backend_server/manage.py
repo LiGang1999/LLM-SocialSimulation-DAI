@@ -2,6 +2,7 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+
 import yaml
 
 
@@ -17,15 +18,6 @@ def main():
         ) from exc
 
     # read config
-    with open("../../config.yaml", "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-        back_port = data.get("back_port")
-    if sys.argv[1] != "migrate":
-        if len(sys.argv) > 2:
-            sys.argv[2] = f"0.0.0.0:{back_port}"
-        else:
-            sys.argv.append(f"0.0.0.0:{back_port}")
-
     print(sys.argv)
     execute_from_command_line(sys.argv)
 
