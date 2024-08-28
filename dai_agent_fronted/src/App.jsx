@@ -1,65 +1,137 @@
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
-import { CheckIcon } from '@heroicons/react/20/solid'
-
-import { Menu, MenuItem, MenuItems, Listbox, ListboxButton, ListboxOptions, ListboxOption } from '@headlessui/react';
-import { FaCog } from 'react-icons/fa'; // For the settings icon
-
-
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/TPKUJgBr1Wy
- * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
- */
-
+// Imports
+import React, { useState, useRef, useEffect, Fragment } from 'react'
+import { CheckIcon, ChevronDownIcon } from '@heroicons/react/20/solid'
+import { FaCog } from 'react-icons/fa'
+import { Menu, MenuItem, MenuItems, Listbox, ListboxButton, ListboxOptions, ListboxOption, MenuButton, Dialog, Transition } from '@headlessui/react'
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, DropdownMenu } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import fs from 'fs'
-import yaml from 'js-yaml'
-import avatar from './avatar.png'
 
-const AvatarImg = () => {
-  return (
-    <img
-      alt="User Avatar"
-      className="rounded-full"
-      height={40}
-      src="avatar.png"
-      style={{
-        aspectRatio: "40/40",
-        objectFit: "cover",
-      }}
-      width={40}
-    />
-  )
-}
-
-const people = [
-  { id: 1, name: 'Durward Reynolds' },
-  { id: 2, name: 'Kenton Towne' },
-  { id: 3, name: 'Therese Wunsch' },
-  { id: 4, name: 'Benedict Kessler' },
-  { id: 5, name: 'Katelyn Rohan' },
-]
-
-
+// Constants
 const chatTypes = [
   { id: 1, name: 'Command' },
   { id: 2, name: 'Chat' },
-];
+]
 
 const users = [
   { id: 1, name: 'John Doe' },
   { id: 2, name: 'Jane Smith' },
   { id: 3, name: 'Bob Johnson' },
-];
+]
 
-import { useState, useRef, useEffect } from 'react'
+// Utility Components
 
+// Custom hook for auto-resizing textarea
+const useAutoResizeTextArea = (value) => {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.style.height = 'auto';
+      ref.current.style.height = ref.current.scrollHeight + 'px';
+    }
+  }, [value]);
+
+  return ref;
+};
+
+// AutoResizeTextArea component
+const AutoResizeTextArea = ({ value, onChange, placeholder, className }) => {
+  const textareaRef = useAutoResizeTextArea(value);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={`w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none ${className}`}
+      rows={1}
+      style={{
+        resize: 'none',
+        minHeight: '2.5rem',
+        overflow: 'hidden',
+      }}
+      onInput={(e) => {
+        e.target.style.height = 'auto';
+        e.target.style.height = e.target.scrollHeight + 'px';
+      }}
+    />
+  );
+};
+
+const PublishEventDialog = ({ isOpen, closeDialog }) => {
+  const [description, setDescription] = useState('')
+  const [websearch, setWebsearch] = useState('')
+  const [policy, setPolicy] = useState('')
+  const [accessList, setAccessList] = useState('')
+
+  const handleSubmit = async () => {
+    const requestBody = {
+      description,
+      websearch,
+      policy,
+      access_list: accessList
+    }
+    const url = `http://${server_ip}:${back_port}/publish_events/`
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      })
+      // Handle response
+      closeDialog()
+    } catch (e) {
+      console.log("Publish event failed with error:", e)
+    }
+  }
+
+  return (
+    <Dialog open={isOpen} onClose={closeDialog} className="relative z-50">
+      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <Dialog.Panel className="w-full max-w-md rounded bg-white p-6 shadow-lg">
+          <Dialog.Title className="text-lg font-medium leading-6 text-gray-900 mb-4">
+            Publish Event
+          </Dialog.Title>
+          <div className="mt-2 space-y-4">
+            <AutoResizeTextArea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description"
+            />
+            <AutoResizeTextArea
+              value={websearch}
+              onChange={(e) => setWebsearch(e.target.value)}
+              placeholder="Websearch"
+            />
+            <AutoResizeTextArea
+              value={policy}
+              onChange={(e) => setPolicy(e.target.value)}
+              placeholder="Policy"
+            />
+            <AutoResizeTextArea
+              value={accessList}
+              onChange={(e) => setAccessList(e.target.value)}
+              placeholder="Access List"
+            />
+          </div>
+          <div className="mt-4">
+            <Button onClick={handleSubmit} className="mr-2">
+              Publish
+            </Button>
+            <Button onClick={closeDialog} variant="secondary">
+              Cancel
+            </Button>
+          </div>
+        </Dialog.Panel>
+      </div>
+    </Dialog>
+  )
+}
 const SelectionListbox = ({ value, onChange, options, label }) => (
   <div className='relative flex w-full items-center'>
     <Label className="font-medium whitespace-nowrap mr-2">{label} :</Label>
@@ -99,169 +171,262 @@ const SelectionListbox = ({ value, onChange, options, label }) => (
     </Listbox>
   </div>
 );
+
+// Icon Components
+const SettingsIcon = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="black"
+    strokeWidth="2"
+  >
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V20a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H4a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 10 4.09V4a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 .33h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1 1h.09a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </svg>
+)
+
+const LogsIcon = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="black"
+    strokeWidth="2"
+    strokeLinecap=""
+    strokeLinejoin=""
+  >
+    <rect x="3" y="4" width="18" height="18" rx="0" ry="0" />
+    <line x1="9" y1="9" x2="15" y2="9" />
+    <line x1="9" y1="13" x2="15" y2="13" />
+    <line x1="9" y1="17" x2="15" y2="17" />
+  </svg>
+)
+
+const RunIcon = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="black"
+    strokeWidth="2.5"
+  >
+    <path d="M5 3l14 9-14 9V3z" />
+  </svg>
+)
+
+const SendIcon = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="m22 2-7 20-4-9-9-4Z" />
+    <path d="M22 2 11 13" />
+  </svg>
+)
+
+// Main App Component
 function App() {
-  const config_data = import.meta.env;
-  const server_ip = config_data.VITE_server_ip;
-  const back_port = config_data.VITE_back_port;
-  const [showLogs, setShowLogs] = useState(false);
-  const [logs, setLogs] = useState([]);
-  const [autoScroll, setAutoScroll] = useState(true);
-  const [count, setCount] = useState(1); // State for the input count
+  const config_data = import.meta.env
+  const server_ip = config_data.VITE_server_ip
+  const back_port = config_data.VITE_back_port
 
-  const [chatType, setChatType] = useState(chatTypes[0]);
-  const [selectedUser, setSelectedUser] = useState(users[0]);
+  // State
+  const [showLogs, setShowLogs] = useState(false)
+  const [logs, setLogs] = useState([])
+  const [autoScroll, setAutoScroll] = useState(true)
+  const [count, setCount] = useState(1)
+  const [chatType, setChatType] = useState(chatTypes[0])
+  const [selectedUser, setSelectedUser] = useState(users[0])
+  const [chatList, setChatList] = useState([])
+  const [showSettings, setShowSettings] = useState(false)
+  const [isPublishEventDialogOpen, setIsPublishEventDialogOpen] = useState(false)
 
+  // Refs
+  const chatBoxRef = useRef(null)
+  const chatUserRef = useRef(null)
+  const inputRef = useRef(null)
+  const logWebSocket = useRef(null)
+  const logPanelRef = useRef(null)
+  const settingsButtonRef = useRef(null)
+  const settingsPopupRef = useRef(null)
 
-
-  const chatBoxRef = useRef(null);
-  const chatUserRef = useRef(null);
-  const inputRef = useRef(null);
-  const logWebSocket = useRef(null);
-  const logPanelRef = useRef(null);
-  const [chatList, setChatList] = useState([]);
-  const [showSettings, setShowSettings] = useState(false);
-  const [selectedPerson, setSelectedPerson] = useState(people[0])
-
-  const settingsButtonRef = useRef(null);
-  const settingsPopupRef = useRef(null);
-
-  function add_chat(role, username, content) {
-    setChatList(prevList => [...prevList, { role, username, content }]);
+  // Functions
+  const add_chat = (role, username, content) => {
+    setChatList(prevList => [...prevList, { role, username, content }])
   }
 
   const interact = async () => {
-    if (!chatUserRef.current || !inputRef.current) return;
+    if (!chatUserRef.current || !inputRef.current) return
 
-    const chat_type = chatUserRef.current.value;
-    console.log("chat_type: ", chat_type);
+    const chat_type = chatUserRef.current.value
+    const chat_user = chatUserRef.current.value
+    let params, response
 
-    const chat_user = chatUserRef.current.value;
-    console.log("chat user: ", chat_user);
-
-    let params, response;
-
-    if (chatType === 'Chat') {
-      const cmd = `call -- analysis ${chat_user}`;
-      console.log("cmd: ", cmd);
-      params = new URLSearchParams();
-      params.append('command', cmd);
-      const url = `http://${server_ip}:${back_port}/command/?${params.toString()}`;
-      add_chat("admin", "Admin", "Command: " + cmd, false);
-      response = await fetch(url, {
-        method: 'GET',
-        mode: 'no-cors'
-      });
+    if (chatType.name === 'Chat') {
+      const cmd = `call -- analysis ${chat_user}`
+      params = new URLSearchParams()
+      params.append('command', cmd)
+      const url = `http://${server_ip}:${back_port}/command/?${params.toString()}`
+      add_chat("admin", "Admin", "Command: " + cmd, false)
+      response = await fetch(url, { method: 'GET', mode: 'no-cors' })
     }
 
-    const cmd = inputRef.current.value;
-    params = new URLSearchParams();
-    params.append('command', cmd);
-    const url = `http://${server_ip}:${back_port}/command/?${params.toString()}`;
-    add_chat("admin", "Admin", "Command: " + cmd, false);
-    response = await fetch(url, {
-      method: 'GET',
-      mode: 'no-cors'
-    });
+    const cmd = inputRef.current.value
+    params = new URLSearchParams()
+    params.append('command', cmd)
+    const url = `http://${server_ip}:${back_port}/command/?${params.toString()}`
+    add_chat("admin", "Admin", "Command: " + cmd, false)
+    response = await fetch(url, { method: 'GET', mode: 'no-cors' })
 
-    // Clear the input
-    inputRef.current.value = '';
-  };
+    inputRef.current.value = ''
+  }
+
+
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
-      interact();
+      interact()
     }
-  };
+  }
 
   const handleLogScroll = () => {
-    if (!logPanelRef.current) return;
-
-    const tolerance = 10; // Adjust this value as needed for how lenient the auto-scroll should be
+    if (!logPanelRef.current) return
+    const tolerance = 10
     const isAtBottom =
-      logPanelRef.current.scrollHeight - logPanelRef.current.scrollTop <= logPanelRef.current.clientHeight + tolerance;
+      logPanelRef.current.scrollHeight - logPanelRef.current.scrollTop <= logPanelRef.current.clientHeight + tolerance
+    setAutoScroll(isAtBottom)
+  }
 
-    setAutoScroll(isAtBottom);
-  };
+  const runCommand = async () => {
+    var params = new URLSearchParams()
+    params.append('count', count)
+    const url = `http://${server_ip}:${back_port}/run/?${params.toString()}`
+    try {
+      await fetch(url, { method: 'GET', mode: 'no-cors' })
+    } catch (e) {
+      console.log("Run command failed with error:", e)
+    }
+  }
 
+  const publishEvent = async () => {
+    const requestBody = {
+      description: description,
+      websearch: websearch,
+      policy: policy,
+      access_list: access_list
+    }
+    const url = `http://${server_ip}:${back_port}/publish_events/`;
+    try {
+      const response = await fetch(
+        url, {
+        ethod: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      }
+      );
+    } catch (e) {
+      console.log("Publish event failed with error:", e);
+    }
+  }
 
+  const toggleLogs = () => {
+    setShowLogs(!showLogs)
+  }
+
+  // Effects
   useEffect(() => {
     if (autoScroll && logPanelRef.current) {
-      logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight;
+      logPanelRef.current.scrollTop = logPanelRef.current.scrollHeight
     }
-  }, [logs]); // This useEffect will trigger whenever logs change
-
+  }, [logs])
 
   useEffect(() => {
-    const url = `http://${server_ip}:${back_port}/persona/`;
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'json';
+    const url = `http://${server_ip}:${back_port}/persona/`
+    const xhr = new XMLHttpRequest()
+    xhr.open('GET', url, true)
+    xhr.responseType = 'json'
     xhr.onload = function () {
       if (xhr.status >= 200 && xhr.status < 300) {
-        const personas = xhr.response['personas'];
+        const personas = xhr.response['personas']
         if (chatUserRef.current) {
-          chatUserRef.current.innerHTML = '';
+          chatUserRef.current.innerHTML = ''
           personas.forEach(persona => {
-            const user_option = document.createElement("option");
-            user_option.textContent = persona;
-            chatUserRef.current.appendChild(user_option);
-          });
+            const user_option = document.createElement("option")
+            user_option.textContent = persona
+            chatUserRef.current.appendChild(user_option)
+          })
         }
       } else {
-        console.error('Request failed with status:', xhr.status);
+        console.error('Request failed with status:', xhr.status)
       }
-    };
+    }
 
     xhr.onerror = function () {
-      console.error('Request error...');
-    };
+      console.error('Request error...')
+    }
 
-    xhr.send();
+    xhr.send()
 
-    // Set up WebSocket connection for logs
-    logWebSocket.current = new WebSocket(`ws://${server_ip}:${back_port}/ws/log`);
+    logWebSocket.current = new WebSocket(`ws://${server_ip}:${back_port}/ws/log`)
     logWebSocket.current.onmessage = (event) => {
-      setLogs(prevLogs => [...prevLogs, event.data]);
-    };
+      setLogs(prevLogs => [...prevLogs, event.data])
+    }
 
     return () => {
       if (logWebSocket.current) {
-        logWebSocket.current.close();
+        logWebSocket.current.close()
       }
-    };
-  }, [server_ip, back_port]);
+    }
+  }, [server_ip, back_port])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (settingsButtonRef.current && !settingsButtonRef.current.contains(event.target) &&
         settingsPopupRef.current && !settingsPopupRef.current.contains(event.target)) {
-        setShowSettings(false);
+        setShowSettings(false)
       }
-    };
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   useEffect(() => {
-    const chatWebSocket = new WebSocket(`ws://${server_ip}:${back_port}/ws/chat`);
+    const chatWebSocket = new WebSocket(`ws://${server_ip}:${back_port}/ws/chat`)
 
     chatWebSocket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      add_chat(message.role, message.name, message.content);
-    };
+      const message = JSON.parse(event.data)
+      add_chat(message.role, message.name, message.content)
+    }
 
     return () => {
-      chatWebSocket.close();
-    };
-  }, [server_ip, back_port]);
+      chatWebSocket.close()
+    }
+  }, [server_ip, back_port])
 
-  const toggleLogs = () => {
-    setShowLogs(!showLogs);
-  };
-
+  // Render
   return (
     <div className="flex flex-col items-center justify-center h-[100vh] w-full bg-gradient-to-br from-blue-200 to-red-200">
       <div className="flex h-[65vh] w-[70vw]">
@@ -289,8 +454,7 @@ function App() {
                   <div className={`flex flex-col ${chat.role === 'admin' ? 'items-end' : 'items-start'}`}>
                     <div className="font-medium text-sm">{chat.username}</div>
                     <div
-                      className={`rounded-lg p-3 text-sm ${chat.role === 'admin' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
-                        }`}
+                      className={`rounded-lg p-3 text-sm ${chat.role === 'admin' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'}`}
                     >
                       <p>{chat.content}</p>
                     </div>
@@ -335,7 +499,7 @@ function App() {
               <Input
                 className="flex-1"
                 id="input"
-                placeholder={(chatType === 'Chat' ? 'Please input chat content' : 'Please input your command') + "..."}
+                placeholder={(chatType.name === 'Chat' ? 'Please input chat content' : 'Please input your command') + "..."}
                 onKeyDown={handleKeyDown}
                 ref={inputRef}
               />
@@ -344,7 +508,7 @@ function App() {
               </Button>
               <div className="relative w-24 ml-2">
                 <Input
-                  className="pr-10" // Add padding to the right for the button
+                  className="pr-10"
                   type="number"
                   value={count}
                   onChange={(e) => setCount(e.target.value)}
@@ -360,8 +524,8 @@ function App() {
               </div>
               <Button
                 className={`ml-2 flex items-center justify-center ${showLogs
-                  ? 'bg-gray-300 text-white' // Grey background with white text when logs are shown
-                  : 'bg-white text-gray-300 border-gray-250 border' // White background with grey border when logs are hidden
+                  ? 'bg-gray-300 text-white'
+                  : 'bg-white text-gray-300 border-gray-250 border'
                   }`}
                 size="sm"
                 variant="secondary"
@@ -369,38 +533,39 @@ function App() {
               >
                 <LogsIcon className="h-4 w-4 text-gray-500" />
               </Button>
-              {/* Headless UI Settings Menu */}
               <Menu as="div" className="relative ml-auto">
-                <Menu.Button className="flex items-center justify-center bg-white text-gray-1000 ml-2 border-gray-250 border p-2 rounded-md">
-                  <FaCog className="h-4 w-4" />
-                </Menu.Button>
-                <MenuItems
-                  className="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-gray-300 rounded-lg z-10 overflow-hidden"
-                >
-                  <MenuItem>
-                    {({ active }) => (
-                      <button
-                        className={`${active ? 'bg-gray-100' : ''
-                          } block w-full text-left px-4 py-2 text-sm`}
-                      >
-                        Publish events
-                      </button>
-                    )}
-                  </MenuItem>
-                  <MenuItem>
-                    {({ active }) => (
-                      <button
-                        className={`${active ? 'bg-gray-100' : ''
-                          } block w-full text-left px-4 py-2 text-sm`}
-                      >
-                        More settings
-                      </button>
-                    )}
-                  </MenuItem>
-                </MenuItems>
+                {({ open }) => (
+                  <>
+                    <MenuButton className={`flex items-center justify-center ${open ? 'bg-gray-300' : 'bg-white'} text-gray-1000 ml-2 border-gray-300 border p-2 rounded-md`}>
+                      <FaCog className="h-4 w-4" />
+                    </MenuButton>
+                    <MenuItems
+                      className="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-gray-300 rounded-lg z-10 overflow-hidden"
+                    >
+                      <MenuItem>
+                        {({ active }) => (
+                          <button
+                            className={`${active ? 'bg-gray-100' : ''} block w-full text-left px-4 py-2 text-sm`}
+                            onClick={() => setIsPublishEventDialogOpen(true)}
+                          >
+                            Publish events
+                          </button>
+                        )}
+                      </MenuItem>
+                      <MenuItem>
+                        {({ active }) => (
+                          <button
+                            className={`${active ? 'bg-gray-100' : ''
+                              } block w-full text-left px-4 py-2 text-sm`}
+                          >
+                            More settings
+                          </button>
+                        )}
+                      </MenuItem>
+                    </MenuItems>
+                  </>
+                )}
               </Menu>
-
-              {/* Settings Popup */}
               {showSettings && (
                 <div
                   ref={settingsPopupRef}
@@ -414,6 +579,10 @@ function App() {
                   </ul>
                 </div>
               )}
+              <PublishEventDialog
+                isOpen={isPublishEventDialogOpen}
+                closeDialog={() => setIsPublishEventDialogOpen(false)}
+              />
             </div>
           </div>
         </div>
@@ -422,7 +591,6 @@ function App() {
             className="w-1/2 ml-4 border rounded-lg bg-white flex flex-col"
             style={{ maxHeight: '100%' }}
           >
-            {/* Fixed Title Section */}
             <div className="p-4 border-b">
               <div className="flex justify-between items-center">
                 <h3 className="font-bold">Logs</h3>
@@ -431,8 +599,6 @@ function App() {
                 </Button>
               </div>
             </div>
-
-            {/* Scrollable Log Content */}
             <div
               className="flex-1 overflow-auto p-4 custom-scrollbar"
               ref={logPanelRef}
@@ -449,106 +615,6 @@ function App() {
         )}
       </div>
     </div>
-  );
-}
-
-
-function SettingsIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="black"
-      strokeWidth="2"  // Thicker stroke width for consistency
-    >
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V20a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H4a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 10 4.09V4a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 .33h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1 1h.09a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
-}
-
-
-
-function LogsIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="black"
-      strokeWidth="2"  // Thicker stroke width for consistency
-      strokeLinecap="" // Do not use rounded corners
-      strokeLinejoin=""
-    >
-      <rect x="3" y="4" width="18" height="18" rx="0" ry="0" />
-      <line x1="9" y1="9" x2="15" y2="9" />
-      <line x1="9" y1="13" x2="15" y2="13" />
-      <line x1="9" y1="17" x2="15" y2="17" />
-    </svg>
-  );
-}
-
-
-function RunIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="black"
-      strokeWidth="2.5"
-    >
-      <path d="M5 3l14 9-14 9V3z" />
-    </svg>
-  );
-}
-
-function ChevronDownIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  )
-}
-
-function SendIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m22 2-7 20-4-9-9-4Z" />
-      <path d="M22 2 11 13" />
-    </svg>
   )
 }
 
