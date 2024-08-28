@@ -117,7 +117,7 @@ def publish_event(request):
     try:
         data = json.loads(request.body)
         L.debug(f"Received data: {data}")
-        event_desciption = data.get("template")
+        event_desciption = data.get("description")
         event_websearch = data.get("websearch")
         event_policy = data.get("policy")
         event_access_list = [name.strip() for name in data.get("access_list").split(",")]
