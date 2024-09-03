@@ -11,6 +11,7 @@ import { EventsPage } from './pages/events.tsx';
 import { AgentsPage } from './pages/agents.tsx';
 import { ConfigPage } from './pages/llmconfig.tsx';
 import { ConfirmPage } from './pages/confirm.tsx';
+import { InteractPage } from './pages/interact.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -32,6 +33,8 @@ createRoot(document.getElementById('root')!).render(
 
         {/* Define the path for the DashboardPage */}
         <Route path="/dashboard" element={<DashboardPage />} />
+
+        <Route path="/interact" element={<InteractPage></InteractPage>}></Route>
 
         {/* Define the path for the TabsDemo page */}
         <Route path="/tabs" element={<TabsDemo />} />

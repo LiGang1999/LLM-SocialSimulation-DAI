@@ -1,0 +1,383 @@
+{% load static %}
+
+<script type="text/javascript">
+    // Main resources:
+    // https://www.youtube.com/watch?v=cKIG1lKwLeo&t=401s&ab_channel=HongLy
+    // https://codepen.io/mikewesthad/pen/BVeoYP?editors=1111
+    // https://www.youtube.com/watch?v=fdXcD9X4NrQ&ab_channel=MorganPage
+    // https://www.youtube.com/watch?v=MR2CvWxOEsw&ab_channel=MattWilber
+
+    // ===== GLOBAL VARIABLES =====
+    let step = {{ step }};
+    let sim_code = "{{sim_code}}";
+    let step_size = {{ sec_per_step }} * 1000; // milliseconds
+    let tile_width = 32;
+    let movement_speed = {{ play_speed }};
+    let execute_count_max = tile_width / movement_speed;
+    let execute_count = execute_count_max;
+
+    // Game objects
+    let game, cursors, player;
+    let personas = {}, pronunciatios = {}, speech_bubbles = {};
+    let anims_direction, pre_anims_direction;
+    let pre_anims_direction_dict = {};
+    let movement_target = {};
+
+    // Data
+    let persona_names = {{ persona_init_pos| safe }};
+    let spawn_tile_loc = Object.assign({}, persona_names);
+    let all_movement = {{ all_movement| safe }};
+
+    let start_datetime = new Date(Date.parse("{{start_datetime}}"));
+    const datetime_options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+    // ===== PHASER CONFIGURATION =====
+    const config = {
+        type: Phaser.AUTO,
+        width: 1500,
+        height: 800,
+        parent: "game-container",
+        pixelArt: true,
+        physics: {
+            default: "arcade",
+            arcade: { gravity: { y: 0 } }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        },
+        scale: { zoom: 0.8 }
+    };
+
+    // ===== GAME INITIALIZATION =====
+    game = new Phaser.Game(config);
+
+    // ===== ASSET LOADING =====
+    function preload() {
+        this.load.crossOrigin = '';
+
+        // Load map assets
+        const mapAssets = [
+            "blocks_1", "walls", "interiors_pt1", "interiors_pt2", "interiors_pt3",
+            "interiors_pt4", "interiors_pt5", "CuteRPG_Field_B", "CuteRPG_Field_C",
+            "CuteRPG_Harbor_C", "CuteRPG_Village_B", "CuteRPG_Forest_B", "CuteRPG_Desert_C",
+            "CuteRPG_Mountains_B", "CuteRPG_Desert_B", "CuteRPG_Forest_C"
+        ];
+
+        mapAssets.forEach(asset => {
+            this.load.image(asset, `{% static 'assets/the_ville/visuals/map_assets/v1/${asset}.png' %}`);
+        });
+
+        // Load character assets
+        this.load.atlas("atlas", "{% static 'assets/characters/Yuriko_Yamamoto.png' %}",
+            "{% static 'assets/characters/atlas.json' %}");
+
+        {% for p in persona_names %}
+        this.load.atlas("{{p.underscore}}", "{% static 'assets/characters/'|add:p.underscore|add:'.png' %}",
+            "{% static 'assets/characters/atlas.json' %}");
+        {% endfor %}
+
+        this.load.image('speech_bubble', "{% static 'assets/speech_bubble/v3.png' %}");
+    }
+
+    // ===== GAME WORLD CREATION =====
+    function create() {
+        const map = this.make.tilemap({ key: "map" });
+
+        // Add tilesets
+        const tilesets = {};
+        const tilesetNames = [
+            "blocks", "Room_Builder_32x32", "interiors_pt1", "interiors_pt2", "interiors_pt3",
+            "interiors_pt4", "interiors_pt5", "CuteRPG_Field_B", "CuteRPG_Field_C",
+            "CuteRPG_Harbor_C", "CuteRPG_Village_B", "CuteRPG_Forest_B", "CuteRPG_Desert_C",
+            "CuteRPG_Mountains_B", "CuteRPG_Desert_B", "CuteRPG_Forest_C"
+        ];
+
+        tilesetNames.forEach(name => {
+            tilesets[name] = map.addTilesetImage(name, name);
+        });
+
+        // Create layers
+        const tileset_group_1 = Object.values(tilesets);
+        const layers = [
+            "Bottom Ground", "Exterior Ground", "Exterior Decoration L1", "Exterior Decoration L2",
+            "Interior Ground", "Wall", "Interior Furniture L1", "Interior Furniture L2",
+            "Foreground L1", "Foreground L2", "Collisions"
+        ];
+
+        layers.forEach(layerName => {
+            const layer = map.createLayer(layerName, tileset_group_1, 0, 0);
+            if (layerName === "Collisions") {
+                layer.setCollisionByProperty({ collide: true });
+                layer.setDepth(-1);
+            } else if (layerName.startsWith("Foreground")) {
+                layer.setDepth(2);
+            }
+        });
+
+        // Set up camera and player
+        setupCameraAndPlayer.call(this);
+
+        // Set up personas
+        setupPersonas.call(this);
+
+        // Create animations
+        createAnimations.call(this);
+    }
+
+    function setupCameraAndPlayer() {
+        player = this.physics.add.sprite(2400, 588, "atlas", "down")
+            .setSize(30, 40)
+            .setOffset(0, 0)
+            .setDepth(-1);
+
+        const camera = this.cameras.main;
+        camera.startFollow(player);
+        camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+        cursors = this.input.keyboard.createCursorKeys();
+    }
+
+    function setupPersonas() {
+        Object.keys(spawn_tile_loc).forEach(persona_name => {
+            const [x, y] = spawn_tile_loc[persona_name];
+            const start_pos = [x * tile_width + tile_width / 2, y * tile_width + tile_width];
+
+            const new_sprite = this.physics.add.sprite(start_pos[0], start_pos[1], persona_name, "down")
+                .setSize(30, 40)
+                .setOffset(0, 0);
+            new_sprite.displayWidth = 40;
+            new_sprite.scaleY = new_sprite.scaleX;
+
+            personas[persona_name] = new_sprite;
+            speech_bubbles[persona_name] = this.add.image(new_sprite.body.x, new_sprite.body.y - 30, 'speech_bubble')
+                .setDepth(3)
+                .setDisplaySize(130, 58);
+
+            const initials = persona_name.match(/\b(\w)/g).join('').toUpperCase();
+            pronunciatios[persona_name] = this.add.text(
+                new_sprite.body.x - 6,
+                new_sprite.body.y - 42,
+                initials, {
+                font: "24px monospace",
+                fill: "#000000",
+                padding: { x: 8, y: 8 },
+                border: "solid",
+                borderRadius: "10px"
+            }
+            ).setDepth(3);
+        });
+    }
+
+    function createAnimations() {
+        const anims = this.anims;
+        const directions = ['left', 'right', 'down', 'up'];
+
+        Object.keys(persona_names).forEach(persona_name => {
+            directions.forEach(direction => {
+                anims.create({
+                    key: `${persona_name}-${direction}-walk`,
+                    frames: anims.generateFrameNames(persona_name, {
+                        prefix: `${direction}-walk.`,
+                        start: 0,
+                        end: 3,
+                        zeroPad: 3
+                    }),
+                    frameRate: 4,
+                    repeat: -1
+                });
+            });
+        });
+    }
+
+    // ===== GAME LOOP =====
+    function update(time, delta) {
+        handlePlayPauseButtons(this);
+        moveCamera();
+        movePersonas();
+        updateGameTime();
+    }
+
+    function handlePlayPauseButtons(context) {
+        document.getElementById("play_button").onclick = () => context.scene.resume();
+        document.getElementById("pause_button").onclick = () => context.scene.pause();
+    }
+
+    function moveCamera() {
+        const camera_speed = 400;
+        player.body.setVelocity(0);
+
+        if (cursors.left.isDown) player.body.setVelocityX(-camera_speed);
+        if (cursors.right.isDown) player.body.setVelocityX(camera_speed);
+        if (cursors.up.isDown) player.body.setVelocityY(-camera_speed);
+        if (cursors.down.isDown) player.body.setVelocityY(camera_speed);
+
+        const curr_focused_persona = document.getElementById("temp_focus").textContent;
+        if (curr_focused_persona !== "") {
+            player.body.x = personas[curr_focused_persona].body.x;
+            player.body.y = personas[curr_focused_persona].body.y;
+            document.getElementById("temp_focus").innerHTML = "";
+        }
+    }
+
+    function movePersonas() {
+        Object.keys(personas).forEach(curr_persona_name => {
+            const curr_persona = personas[curr_persona_name];
+            const curr_pronunciatio = pronunciatios[curr_persona_name];
+            const curr_speech_bubble = speech_bubbles[curr_persona_name];
+
+            if (curr_persona_name.replace("_", " ") in all_movement[step]) {
+                if (execute_count === execute_count_max) {
+                    updatePersonaMovementTarget(curr_persona_name);
+                    updatePersonaStatus(curr_persona_name);
+                }
+
+                if (execute_count > 0) {
+                    movePersonaTowardsTarget(curr_persona, curr_persona_name);
+                    updatePersonaPosition(curr_persona, curr_pronunciatio, curr_speech_bubble);
+                    animatePersona(curr_persona, curr_persona_name);
+                }
+            } else {
+                stopPersonaAnimation(curr_persona, curr_persona_name);
+            }
+        });
+
+        if (execute_count === 0) {
+            finalizePersonaPositions();
+            updateGameStep();
+        }
+
+        execute_count -= 1;
+    }
+
+    function updatePersonaMovementTarget(persona_name) {
+        const [curr_x, curr_y] = all_movement[step][persona_name.replace("_", " ")].movement;
+        movement_target[persona_name] = [curr_x * tile_width, curr_y * tile_width];
+    }
+
+    function updatePersonaStatus(persona_name) {
+        const movement_data = all_movement[step][persona_name.replace("_", " ")];
+        const pronunciatio_content = movement_data.pronunciatio;
+        const [description, target_address] = movement_data.description.split("@");
+        const chat_content = formatChatContent(movement_data.chat);
+
+        document.getElementById(`quick_emoji-${persona_name}`).innerHTML = pronunciatio_content;
+        document.getElementById(`current_action__${persona_name}`).innerHTML = description;
+        document.getElementById(`target_address__${persona_name}`).innerHTML = target_address;
+        document.getElementById(`chat__${persona_name}`).innerHTML = chat_content;
+
+        const initials = persona_name.match(/\b(\w)/g).join('').toUpperCase();
+        pronunciatios[persona_name].setText(`${initials}: ${pronunciatio_content}`);
+    }
+
+    function formatChatContent(chat_content_raw) {
+        if (!chat_content_raw) return "<em>None at the moment</em>";
+        return chat_content_raw.map(([speaker, message]) => `${speaker}: ${message}`).join("<br>");
+    }
+
+    function movePersonaTowardsTarget(persona, persona_name) {
+        const [target_x, target_y] = movement_target[persona_name];
+        let direction = '';
+
+        if (persona.body.x < target_x) {
+            persona.body.x += movement_speed;
+            direction = 'r';
+        } else if (persona.body.x > target_x) {
+            persona.body.x -= movement_speed;
+            direction = 'l';
+        } else if (persona.body.y < target_y) {
+            persona.body.y += movement_speed;
+            direction = 'd';
+        } else if (persona.body.y > target_y) {
+            persona.body.y -= movement_speed;
+            direction = 'u';
+        }
+
+        if (direction) {
+            anims_direction = direction;
+            pre_anims_direction = direction;
+            pre_anims_direction_dict[persona_name] = direction;
+        } else {
+            anims_direction = '';
+        }
+    }
+
+    function updatePersonaPosition(persona, pronunciatio, speech_bubble) {
+        pronunciatio.x = persona.body.x + 18;
+        pronunciatio.y = persona.body.y - 67;
+        speech_bubble.x = persona.body.x + 80;
+        speech_bubble.y = persona.body.y - 39;
+    }
+
+    function animatePersona(persona, persona_name) {
+        const directions = { l: 'left', r: 'right', u: 'up', d: 'down' };
+        if (anims_direction in directions) {
+            persona.anims.play(`${persona_name}-${directions[anims_direction]}-walk`, true);
+        }
+    }
+
+    function stopPersonaAnimation(persona, persona_name) {
+        persona.anims.stop();
+        const lastDirection = pre_anims_direction_dict[persona_name];
+        if (lastDirection) {
+            const directions = { l: 'left', r: 'right', u: 'up', d: 'down' };
+            persona.setTexture(persona_name, directions[lastDirection]);
+        }
+    }
+
+    function finalizePersonaPositions() {
+        Object.keys(personas).forEach(persona_name => {
+            const persona = personas[persona_name];
+            const [target_x, target_y] = movement_target[persona_name];
+            persona.body.x = target_x;
+            persona.body.y = target_y;
+        });
+    }
+
+    function updateGameStep() {
+        execute_count = execute_count_max + 1;
+        step += 1;
+    }
+
+    function updateGameTime() {
+        start_datetime = new Date(start_datetime.getTime() + step_size);
+        document.getElementById("game-time-content").innerHTML = start_datetime.toLocaleTimeString("en-US", datetime_options);
+    }
+
+    // ===== INITIALIZATION =====
+    document.getElementById("game-time-content").innerHTML = start_datetime.toLocaleTimeString("en-US", datetime_options);
+
+    // ===== UTILITY FUNCTIONS =====
+    function getInitials(name) {
+        return name.match(/\b(\w)/g).join('').toUpperCase();
+    }
+
+    function formatChatContent(chatContentRaw) {
+        if (!chatContentRaw) return "<em>None at the moment</em>";
+        return chatContentRaw.map(([speaker, message]) => `${speaker}: ${message}`).join("<br>");
+    }
+
+    // ===== DOM UPDATES =====
+    function updateGameTime() {
+        const formattedTime = start_datetime.toLocaleTimeString("en-US", datetime_options);
+        document.getElementById("game-time-content").innerHTML = formattedTime;
+    }
+
+    function updatePersonaStatusDisplay(personaName, pronunciatio, description, targetAddress, chatContent) {
+        document.getElementById(`quick_emoji-${personaName}`).innerHTML = pronunciatio;
+        document.getElementById(`current_action__${personaName}`).innerHTML = description;
+        document.getElementById(`target_address__${personaName}`).innerHTML = targetAddress;
+        document.getElementById(`chat__${personaName}`).innerHTML = formatChatContent(chatContent);
+    }
+
+    // ===== EVENT LISTENERS =====
+    document.getElementById("play_button").addEventListener("click", () => game.scene.resume());
+    document.getElementById("pause_button").addEventListener("click", () => game.scene.pause());
+
+    // ===== MAIN EXECUTION =====
+    document.addEventListener("DOMContentLoaded", () => {
+        updateGameTime();
+    });
+
+</script>
