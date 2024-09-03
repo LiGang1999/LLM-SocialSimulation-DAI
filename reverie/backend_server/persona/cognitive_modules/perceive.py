@@ -193,14 +193,11 @@ def perceive(persona, maze):
 
 
 def perceive_dai(persona, maze):
-    L.debug("开始感知")
     new_memories = {}
     perceive_memories = {}
     all_news = ""
     for event_name in maze.events:
         all_news += maze.events[event_name].get_description(persona.name)
-        L.debug(event_name)
-        L.debug(type(event_name))
 
         # 这里不应该叫做memories, 应该叫做history，因为这里只是获取公共的聊天历史，而不是智能体各人的记忆
         histories = maze.events[event_name].get_histories(persona.name)
@@ -223,7 +220,6 @@ def perceive_dai(persona, maze):
     expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
 
     for event_name, memorynodes in new_memories.items():
-        L.debug(memorynodes)
         for perceive_node in memorynodes:
             if perceive_node.name == "public":
                 continue
@@ -254,7 +250,5 @@ def perceive_dai(persona, maze):
     #   for perceive_node in memorynodes:
     #     if perceive_node.name == "public":
     #       perceive_memories[event_name] = [perceive_node]
-
-    L.debug("感知结束")
 
     return perceive_memories, all_news

@@ -67,7 +67,7 @@ def start_servers(quiet):
     commands = [
         {
             "command": "npm run dev",
-            "directory": "dai_agent_fronted",
+            "directory": "frontend_online_old",
             "color": COLORS["frontend"],
             "log_file": "frontend.log" if quiet else None,
             "hint": "Starting frontend server...",

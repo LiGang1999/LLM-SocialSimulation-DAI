@@ -4,7 +4,9 @@
         "websearch": "",
         "policy": "",
         "access_list": [
-            "Isabella Rodriguez"
+            "Isabella Rodriguez",
+            "Klaus Mueller",
+            "Maria Lopez"
         ]
     },
     {
@@ -12,7 +14,9 @@
         "websearch": "",
         "policy": "",
         "access_list": [
-            "Isabella Rodriguez"
+            "Isabella Rodriguez",
+            "Klaus Mueller",
+            "Maria Lopez"
         ]
     }
 ]

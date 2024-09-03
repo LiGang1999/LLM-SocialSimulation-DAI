@@ -26,7 +26,7 @@ sudo apt-get install -y npm
 #### Installing Dependencies
 Install frontend dependencies:
 ```bash
-cd dai_agent_fronted
+cd frontend_online_old
 npm install
 ```
 
