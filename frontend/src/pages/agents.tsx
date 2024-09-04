@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from "@/components/Navbar"
 import { BottomNav } from "@/components/BottomNav"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PlusCircle, Save, Trash2 } from 'lucide-react'
 import { useSimContext } from '@/SimContext';
+import { apis } from '@/lib/api';
 
 interface Agent {
     id: number;
@@ -38,6 +39,8 @@ const initialAgents: Agent[] = [
 ];
 
 export const AgentsPage = () => {
+    const ctx = useSimContext();
+
     const [agents, setAgents] = useState<Agent[]>(initialAgents);
     const [selectedAgent, setSelectedAgent] = useState<Agent | null>(agents[0]);
 
@@ -81,7 +84,26 @@ export const AgentsPage = () => {
         }
     };
 
-    const ctx = useSimContext();
+
+    useEffect(() => {
+        const fetchTemplates = async () => {
+            try {
+                if (ctx.data.currSimCode && !ctx.data.currentTemplate) {
+                    // should fetch the template data!
+                    const templateData = await apis.fetchTemplate(ctx.data.currSimCode);
+                    ctx.setData({
+                        ...ctx.data,
+                        currentTemplate: templateData
+                    })
+                }
+            } catch (err) {
+                console.error("Failed to fetch template detail:", err);
+            }
+        }
+
+        fetchTemplates();
+    }, [])
+
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-100">

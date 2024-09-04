@@ -1,57 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from '@/components/Navbar';
 
 import start2 from '@/assets/start2.jpg';
 import { BottomNav } from '@/components/BottomNav';
 
+
 import { useSimContext } from '@/SimContext';
+import { apis } from '@/lib/api';
 
 // TODO Add background for this webpage
+const getTemplateImage = (template: apis.TemplateListItem) => {
+    return start2
+}
+
+const mockTemplates: apis.TemplateListItem[] = [
+    {
+        template_sim_code: "ecosystem_dynamics",
+        name: "Ecosystem Dynamics",
+        bullets: ["Predator-Prey Model", "Population Cycles"],
+        description: "Simulate interactions between species in a closed ecosystem.",
+        start_date: "2023-09-04",
+        curr_time: "2023-09-04 00:00:00",
+        sec_per_step: 10,
+        maze_name: "ecosystem",
+        persona_names: ["Wolf", "Rabbit", "Grass"],
+        step: 0,
+        sim_mode: "online"
+    },
+    {
+        template_sim_code: "climate_change",
+        name: "Climate Change",
+        bullets: ["CO2 Emissions", "Temperature Trends"],
+        description: "Model long-term climate patterns and human impact on global temperatures.",
+        start_date: "2023-09-05",
+        curr_time: "2023-09-05 00:00:00",
+        sec_per_step: 86400, // 1 day per step
+        maze_name: "earth",
+        persona_names: ["Scientist", "Policymaker", "Industrialist"],
+        step: 0,
+        sim_mode: "online"
+    },
+    {
+        template_sim_code: "pandemic_spread",
+        name: "Pandemic Spread",
+        bullets: ["SIR Model", "Vaccination Strategies"],
+        description: "Analyze disease transmission and intervention effectiveness in a population.",
+        start_date: "2023-09-06",
+        curr_time: "2023-09-06 00:00:00",
+        sec_per_step: 3600, // 1 hour per step
+        maze_name: "city",
+        persona_names: ["Doctor", "Patient", "Health Official"],
+        step: 0,
+        sim_mode: "online"
+    }
+];
+
 
 export const TemplatePage = () => {
-    const [selectedTemplate, setSelectedTemplate] = useState(1);
+    const ctx = useSimContext();
 
-    const templates = [
-        {
-            id: 1,
-            name: 'Ecosystem Dynamics',
-            image: start2,
-            info1: 'Predator-Prey Model',
-            info2: 'Population Cycles',
-            description: 'Simulate interactions between species in a closed ecosystem.'
-        },
-        {
-            id: 2,
-            name: 'Climate Change',
-            image: start2,
-            info1: 'CO2 Emissions',
-            info2: 'Temperature Trends',
-            description: 'Model long-term climate patterns and human impact.'
-        },
-        {
-            id: 3,
-            name: 'Pandemic Spread',
-            image: start2,
-            info1: 'SIR Model',
-            info2: 'Vaccination Strategies',
-            description: 'Analyze disease transmission and intervention effectiveness.'
-        },
-        {
-            id: 4,
-            name: 'Urban Planning',
-            image: start2,
-            info1: 'Traffic Flow',
-            info2: 'Resource Distribution',
-            description: 'Optimize city layouts and infrastructure for efficiency.'
-        },
-    ];
 
-    const handleSelectTemplate = (templateId: number) => {
-        setSelectedTemplate(templateId === selectedTemplate ? 1 : templateId);
+    const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+    const [templates, setTemplates] = useState<apis.TemplateListItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTemplates = async () => {
+            try {
+                const fetchedTemplates = await apis.fetchTemplates();
+                setTemplates(fetchedTemplates);
+                setIsLoading(false);
+                ctx.setData(
+                    {
+                        ...ctx.data,
+                        allTemplates: fetchedTemplates
+                    }
+                )
+            } catch (err) {
+                console.error("Failed to fetch templates:", err);
+                setTemplates(mockTemplates);
+                setIsLoading(false);
+            }
+        };
+
+        fetchTemplates();
+    }, []);
+
+    const handleSelectTemplate = (templateCode: string) => {
+        ctx.setData({
+            ...ctx.data,
+            currentTemplate: templateCode == ctx.data.currSimCode ? ctx.data.currentTemplate : null,
+            currSimCode: templateCode
+        })
+        setSelectedTemplate(templateCode === selectedTemplate ? null : templateCode);
     };
 
-    const ctx = useSimContext();
+
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -61,28 +106,50 @@ export const TemplatePage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {templates.map((template) => (
                         <Card
-                            key={template.id}
-                            className={`w-full rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-150 cursor-pointer ${selectedTemplate === template.id ? 'ring-4 ring-indigo-600 ring-offset-4' : ''
+                            key={template.template_sim_code}
+                            className={`w-full rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-150 cursor-pointer ${selectedTemplate === template.template_sim_code ? 'ring-4 ring-indigo-600 ring-offset-4' : ''
                                 }`}
-                            onClick={() => handleSelectTemplate(template.id)}
+                            onClick={() => handleSelectTemplate(template.template_sim_code)}
                         >
-                            <img src={template.image} alt={template.name} className="w-full h-48 object-cover" />
+                            <img
+                                src={getTemplateImage(template)}
+                                alt={template.name}
+                                className="w-full h-48 object-cover"
+                            />
                             <CardHeader className="p-4 bg-gradient-to-r from-purple-600 to-blue-500">
                                 <CardTitle className="text-xl font-semibold text-white">{template.name}</CardTitle>
                             </CardHeader>
                             <CardContent className="p-4">
                                 <ul className="list-disc list-inside text-sm mb-2 text-gray-700">
-                                    <li>{template.info1}</li>
-                                    <li>{template.info2}</li>
+                                    {template.bullets.map((bullet, index) => (
+                                        <li key={index}>{bullet}</li>
+                                    ))}
                                 </ul>
                                 <p className="text-sm text-gray-600">{template.description}</p>
                             </CardContent>
                         </Card>
                     ))}
+                    {/* 敬请期待 Card */}
+                    <Card className="w-full rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-150">
+                        <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                            <span className="text-4xl text-gray-500 text-center">COMING SOON</span>
+                        </div>
+                        <CardHeader className="p-4 bg-gradient-to-r from-gray-400 to-gray-500">
+                            <CardTitle className="text-xl font-semibold text-white">敬请期待...</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4">
+                            <p className="text-sm text-gray-600">更多仿真模板正在开发中，敬请期待！</p>
+                        </CardContent>
+                    </Card>
                 </div>
-
-                <BottomNav prevLink='/welcome' nextLink='/events' currStep={0} disabled={!selectedTemplate} className='mt-16'></BottomNav>
+                <BottomNav
+                    prevLink='/welcome'
+                    nextLink='/events'
+                    currStep={0}
+                    disabled={!selectedTemplate}
+                    className='mt-16'
+                />
             </main>
-        </div >
+        </div>
     );
 };

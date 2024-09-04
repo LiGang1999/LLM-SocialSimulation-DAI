@@ -25,8 +25,8 @@ def landing(request):
 
 
 def demo(request, sim_code, step, play_speed="2"):
-    move_file = f"compressed_storage/{sim_code}/master_movement.json"
-    meta_file = f"compressed_storage/{sim_code}/meta.json"
+    move_file = f"{compressed_storage_path}/{sim_code}/master_movement.json"
+    meta_file = f"{compressed_storage_path}/{sim_code}/meta.json"
     step = int(step)
     play_speed_opt = {"1": 1, "2": 2, "3": 4, "4": 8, "5": 16, "6": 32}
     if play_speed not in play_speed_opt:
@@ -116,10 +116,10 @@ def home(request):
     with open(port_config_file, "r", encoding="utf-8") as f:
         config_data = yaml.safe_load(f)
 
-    f_curr_sim_code = "temp_storage/curr_sim_code.json"
-    f_curr_step = "temp_storage/curr_step.json"
+    f_curr_sim_code = f"{temp_storage_path}/curr_sim_code.json"
+    f_curr_step = f"{temp_storage_path}/curr_step.json"
 
-    if not check_if_file_exists(f_curr_step):
+    if not check_if_file_exists(f_curr_step) or not check_if_file_exists(f_curr_sim_code):
         context = {}
         template = "home/error_start_backend.html"
         return render(request, template, context)
@@ -134,7 +134,7 @@ def home(request):
 
     persona_names = []
     persona_names_set = set()
-    for i in find_filenames(f"storage/{sim_code}/personas", ""):
+    for i in find_filenames(f"{storage_path}/{sim_code}/personas", ""):
         x = i.split("/")[-1].strip()
         if x[0] != ".":
             persona_names += [[x, x.replace(" ", "_")]]
@@ -142,11 +142,11 @@ def home(request):
 
     persona_init_pos = []
     file_count = []
-    for i in find_filenames(f"storage/{sim_code}/environment", ".json"):
+    for i in find_filenames(f"{storage_path}/{sim_code}/environment", ".json"):
         x = i.split("/")[-1].strip()
         if x[0] != ".":
             file_count += [int(x.split(".")[0])]
-    curr_json = f"storage/{sim_code}/environment/{str(max(file_count))}.json"
+    curr_json = f"{storage_path}/{sim_code}/environment/{str(max(file_count))}.json"
     with open(curr_json) as json_file:
         persona_init_pos_dict = json.load(json_file)
         for key, val in persona_init_pos_dict.items():
@@ -171,7 +171,7 @@ def replay(request, sim_code, step):
 
     persona_names = []
     persona_names_set = set()
-    for i in find_filenames(f"storage/{sim_code}/personas", ""):
+    for i in find_filenames(f"{storage_path}/{sim_code}/personas", ""):
         x = i.split("/")[-1].strip()
         if x[0] != ".":
             persona_names += [[x, x.replace(" ", "_")]]
@@ -179,11 +179,11 @@ def replay(request, sim_code, step):
 
     persona_init_pos = []
     file_count = []
-    for i in find_filenames(f"storage/{sim_code}/environment", ".json"):
+    for i in find_filenames(f"{storage_path}/{sim_code}/environment", ".json"):
         x = i.split("/")[-1].strip()
         if x[0] != ".":
             file_count += [int(x.split(".")[0])]
-    curr_json = f"storage/{sim_code}/environment/{str(max(file_count))}.json"
+    curr_json = f"{storage_path}/{sim_code}/environment/{str(max(file_count))}.json"
     with open(curr_json) as json_file:
         persona_init_pos_dict = json.load(json_file)
         for key, val in persona_init_pos_dict.items():
@@ -207,9 +207,9 @@ def replay_persona_state(request, sim_code, step, persona_name):
 
     persona_name_underscore = persona_name
     persona_name = " ".join(persona_name.split("_"))
-    memory = f"storage/{sim_code}/personas/{persona_name}/bootstrap_memory"
+    memory = f"{storage_path}/{sim_code}/personas/{persona_name}/bootstrap_memory"
     if not os.path.exists(memory):
-        memory = f"compressed_storage/{sim_code}/personas/{persona_name}/bootstrap_memory"
+        memory = f"{compressed_storage_path}/{sim_code}/personas/{persona_name}/bootstrap_memory"
 
     with open(memory + "/scratch.json") as json_file:
         scratch = json.load(json_file)
@@ -279,7 +279,7 @@ def process_environment(request):
     sim_code = data["sim_code"]
     environment = data["environment"]
 
-    with open(f"storage/{sim_code}/environment/{step}.json", "w") as outfile:
+    with open(f"{storage_path}/{sim_code}/environment/{step}.json", "w") as outfile:
         outfile.write(json.dumps(environment, indent=2))
 
     return HttpResponse("received")
@@ -307,8 +307,8 @@ def update_environment(request):
     sim_code = data["sim_code"]
 
     response_data = {"<step>": -1}
-    if check_if_file_exists(f"storage/{sim_code}/movement/{step}.json"):
-        with open(f"storage/{sim_code}/movement/{step}.json") as json_file:
+    if check_if_file_exists(f"{storage_path}/{sim_code}/movement/{step}.json"):
+        with open(f"{storage_path}/{sim_code}/movement/{step}.json") as json_file:
             response_data = json.load(json_file)
             response_data["<step>"] = step
 
@@ -328,7 +328,7 @@ def path_tester_update(request):
     data = json.loads(request.body)
     camera = data["camera"]
 
-    with open(f"temp_storage/path_tester_env.json", "w") as outfile:
+    with open(f"{temp_storage_path}/path_tester_env.json", "w") as outfile:
         outfile.write(json.dumps(camera, indent=2))
 
     return HttpResponse("received")

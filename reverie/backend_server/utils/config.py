@@ -25,6 +25,7 @@ env_visuals = f"{maze_assets_loc}/the_ville/visuals"
 
 storage_path = "../storage"
 temp_storage_path = "../temp_storage"
+compressed_storage_path = "../compressed_storage"
 port_config_file = "../../config.yaml"
 
 collision_block_id = "32125"

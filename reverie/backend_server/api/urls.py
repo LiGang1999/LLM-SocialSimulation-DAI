@@ -22,9 +22,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("start/", controls.start, name="start"),
     path("command/", controls.add_command, name="add_command"),
-    path("list_envs/", controls.list_envs, name="list_envs"),
+    path("fetch_templates/", controls.fetch_templates, name="fetch_templates"),
     path("persona/", controls.get_persona, name="persona"),
-    path("env_info/", controls.get_env_info, name="env_info"),
+    path("fetch_template/", controls.fetch_template, name="fetch_template"),
     path("publish_event/", controls.publish_event, name="publish_event"),
     path("run/", controls.run, name="run"),
     #

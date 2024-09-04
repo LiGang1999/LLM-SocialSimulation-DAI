@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,13 +8,37 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import '@/App.css'
+import { useSimContext } from '@/SimContext';
+import { apis } from '@/lib/api';
 
 
 export const ConfigPage = () => {
+    const ctx = useSimContext();
+
     const [temperature, setTemperature] = useState(0.7);
     const [topP, setTopP] = useState(0.7);
     const [frequencyPenalty, setFrequencyPenalty] = useState(0);
     const [presencePenalty, setPresencePenalty] = useState(0);
+
+    useEffect(() => {
+        const fetchTemplates = async () => {
+            try {
+                if (ctx.data.currSimCode && !ctx.data.currentTemplate) {
+                    // should fetch the template data!
+                    const templateData = await apis.fetchTemplate(ctx.data.currSimCode);
+                    ctx.setData({
+                        ...ctx.data,
+                        currentTemplate: templateData
+                    })
+                }
+            } catch (err) {
+                console.error("Failed to fetch template detail:", err);
+            }
+        }
+
+        fetchTemplates();
+    }, [])
+
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">

@@ -69,11 +69,7 @@ export const WelcomePage = () => {
                                     <Github className="mr-3 h-8 w-8" /> GitHub
                                 </Button>
                             </a>
-
                         </div>
-
-
-
 
 
                         <div className="mt-8 border-t pt-4">

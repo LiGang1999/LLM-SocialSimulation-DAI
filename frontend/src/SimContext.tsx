@@ -1,19 +1,29 @@
 import React, { createContext, useState, useContext } from 'react';
 import { useLocalStorage } from "@uidotdev/usehooks";
-
+import { apis } from './lib/api';
 
 interface SimContext {
-    someGlobalValue: string;
-    setSomeGlobalValue: (value: string) => void;
+    currSimCode: string;
+    allTemplates: apis.TemplateListItem[] | null;
+    currentTemplate: apis.Template | null;
 }
 
-const SimContext = createContext<SimContext | undefined>(undefined);
+interface SimContextPair {
+    data: SimContext;
+    setData: (value: SimContext) => void;
+}
+
+const SimContext = createContext<SimContextPair | undefined>(undefined);
 
 export const SimContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [someGlobalValue, setSomeGlobalValue] = useLocalStorage<string>('simContext', 'Initial Value');
+    const [get, set] = useLocalStorage<SimContext>('simContext', {
+        currSimCode: "",
+        allTemplates: [],
+        currentTemplate: null
+    });
 
     return (
-        <SimContext.Provider value={{ someGlobalValue, setSomeGlobalValue }}>
+        <SimContext.Provider value={{ data: get, setData: set }}>
             {children}
         </SimContext.Provider>
     );

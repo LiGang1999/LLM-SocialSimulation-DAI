@@ -33,7 +33,6 @@ with open("../../config.yaml", "r", encoding="utf-8") as f:
     server_ip = data.get("server_ip")
 
 ALLOWED_HOSTS = [server_ip, "127.0.0.1", "localhost"]
-print("ALLOWED: ", ALLOWED_HOSTS)
 
 
 # Application definition
@@ -123,8 +122,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = "/static/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "api/static")]
 
 
 CORS_ALLOW_ALL_ORIGINS = True  # Enable CORS for all origins
-CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]  # Allow these methods
-CORS_ALLOW_HEADERS = ["Authorization", "Content-Type"]  # Allow these headers
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]  # Allow these methods
+CORS_ALLOW_CREDENTIALS: True
+
+print("ALLOWED: ", ALLOWED_HOSTS)
+print("BASE_DIR: ", BASE_DIR)
+print("STATIC_ROOT: ", STATICFILES_DIRS)
