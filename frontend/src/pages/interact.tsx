@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, Paperclip, Trash2 } from 'lucide-react';
+import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, Paperclip, Trash2, MoreHorizontal, RefreshCw } from 'lucide-react';
+import { api, apiBaseUrl } from '@/lib/utils';
 
 interface Agent {
     name: string;
@@ -58,13 +59,13 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
                 <span className="text-sm">{currentTime.toLocaleTimeString()}</span>
             </div>
             {isRunning && (
-                <div className="flex items-center space-x-2 flex-grow mx-32">
-                    <span className="text-sm">Running...</span>
+                <div className="flex items-center space-x-2 flex-grow mx-16">
+                    <span className="text-sm text-nowrap">Running simulation...</span>
                     <div className="w-full bg-primary/20 rounded-full h-2 overflow-hidden">
                         <div
                             className="bg-primary h-full rounded-full animate-stripe"
                             style={{
-                                backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent)',
+                                backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,.30) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.30) 50%, rgba(255,255,255,.30) 75%, transparent 75%, transparent)',
                                 backgroundSize: '1rem 1rem',
                                 width: '100%'
                             }}
@@ -86,30 +87,7 @@ const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => (
 );
 
 const MapTab: React.FC = () => {
-    // useEffect(() => {
-    //     const config = {
-    //         type: Phaser.AUTO,
-    //         width: 800,
-    //         height: 600,
-    //         parent: 'phaser-example',
-    //         scene: {
-    //             preload: function () {
-    //                 this.load.image('map', '/path-to-your-map-image.png');
-    //             },
-    //             create: function () {
-    //                 this.add.image(400, 300, 'map');
-    //             }
-    //         }
-    //     };
-
-    //     const game = new Phaser.Game(config);
-
-    //     return () => {
-    //         game.destroy(true);
-    //     };
-    // }, []);
-
-    return <div id="phaser-example" />;
+    return <div id="phaser-container" />;
 };
 
 interface AgentStatus {
@@ -121,31 +99,60 @@ interface AgentStatus {
     plan: string;
 }
 
-const AgentStatusCard: React.FC<{ agent: AgentStatus }> = ({ agent }) => (
-    <Card className="mb-4">
-        <CardHeader className="flex flex-row items-center space-x-4">
-            <Avatar>
-                <AvatarImage src={agent.avatar} alt={agent.name} />
-                <AvatarFallback>{agent.name[0]}</AvatarFallback>
-            </Avatar>
-            <h3 className="text-lg font-semibold">{agent.name}</h3>
-        </CardHeader>
-        <CardContent>
-            <p><strong>Personality:</strong> {agent.personality}</p>
-            <p><strong>Memory:</strong> {agent.memory}</p>
-            <p><strong>Current Task:</strong> {agent.currentDoing}</p>
-            <p><strong>Plan:</strong> {agent.plan}</p>
-        </CardContent>
-    </Card>
+const AgentStatusCard: React.FC<{ agent: AgentStatus }> = ({ agent }) => {
+    const [expanded, setExpanded] = useState(false);
+
+    return (
+        <Card className="mb-4">
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div className="flex items-center space-x-4">
+                    <Avatar>
+                        <AvatarImage src={agent.avatar} alt={agent.name} />
+                        <AvatarFallback>{agent.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <h3 className="text-lg font-semibold">{agent.name}</h3>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)}>
+                    <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </CardHeader>
+            <CardContent>
+                <p><strong>Personality:</strong> {agent.personality}</p>
+                <p><strong>Current Task:</strong> {agent.currentDoing}</p>
+                {expanded && (
+                    <>
+                        <p><strong>Memory:</strong> {agent.memory}</p>
+                        <p><strong>Plan:</strong> {agent.plan}</p>
+                    </>
+                )}
+            </CardContent>
+            {expanded && (
+                <CardFooter>
+                    <Button variant="outline" size="sm" className="w-full">
+                        查看全部信息
+                    </Button>
+                </CardFooter>
+            )}
+        </Card>
+    );
+};
+
+const AgentStatusTab: React.FC<{ agents: AgentStatus[], fetchAgentStatus: () => void }> = ({ agents, fetchAgentStatus }) => (
+    <>
+        <div className="flex justify-end mb-4">
+            <Button onClick={fetchAgentStatus}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Refresh
+            </Button>
+        </div>
+        <ScrollArea className="h-[calc(100vh-400px)]">
+            {agents.map((agent, index) => (
+                <AgentStatusCard key={index} agent={agent} />
+            ))}
+        </ScrollArea>
+    </>
 );
 
-const AgentStatusTab: React.FC<{ agents: AgentStatus[] }> = ({ agents }) => (
-    <ScrollArea className="h-[calc(100vh-350px)]">
-        {agents.map((agent, index) => (
-            <AgentStatusCard key={index} agent={agent} />
-        ))}
-    </ScrollArea>
-);
 
 const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLogs: () => void }> = ({ logs, addLog, clearLogs }) => {
     const [command, setCommand] = useState('');
@@ -236,13 +243,67 @@ export const InteractPage: React.FC = () => {
         setLogs([]);
     };
 
+    const fetchAgentStatus = async () => {
+        try {
+            const response = await api.get('/agentStatus');
+            setAgentStatus(response.data);
+        } catch (error) {
+            console.error('Error fetching agent status:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchAgentStatus();
+    }, []);
+
+    const [chatSocket, setChatSocket] = useState<WebSocket | null>(null);
+    const [logSocket, setLogSocket] = useState<WebSocket | null>(null);
+
+    useEffect(() => {
+        // Create WebSocket connections when the component mounts
+        const newChatSocket = new WebSocket('ws://your-chat-websocket-url');
+        const newLogSocket = new WebSocket('ws://your-log-websocket-url');
+
+        // Update state with the new WebSocket instances
+        setChatSocket(newChatSocket);
+        setLogSocket(newLogSocket);
+
+        // Clean up WebSocket connections when the component unmounts
+        return () => {
+            newChatSocket.close();
+            newLogSocket.close();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (chatSocket) {
+            // Listen for messages from the chat WebSocket
+            chatSocket.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                addChat(message.sender, message.content);
+            };
+        }
+    }, [chatSocket]);
+
+    useEffect(() => {
+        if (logSocket) {
+            // Listen for messages from the log WebSocket
+            logSocket.onmessage = (event) => {
+                const log = JSON.parse(event.data);
+                addLog(log.message);
+            };
+        }
+    }, [logSocket]);
+
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Navbar />
             <div className="container flex w-full mx-auto mt-4 mb-4 px-4 flex-grow">
                 {/* Left panel with tabs and status bar */}
                 <div className="w-2/3 pr-4 flex flex-col">
-                    <Tabs defaultValue="map" className="w-full flex-grow">
+                    <Tabs defaultValue="map" className="w-full flex-grow"
+                        onValueChange={(value) => value === 'ai' && fetchAgentStatus()}
+                    >
                         <TabsList className="grid w-full grid-cols-4">
                             <TabsTrigger value="dialog"><MessageSquare className="mr-2 h-4 w-4" />对话</TabsTrigger>
                             <TabsTrigger value="map"><MapPin className="mr-2 h-4 w-4" />地图</TabsTrigger>
@@ -256,13 +317,13 @@ export const InteractPage: React.FC = () => {
                             <MapTab />
                         </TabsContent>
                         <TabsContent value="ai" className="flex-grow">
-                            <AgentStatusTab agents={agentStatus} />
+                            <AgentStatusTab agents={agentStatus} fetchAgentStatus={fetchAgentStatus} />
                         </TabsContent>
                         <TabsContent value="log" className="flex-grow">
                             <LogTab logs={logs} addLog={addLog} clearLogs={clearLogs} />
                         </TabsContent>
                     </Tabs>
-                    <StatusBar isRunning={isRunning} />
+                    <StatusBar isRunning={true} />
                 </div>
 
                 {/* Right panel with chat */}

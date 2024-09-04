@@ -24,7 +24,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     const handlePrevClick = () => {
         if (onClickPrev) {
             onClickPrev();
-        } else {
+        }
+
+        else if (prevLink) {
             window.location.href = prevLink;
         }
     };
@@ -32,7 +34,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     const handleNextClick = () => {
         if (onClickNext && !disabled) {
             onClickNext();
-        } else if (!disabled) {
+        }
+
+        else if (nextLink && !disabled) {
             window.location.href = nextLink;
         }
     };
@@ -49,8 +53,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 </Button>
                 <Button
                     className={`text-xl h-16 py-4 px-8 font-bold text-white rounded-xl transition-all duration-300 flex items-center justify-center ${disabled
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 hover:scale-105'
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 hover:scale-105'
                         }`}
                     disabled={disabled}
                     onClick={handleNextClick}

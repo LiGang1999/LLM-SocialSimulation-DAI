@@ -68,8 +68,8 @@ module.exports = {
           to: { height: "0" },
         },
         stripe: {
-          '0%': { backgroundPosition: '4rem 0' },
-          '100%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '4rem 0' },
+          '0%': { backgroundPosition: '0 0' },
         }
       },
       animation: {

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PlusCircle, Save, Trash2 } from 'lucide-react'
+import { useSimContext } from '@/SimContext';
 
 interface Agent {
     id: number;
@@ -79,6 +80,8 @@ export const AgentsPage = () => {
             setSelectedAgent(updatedAgents.length > 0 ? updatedAgents[0] : null);
         }
     };
+
+    const ctx = useSimContext();
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-100">

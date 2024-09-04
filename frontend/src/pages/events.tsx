@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Plus, Edit, ChevronRight } from "lucide-react";
+import { useSimContext } from '@/SimContext';
 
 interface Event {
     id: number;
@@ -49,6 +50,8 @@ export const EventsPage = () => {
             setEvents(events.map(e => e.id === selectedEvent.id ? updatedEvent : e));
         }
     };
+
+    const ctx = useSimContext();
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-100">

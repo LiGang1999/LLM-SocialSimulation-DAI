@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Navbar } from '@/components/Navbar';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { ProgressBar } from '@/components/ProgressBar';
 
 import start2 from '@/assets/start2.jpg';
 import { BottomNav } from '@/components/BottomNav';
+
+import { useSimContext } from '@/SimContext';
 
 // TODO Add background for this webpage
 
@@ -52,6 +51,8 @@ export const TemplatePage = () => {
         setSelectedTemplate(templateId === selectedTemplate ? 1 : templateId);
     };
 
+    const ctx = useSimContext();
+
     return (
         <div className="flex flex-col min-h-screen">
             <Navbar />
@@ -61,7 +62,7 @@ export const TemplatePage = () => {
                     {templates.map((template) => (
                         <Card
                             key={template.id}
-                            className={`w-full rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer ${selectedTemplate === template.id ? 'ring-4 ring-indigo-600 ring-offset-4' : ''
+                            className={`w-full rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-150 cursor-pointer ${selectedTemplate === template.id ? 'ring-4 ring-indigo-600 ring-offset-4' : ''
                                 }`}
                             onClick={() => handleSelectTemplate(template.id)}
                         >
@@ -82,6 +83,6 @@ export const TemplatePage = () => {
 
                 <BottomNav prevLink='/welcome' nextLink='/events' currStep={0} disabled={!selectedTemplate} className='mt-16'></BottomNav>
             </main>
-        </div>
+        </div >
     );
 };
