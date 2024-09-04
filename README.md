@@ -69,12 +69,12 @@ google_api_cx = "c2ab1202fad094a87"  # Google Custom Search, engine id
 # Put your name
 key_owner = "<Name>"
 
-maze_assets_loc = "../../environment/frontend_server/static_dirs/assets"
+maze_assets_loc = "../api/static/assets"
 env_matrix = f"{maze_assets_loc}/the_ville/matrix"
 env_visuals = f"{maze_assets_loc}/the_ville/visuals"
 
-fs_storage = "../../environment/frontend_server/storage"
-fs_temp_storage = "../../environment/frontend_server/temp_storage"
+storage_path = "../storage"
+temp_storage_path = "../temp_storage"
 
 collision_block_id = "32125"
 

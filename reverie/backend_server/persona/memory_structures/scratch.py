@@ -9,7 +9,6 @@ import datetime
 import json
 import sys
 
-sys.path.append("../../")
 
 from utils import *
 

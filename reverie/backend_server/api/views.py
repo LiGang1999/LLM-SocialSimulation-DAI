@@ -15,6 +15,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import HttpResponseRedirect, redirect, render
 from django.templatetags.static import static
 from utils import *
+from utils.config import *
 
 
 def landing(request):
@@ -112,7 +113,7 @@ def UIST_Demo(request):
 
 def home(request):
     # read config
-    with open("../../config.yaml", "r", encoding="utf-8") as f:
+    with open(port_config_file, "r", encoding="utf-8") as f:
         config_data = yaml.safe_load(f)
 
     f_curr_sim_code = "temp_storage/curr_sim_code.json"

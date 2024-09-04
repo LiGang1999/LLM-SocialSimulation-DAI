@@ -8,6 +8,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from utils import config
+from utils.config import *
 from utils.logs import L
 
 from reverie import LLMConfig, PersonaConfig, ReverieConfig, command_queue, start_sim
@@ -216,8 +217,6 @@ def find_filenames(path_to_dir, suffix=".csv"):
 def get_persona(request):
     # This implementation is a pile of shit
     print("Get personas...")
-    storage_path = "../../environment/frontend_server/storage"
-    temp_storage_path = "../../environment/frontend_server/temp_storage"
     with open(f"{temp_storage_path}/curr_sim_code.json") as json_file:
         sim_code = json.load(json_file)["sim_code"]
     persona_names = []

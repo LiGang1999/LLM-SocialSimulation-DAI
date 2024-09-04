@@ -9,7 +9,6 @@ memory that aids in grounding their behavior in the game world.
 import json
 import sys
 
-sys.path.append("../../")
 
 from utils import *
 from persona.memory_structures.memory import *

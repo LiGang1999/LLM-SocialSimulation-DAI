@@ -32,7 +32,7 @@ with open("../../config.yaml", "r", encoding="utf-8") as f:
     data = yaml.safe_load(f)
     server_ip = data.get("server_ip")
 
-ALLOWED_HOSTS = [server_ip]
+ALLOWED_HOSTS = [server_ip, "127.0.0.1", "localhost"]
 print("ALLOWED: ", ALLOWED_HOSTS)
 
 

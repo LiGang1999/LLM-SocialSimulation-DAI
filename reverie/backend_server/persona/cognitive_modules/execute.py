@@ -8,8 +8,6 @@ Description: This defines the "Act" module for generative agents.
 import random
 import sys
 
-sys.path.append("../../")
-
 from utils import *
 from maze import OnlineMaze
 from memorynode import *

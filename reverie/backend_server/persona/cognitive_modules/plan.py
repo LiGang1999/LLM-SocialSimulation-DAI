@@ -11,8 +11,6 @@ import random
 import sys
 import time
 
-sys.path.append("../../")
-
 from utils import *
 from persona.cognitive_modules.converse import *
 from persona.cognitive_modules.retrieve import *

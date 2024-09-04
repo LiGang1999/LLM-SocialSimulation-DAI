@@ -12,7 +12,6 @@ import yaml
 # ANSI color codes
 COLORS = {
     "frontend": "\033[94m[frontend]\033[0m",
-    "webpage": "\033[93m[webpage]\033[0m",
     "backend": "\033[92m[backend]\033[0m",
     "manage": "\033[96m[manage]\033[0m",
 }
@@ -61,23 +60,15 @@ def start_servers(quiet):
     with open("config.yaml", "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
-    front_port1 = data.get("front_port")
-    front_port2 = data.get("front_port2")
+    front_port = data.get("front_port")
     back_port = data.get("back_port")
     commands = [
         {
             "command": "npm run dev",
-            "directory": "frontend_online_old",
+            "directory": "frontend",
             "color": COLORS["frontend"],
             "log_file": "frontend.log" if quiet else None,
             "hint": "Starting frontend server...",
-        },
-        {
-            "command": f"python manage.py runserver --skip-checks 0.0.0.0:{front_port2}",
-            "directory": "environment/frontend_server",
-            "color": COLORS["webpage"],
-            "log_file": "webpage.log" if quiet else None,
-            "hint": "Starting webpage server...",
         },
         {
             "command": f"python3 manage.py runserver --skip-checks 0.0.0.0:{back_port}",
@@ -116,7 +107,7 @@ def main(quiet):
     # Check wheter backend_server/utils/config.py exists. If not, exit program
     if not os.path.exists("reverie/backend_server/utils/config.py"):
         print(
-            f"{COLORS['manage']} ERROR: backend_server/utils/config.py not found. You should manually create it. Exiting..."
+            f"{COLORS['manage']} ERROR: backend_server/utils/config.py not found. You should manually create it. Refer to config_template.py. Exiting..."
         )
         sys.exit(1)
 

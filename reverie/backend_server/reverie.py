@@ -210,7 +210,7 @@ class ReverieServer:
         # Interestingly, all simulations must be forked from some initial
         # simulation, where the first simulation is "hand-crafted".
         self.template_sim_code = template_sim_code
-        template_folder = f"{fs_storage}/{self.template_sim_code}"
+        template_folder = f"{storage_path}/{self.template_sim_code}"
 
         # init_api(model)
 
@@ -218,7 +218,7 @@ class ReverieServer:
         # copy everything that's in <template_sim_code>, but edit its
         # reverie/meta/json's fork variable.
         self.sim_code = sim_config.sim_code
-        sim_folder = f"{fs_storage}/{self.sim_code}"
+        sim_folder = f"{storage_path}/{self.sim_code}"
         if check_if_dir_exists(sim_folder):
             L.warning(
                 f"Simulation {sim_folder} exists. It will be overwritten by the new environment."
@@ -245,7 +245,7 @@ class ReverieServer:
 
         # This one should be called sim_code, but call it template_sim_code to maintain backward compatability
         reverie_meta["template_sim_code"] = sim_config.sim_code
-        self.storage_home = f"{fs_storage}/{self.sim_code}"
+        self.storage_home = f"{storage_path}/{self.sim_code}"
 
         # check fields for reverie_meta
 
@@ -360,12 +360,12 @@ class ReverieServer:
         # simulation.
         curr_sim_code = dict()
         curr_sim_code["sim_code"] = self.sim_code
-        with open(f"{fs_temp_storage}/curr_sim_code.json", "w") as outfile:
+        with open(f"{temp_storage_path}/curr_sim_code.json", "w") as outfile:
             outfile.write(json.dumps(curr_sim_code, indent=2))
 
         curr_step = dict()
         curr_step["step"] = self.step
-        with open(f"{fs_temp_storage}/curr_step.json", "w") as outfile:
+        with open(f"{temp_storage_path}/curr_step.json", "w") as outfile:
             outfile.write(json.dumps(curr_step, indent=2))
 
         self.tag = False  # case
@@ -397,7 +397,7 @@ class ReverieServer:
           * Saves all relevant data to the designated memory directory
         """
         # <sim_folder> points to the current simulation folder.
-        sim_folder = f"{fs_storage}/{self.sim_code}"
+        sim_folder = f"{storage_path}/{self.sim_code}"
 
         # Save Reverie meta information.
         reverie_meta = dict()
@@ -459,7 +459,7 @@ class ReverieServer:
         while True:
             try:
                 curr_dict = {}
-                tester_file = fs_temp_storage + "/path_tester_env.json"
+                tester_file = temp_storage_path + "/path_tester_env.json"
                 if check_if_file_exists(tester_file):
                     with open(tester_file) as json_file:
                         curr_dict = json.load(json_file)
@@ -503,7 +503,7 @@ class ReverieServer:
 
                 # Incrementally outputting the s_mem and saving the json file.
                 print("= " * 15)
-                out_file = fs_temp_storage + "/path_tester_out.json"
+                out_file = temp_storage_path + "/path_tester_out.json"
                 with open(out_file, "w") as outfile:
                     outfile.write(json.dumps(s_mem, indent=2))
                 print_tree(s_mem)
@@ -527,7 +527,7 @@ class ReverieServer:
           None
         """
         # <sim_folder> points to the current simulation folder.
-        sim_folder = f"{fs_storage}/{self.sim_code}"
+        sim_folder = f"{storage_path}/{self.sim_code}"
 
         # When a persona arrives at a game object, we give a unique event
         # to that object.
@@ -718,7 +718,7 @@ class ReverieServer:
         print("and independent decision-making.\n---")
 
         # <sim_folder> points to the current simulation folder.
-        sim_folder = f"{fs_storage}/{self.sim_code}"
+        sim_folder = f"{storage_path}/{self.sim_code}"
 
         while True:
             # sim_command = input("Enter option: ")

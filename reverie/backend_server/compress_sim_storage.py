@@ -7,7 +7,7 @@ Description: Compresses a simulation for replay demos.
 
 import shutil
 import json
-from backend_server.utils import *
+from utils import *
 
 
 def compress(sim_code):

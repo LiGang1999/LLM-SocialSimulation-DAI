@@ -10,7 +10,6 @@ agents paper.
 
 import sys
 
-sys.path.append("../../")
 
 import json
 import datetime

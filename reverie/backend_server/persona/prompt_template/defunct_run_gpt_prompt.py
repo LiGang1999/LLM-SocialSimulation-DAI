@@ -12,7 +12,6 @@ import re
 import datetime
 import sys
 
-sys.path.append("../../")
 
 from utils import *
 from persona.prompt_template.gpt_structure import *

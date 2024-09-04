@@ -1,42 +1,48 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 
 {% block content %}
 <br>
 <br>
 <div>
 	<div id="console-log-div" style="width: 55%; margin: 0 auto; padding: 20px;">
-        <textarea id="console-log" class="readonly-textbox" readonly>This is a test line for test.&#13;</textarea>
-    </div>
+		<textarea id="console-log" class="readonly-textbox" readonly>This is a test line for test.&#13;</textarea>
+	</div>
 	<div id="game-container" style="text-align: center;"></div>
 
 	<div style="width:55%; margin: 0 auto; margin-top:4.5em">
 		<h3 style="margin-bottom:-0.5em; font-size:1.5em">Current Time:</h3>
 		<div class="row">
 			<div class="col-md-8" id="game-time" style="">
-				<h2><span id="game-time-content"></span></h2> 
+				<h2><span id="game-time-content"></span></h2>
 			</div>
 			<div class="col-md-4">
-				
-				{% comment %} <h2 style="text-align: right; {% if mode == 'simulate' %} display: none {% endif %}"> {% endcomment %}
-				<h2 style="text-align: right">
-					<button id="play_button" type="button" class="btn btn-default" style="{% if mode == 'simulate' %} display: none {% endif %}">
-				    <strong style=" font-size:1.2em"><i class="glyphicon glyphicon-play"></i> &nbsp;Play</strong>
-				  </button>
-				  
-				  <button id="pause_button" type="button" class="btn btn-default" style="{% if mode == 'simulate' %} display: none {% endif %}">
-				    <strong style=" font-size:1.2em"><i class="glyphicon glyphicon-pause"></i> &nbsp;Pause</strong>
-				  </button>
-				  
-				  <button id="display_content_btn" type="button" class="btn btn-default" onclick="switch_display()">
-					<strong style=" font-size:1.2em"> &nbsp;日志</strong>
-				  </button>
 
-				  <button id="interact_btn" type="button" class="btn btn-default" onclick="interact()">
-					<strong style=" font-size:1.2em"> &nbsp;交互</strong>
-				  </button>
-				</h2>
-				
+				{% comment %} <h2 style="text-align: right; {% if mode == 'simulate' %} display: none {% endif %}"> {%
+					endcomment %}
+					<h2 style="text-align: right">
+						<button id="play_button" type="button" class="btn btn-default"
+							style="{% if mode == 'simulate' %} display: none {% endif %}">
+							<strong style=" font-size:1.2em"><i class="glyphicon glyphicon-play"></i>
+								&nbsp;Play</strong>
+						</button>
+
+						<button id="pause_button" type="button" class="btn btn-default"
+							style="{% if mode == 'simulate' %} display: none {% endif %}">
+							<strong style=" font-size:1.2em"><i class="glyphicon glyphicon-pause"></i>
+								&nbsp;Pause</strong>
+						</button>
+
+						<button id="display_content_btn" type="button" class="btn btn-default"
+							onclick="switch_display()">
+							<strong style=" font-size:1.2em"> &nbsp;日志</strong>
+						</button>
+
+						<button id="interact_btn" type="button" class="btn btn-default" onclick="interact()">
+							<strong style=" font-size:1.2em"> &nbsp;交互</strong>
+						</button>
+					</h2>
+
 			</div>
 		</div>
 
@@ -45,38 +51,43 @@
 		<br>
 
 		{% for p_name, p_name_os in persona_names %}
-			<div class="media" style="background-color:#EEEEEE; padding:1em; padding-left:3.5em; padding-right:2em; border-radius:10px">
-			  <div class="media-left media-middle">
-			    <a href="#">
-			      <img class="media-object" src="{% static 'img/atlas.png' %}" style="width:5em">
-			    </a>
-			  </div>
-			  <div class="media-body" style='padding-left:3em; padding-top:0.5em; padding-bottom:1em'>
-			  	<div class="row">
-			    	<h2 class="col-md-8" id="name__{{ p_name_os }}" style="margin-bottom:0.8em; font-size:1.85em; ">
-			    		{{p_name}} &nbsp;&nbsp;
-			    		<a href="{% url 'replay_persona_state' sim_code step p_name_os %}" style="font-size:0.6em">State Details</a>
-			    	</h2>
-			    </div>
-			    <div style="">
-					  <p style="font-size:1.2em"><strong>Current Action:</strong> <br><span id="current_action__{{ p_name_os }}"></span></p>
-					  <p style="font-size:1.2em"><strong>Location:</strong> <br><span id="target_address__{{ p_name_os }}"></span></p>
-					  <p style="font-size:1.2em"><strong>Current Conversation:</strong> <br><span id="chat__{{ p_name_os }}"></span></p>
-					</div>
-			  </div>
-			</div>	
-			<br>
+		<div class="media"
+			style="background-color:#EEEEEE; padding:1em; padding-left:3.5em; padding-right:2em; border-radius:10px">
+			<div class="media-left media-middle">
+				<a href="#">
+					<img class="media-object" src="{% static 'img/atlas.png' %}" style="width:5em">
+				</a>
+			</div>
+			<div class="media-body" style='padding-left:3em; padding-top:0.5em; padding-bottom:1em'>
+				<div class="row">
+					<h2 class="col-md-8" id="name__{{ p_name_os }}" style="margin-bottom:0.8em; font-size:1.85em; ">
+						{{p_name}} &nbsp;&nbsp;
+						<a href="{% url 'replay_persona_state' sim_code step p_name_os %}" style="font-size:0.6em">State
+							Details</a>
+					</h2>
+				</div>
+				<div style="">
+					<p style="font-size:1.2em"><strong>Current Action:</strong> <br><span
+							id="current_action__{{ p_name_os }}"></span></p>
+					<p style="font-size:1.2em"><strong>Location:</strong> <br><span
+							id="target_address__{{ p_name_os }}"></span></p>
+					<p style="font-size:1.2em"><strong>Current Conversation:</strong> <br><span
+							id="chat__{{ p_name_os }}"></span></p>
+				</div>
+			</div>
+		</div>
+		<br>
 		{% endfor %}
 
 
 
 
-		
+
 
 	</div>
 </div>
 
-  
+
 
 
 
@@ -105,7 +116,7 @@
 		window.open("http://{{config_data.server_ip}}:{{config_data.front_port}}/act");
 	}
 	{% comment %} const eventSource = new EventSource('/get-logs/');
-	eventSource.onmessage = function(event) {
+	eventSource.onmessage = function (event) {
 		const logMessage = event.data;
 		// 处理日志消息，例如将其添加到页面上的日志区域
 		console.log(logMessage);
@@ -118,19 +129,19 @@
 	console.log("socket connected")
 	chatSocket.addEventListener("error", function (event) {
 		console.log("WebSocket error: ", event);
-	  });
+	});
 
-	chatSocket.onopen = function(e) {
+	chatSocket.onopen = function (e) {
 		console.log("WebSocket connection established");
 	};
-	chatSocket.onmessage = function(e) {
+	chatSocket.onmessage = function (e) {
 		const data = JSON.parse(e.data);
 		// document.querySelector('#chat-log').value += (data.message + '\n');
 		console.log("log message: " + data.message + '\n')
 		let console_log_div = document.getElementById("console-log")
 		document.querySelector('#console-log').value += (data.message)
 	};
-	chatSocket.onclose = function(e) {
+	chatSocket.onclose = function (e) {
 		console.error('Chat socket closed unexpectedly', e);
 	};
 
@@ -142,27 +153,27 @@
 	console.log("onlineSocket socket connected")
 	onlineSocket.addEventListener("error", function (event) {
 		console.log("onlineSocket error: ", event);
-	  });
+	});
 
-	onlineSocket.onopen = function(e) {
+	onlineSocket.onopen = function (e) {
 		console.log("onlineSocket connection established");
 	};
-	onlineSocket.onmessage = function(e) {
+	onlineSocket.onmessage = function (e) {
 		const data = JSON.parse(e.data);
 		console.log("online - log message: " + data.message + '\n')
 	};
-	onlineSocket.onclose = function(e) {
+	onlineSocket.onclose = function (e) {
 		console.error('onlineSocket socket closed unexpectedly', e);
 	};
 
 	{% comment %} document.querySelector('#chat-message-input').focus();
-	document.querySelector('#chat-message-input').onkeyup = function(e) {
+	document.querySelector('#chat-message-input').onkeyup = function (e) {
 		if (e.keyCode === 13) {  // enter, return
 			document.querySelector('#chat-message-submit').click();
 		}
-	};{% endcomment %}
+	}; {% endcomment %}
 
-	{% comment %} document.querySelector('#chat-message-submit').onclick = function(e) {
+	{% comment %} document.querySelector('#chat-message-submit').onclick = function (e) {
 		const messageInputDom = document.querySelector('#chat-message-input');
 		const message = messageInputDom.value;
 		chatSocket.send(JSON.stringify({
@@ -174,4 +185,3 @@
 
 {% include 'home/main_script.html' %}
 {% endblock content %}
-

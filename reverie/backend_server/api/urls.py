@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from reverie.backend_server.api import controls, views
+from api import controls, views
 from django.contrib import admin
 from django.urls import path, re_path
 
@@ -47,5 +47,4 @@ urlpatterns = [
     path("update_environment/", views.update_environment, name="update_environment"),
     path("path_tester/", views.path_tester, name="path_tester"),
     path("path_tester_update/", views.path_tester_update, name="path_tester_update"),
-    path("admin/", admin.site.urls),
 ]
