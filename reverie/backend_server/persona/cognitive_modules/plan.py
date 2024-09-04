@@ -13,7 +13,7 @@ import time
 
 sys.path.append("../../")
 
-from global_methods import *
+from utils import *
 from persona.cognitive_modules.converse import *
 from persona.cognitive_modules.retrieve import *
 from persona.prompt_template.run_gpt_prompt import *

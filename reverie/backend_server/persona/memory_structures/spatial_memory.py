@@ -11,7 +11,7 @@ import sys
 
 sys.path.append("../../")
 
-from global_methods import *
+from utils import *
 from persona.memory_structures.memory import *
 from utils.config import *
 from utils.logs import L

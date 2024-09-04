@@ -9,7 +9,7 @@ import sys
 
 sys.path.append("../../")
 
-from global_methods import *
+from utils import *
 from persona.prompt_template.gpt_structure import *
 
 from numpy import dot

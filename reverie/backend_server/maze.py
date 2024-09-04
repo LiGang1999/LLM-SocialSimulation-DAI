@@ -14,7 +14,7 @@ import time
 
 import numpy
 from event import Event
-from global_methods import *
+from utils import *
 from utils.config import *
 from utils.logs import L
 

@@ -10,7 +10,7 @@ import sys
 
 sys.path.append("../../")
 
-from global_methods import *
+from utils import *
 from maze import OnlineMaze
 from memorynode import *
 from path_finder import *

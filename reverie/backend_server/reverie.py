@@ -32,7 +32,7 @@ from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
 
 import numpy
-from global_methods import *
+from utils import *
 from institution import *
 from maze import *
 from memorynode import *
@@ -1027,8 +1027,7 @@ class ReverieServer:
                         websearch=websearch,
                     )
                 elif (
-                    "call -- with policy and websearch load online event"
-                    in sim_command.lower()
+                    "call -- with policy and websearch load online event" in sim_command.lower()
                 ):  # 将事件广播给每个智能体。
                     word_command = command_queue.get().strip()
                     names = command_queue.get().strip()

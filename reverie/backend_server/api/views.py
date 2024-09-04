@@ -14,7 +14,7 @@ import yaml
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import HttpResponseRedirect, redirect, render
 from django.templatetags.static import static
-from global_methods import *
+from utils import *
 
 
 def landing(request):

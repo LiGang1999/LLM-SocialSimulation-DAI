@@ -11,7 +11,7 @@ import sys
 
 sys.path.append("../../")
 
-from global_methods import *
+from utils import *
 
 from persona.memory_structures.memory import *
 
@@ -209,9 +209,7 @@ class Scratch(Memory):
 
             self.daily_req = scratch_load["daily_req"]
             self.f_daily_schedule = scratch_load["f_daily_schedule"]
-            self.f_daily_schedule_hourly_org = scratch_load[
-                "f_daily_schedule_hourly_org"
-            ]
+            self.f_daily_schedule_hourly_org = scratch_load["f_daily_schedule_hourly_org"]
 
             self.act_address = scratch_load["act_address"]
             if scratch_load["act_start_time"]:
@@ -305,9 +303,7 @@ class Scratch(Memory):
         scratch["chat"] = self.chat
         scratch["chatting_with_buffer"] = self.chatting_with_buffer
         if self.chatting_end_time:
-            scratch["chatting_end_time"] = self.chatting_end_time.strftime(
-                "%B %d, %Y, %H:%M:%S"
-            )
+            scratch["chatting_end_time"] = self.chatting_end_time.strftime("%B %d, %Y, %H:%M:%S")
         else:
             scratch["chatting_end_time"] = None
 
@@ -458,12 +454,7 @@ class Scratch(Memory):
         if not self.act_address:
             return (self.name, None, None, None)
         else:
-            return (
-                self.act_event[0],
-                self.act_event[1],
-                self.act_event[2],
-                self.act_description,
-            )
+            return (self.act_event[0], self.act_event[1], self.act_event[2], self.act_description)
 
     def get_curr_obj_event_and_desc(self):
         if not self.act_address:

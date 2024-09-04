@@ -12,7 +12,7 @@ sys.path.append("../../")
 import datetime
 import random
 
-from global_methods import *
+from utils import *
 from numpy import dot
 from numpy.linalg import norm
 from persona.cognitive_modules.retrieve import *

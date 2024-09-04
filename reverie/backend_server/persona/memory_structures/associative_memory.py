@@ -15,7 +15,7 @@ sys.path.append("../../")
 import json
 import datetime
 
-from global_methods import *
+from utils import *
 
 from persona.memory_structures.memory import *
 
@@ -91,9 +91,7 @@ class AssociativeMemory(Memory):
             node_type = node_details["type"]
             depth = node_details["depth"]
 
-            created = datetime.datetime.strptime(
-                node_details["created"], "%Y-%m-%d %H:%M:%S"
-            )
+            created = datetime.datetime.strptime(node_details["created"], "%Y-%m-%d %H:%M:%S")
             expiration = None
             if node_details["expiration"]:
                 expiration = datetime.datetime.strptime(
@@ -220,11 +218,7 @@ class AssociativeMemory(Memory):
 
         # Node type specific clean up.
         if "(" in description:
-            description = (
-                " ".join(description.split()[:3])
-                + " "
-                + description.split("(")[-1][:-1]
-            )
+            description = " ".join(description.split()[:3]) + " " + description.split("(")[-1][:-1]
 
         # Creating the <ConceptNode> object.
         node = ConceptNode(

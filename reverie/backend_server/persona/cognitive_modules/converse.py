@@ -12,7 +12,7 @@ import sys
 
 sys.path.append("../")
 
-from global_methods import *
+from utils import *
 from persona.cognitive_modules.base_sentiment import *
 from persona.cognitive_modules.retrieve import *
 from persona.memory_structures.associative_memory import *

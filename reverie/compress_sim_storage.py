@@ -7,7 +7,7 @@ Description: Compresses a simulation for replay demos.
 
 import shutil
 import json
-from global_methods import *
+from backend_server.utils import *
 
 
 def compress(sim_code):
@@ -24,10 +24,7 @@ def compress(sim_code):
             persona_names += [x]
 
     max_move_count = max(
-        [
-            int(i.split("/")[-1].split(".")[0])
-            for i in find_filenames(move_folder, "json")
-        ]
+        [int(i.split("/")[-1].split(".")[0]) for i in find_filenames(move_folder, "json")]
     )
 
     persona_last_move = dict()
@@ -42,10 +39,8 @@ def compress(sim_code):
                     move = True
                 elif (
                     i_move_dict[p]["movement"] != persona_last_move[p]["movement"]
-                    or i_move_dict[p]["pronunciatio"]
-                    != persona_last_move[p]["pronunciatio"]
-                    or i_move_dict[p]["description"]
-                    != persona_last_move[p]["description"]
+                    or i_move_dict[p]["pronunciatio"] != persona_last_move[p]["pronunciatio"]
+                    or i_move_dict[p]["description"] != persona_last_move[p]["description"]
                     or i_move_dict[p]["chat"] != persona_last_move[p]["chat"]
                 ):
                     move = True

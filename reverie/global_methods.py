@@ -1,7 +1,7 @@
 """
 Author: Joon Sung Park (joonspk@stanford.edu)
 
-File: global_methods.py
+File: utils.py
 Description: Contains functions used throughout my projects.
 """
 
@@ -85,10 +85,7 @@ def write_list_to_csv_line(line_list, outfile):
     create_folder_if_not_there(outfile)
 
     # Opening the file first so we can write incrementally as we progress
-    curr_file = open(
-        outfile,
-        "a",
-    )
+    curr_file = open(outfile, "a")
     csvfile_1 = csv.writer(curr_file)
     csvfile_1.writerow(line_list)
     curr_file.close()
@@ -187,11 +184,7 @@ def find_filenames(path_to_dir, suffix=".csv"):
       A list of paths to all files in the directory.
     """
     filenames = listdir(path_to_dir)
-    return [
-        path_to_dir + "/" + filename
-        for filename in filenames
-        if filename.endswith(suffix)
-    ]
+    return [path_to_dir + "/" + filename for filename in filenames if filename.endswith(suffix)]
 
 
 def average(list_of_val):

@@ -14,7 +14,7 @@ import json
 import random
 
 import numpy
-from global_methods import *
+from utils import *
 from persona.prompt_template.gpt_structure import *
 from utils.config import *
 
