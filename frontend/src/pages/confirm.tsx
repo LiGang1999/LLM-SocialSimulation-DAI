@@ -40,7 +40,7 @@ export const ConfirmPage = () => {
                 ctx.data.llmConfig,
                 ctx.data.initialRounds || 1
             );
-            // navigate('/interact');
+            navigate('/interact');
         } catch (error) {
             console.error("Failed to start simulation:", error);
             // Handle error (e.g., show an error message to the user)
