@@ -3,7 +3,7 @@ frontend_server/settings/local.py
 **/storage/*
 static_dirs/*
 
-!environment/frontend_server/storage/base_*
+!**/storage/base_*
 
 bin/
 include/
