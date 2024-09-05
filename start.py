@@ -64,7 +64,7 @@ def start_servers(quiet):
     back_port = data.get("back_port")
     commands = [
         {
-            "command": "npm run dev",
+            "command": "pnpm run dev --host",
             "directory": "frontend",
             "color": COLORS["frontend"],
             "log_file": "frontend.log" if quiet else None,

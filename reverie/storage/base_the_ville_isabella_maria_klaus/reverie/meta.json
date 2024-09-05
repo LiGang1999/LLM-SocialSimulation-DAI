@@ -1,0 +1,20 @@
+{
+  "template_sim_code": "base_the_ville_isabella_maria_klaus",
+  "name": "Basic Village",
+  "bullets": [
+    "3 personas",
+    "small-sized village",
+    "different jobs and routines"
+  ],
+  "description": "",
+  "start_date": "February 13, 2023",
+  "curr_time": "February 13, 2023, 00:00:00",
+  "sec_per_step": 10,
+  "maze_name": "the_ville",
+  "persona_names": [
+    "Isabella Rodriguez",
+    "Maria Lopez",
+    "Klaus Mueller"
+  ],
+  "step": 0
+}
