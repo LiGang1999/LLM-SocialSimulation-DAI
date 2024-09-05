@@ -1,16 +1,15 @@
 import json
 import os
 import threading
-from typing import Dict, Any
+from typing import Any, Dict, List
 
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from typing import List
-
-from reverie import LLMConfig, PersonaConfig, ReverieConfig, command_queue, start_sim
 from utils import config
 from utils.logs import L
+
+from reverie import LLMConfig, PersonaConfig, ReverieConfig, command_queue, get_rs, start_sim
 
 BASE_TEMPLATES = [
     "base_the_villie_isabella_maria_klaus",
@@ -72,13 +71,17 @@ def parse_persona_configs(personas_data: List[Dict[str, Any]]) -> Dict[str, Pers
     }
 
 
-def parse_public_events(events_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def parse_public_events(
+    events_data: List[Dict[str, Any]], personas: List[str]
+) -> List[Dict[str, Any]]:
     return [
         {
             "name": event.get("name", ""),
-            "access_list": [
-                name.strip() for name in event.get("access_list", "").strip().split(",")
-            ],
+            "access_list": (
+                [name.strip() for name in event.get("access_list", "").strip().split(",")]
+                if event.get("access_list")
+                else personas
+            ),
             "websearch": event.get("websearch", ""),
             "policy": event.get("policy", ""),
             "description": event.get("description", ""),
@@ -107,7 +110,12 @@ def start(request):
 
         parsed_llm_config = parse_llm_config(llm_config)
         persona_configs = parse_persona_configs(template.get("personas", []))
-        public_events = parse_public_events(template.get("events", []))
+        public_events = parse_public_events(
+            template.get("events", []),
+            [
+                persona.name for persona in persona_configs.values()
+            ],  # if no access list is set, event is visible to all personas
+        )
 
         reverie_config = ReverieConfig(
             sim_code=sim_code,
@@ -199,6 +207,17 @@ def fetch_template(request):
     events = load_json_file(events_file)
 
     return JsonResponse({"meta": env_meta, "personas": persona_info, "events": events})
+
+
+def query_status(request):
+    current_rs = get_rs()
+    if current_rs:
+        if current_rs.is_running:
+            return JsonResponse({"status": "running"})
+        else:
+            return JsonResponse({"status": "started"})
+    else:
+        return JsonResponse({"status": "stopped"})
 
 
 def add_command(request):

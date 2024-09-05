@@ -1,8 +1,8 @@
 # Copy and paste your OpenAI API Key
-openai_api_base = "http://10.72.74.126:11434/v1"
-openai_api_key = "<Your OpenAI API>"
+openai_api_base = "https://api.bianxie.ai/v1"
+openai_api_key = "sk-Mc0h6rJZ1dvmnZiRD3B8F117B65d437c8a1a38D6E26c8585"
 
-override_model = "llama3.1:70b"
+override_model = "gpt-3.5-turbo"
 override_gpt_param = {
     "engine": override_model,
     "temperature": 1.0,

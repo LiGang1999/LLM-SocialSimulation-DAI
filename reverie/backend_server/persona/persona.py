@@ -16,7 +16,6 @@ import sys
 
 sys.path.append("../")
 
-from utils import *
 from persona.cognitive_modules.converse import *
 from persona.cognitive_modules.execute import *
 from persona.cognitive_modules.perceive import *
@@ -27,6 +26,7 @@ from persona.memory_structures.associative_memory import *
 from persona.memory_structures.scratch import *
 from persona.memory_structures.spatial_memory import *
 from persona.workflow import *
+from utils import *
 from utils.logs import L
 
 
@@ -95,6 +95,9 @@ class GaPersona(Persona):
 
     def open_convo_session(self, convo_mode, vbase, input_queue):
         open_convo_session(self, convo_mode, vbase, input_queue)
+
+    def chat_to_persona(self, mode, vbase, prev_msgs, msg):
+        chat_to_persona(self, mode, vbase, prev_msgs, msg)
 
 
 class DaiPersona(Persona):

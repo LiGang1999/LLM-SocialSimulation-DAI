@@ -14,26 +14,31 @@ import { ChatMessage, useSimContext } from '@/SimContext';
 import { RandomAvatar } from '@/components/Avatars';
 
 
-const ChatMessageBox: React.FC<ChatMessage> = ({ sender, content, timestamp, avatar }) => (
-    <div className={`flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4 items-end`}>
+const ChatMessageBox: React.FC<ChatMessage> = ({ sender, content, timestamp, subject }) => (
+    <div className={`flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4 items-start`}>
         {sender !== 'user' && (
-            <Avatar className="mr-2">
-                <AvatarImage src={avatar} alt={sender} />
-                <AvatarFallback>{sender[0].toUpperCase()}</AvatarFallback>
+            <Avatar className="mr-2 mt-1">
+                <RandomAvatar name={sender} className='h-8 w-8' />
             </Avatar>
         )}
         <div className={`max-w-[70%] ${sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'} rounded-lg p-3`}>
+            {sender !== 'user' && (
+                <p className="text-xs font-semibold mb-1">
+                    {sender}
+                    {subject && <span className="text-muted-foreground"> about <span className="font-normal italic">{subject}</span></span>}
+                </p>
+            )}
             <p className="text-sm">{content}</p>
-            <span className="text-xs text-muted-foreground">{timestamp}</span>
+            <span className="text-xs text-muted-foreground block mt-1">{timestamp}</span>
         </div>
         {sender === 'user' && (
-            <Avatar className="ml-2">
-                <AvatarImage src={avatar} alt={sender} />
-                <AvatarFallback>U</AvatarFallback>
+            <Avatar className="ml-2 mt-1">
+                <RandomAvatar name="Administrator" className='h-8 w-8' />
             </Avatar>
         )}
     </div>
 );
+
 
 const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -69,12 +74,11 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
 };
 
 
-const DialogTab: React.FC = () => {
-    const { data } = useSimContext();
-
+// Update DialogTab to accept messages as a prop
+const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
     return (
-        <ScrollArea className="h-[calc(100vh-350px)]">
-            {data.publicMessages.map((msg, index) => (
+        <ScrollArea className="h-[calc(100vh-200px)] border-4 border-gray-100 rounded-md pl-2">
+            {messages.map((msg, index) => (
                 <ChatMessageBox key={index} {...msg} />
             ))}
         </ScrollArea>
@@ -218,13 +222,14 @@ const AgentStatusTab: React.FC = () => {
 };
 
 
-const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLogs: () => void }> = ({ logs, addLog, clearLogs }) => {
+const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLogs: () => void, setIsRunning: (isRunning: boolean) => void }> = ({ logs, addLog, clearLogs, setIsRunning }) => {
     const [command, setCommand] = useState('');
 
-    const handleCommand = () => {
+    const handleCommand = async () => {
+        setIsRunning(true);
         addLog(`> ${command}`);
         // Process command here
-        setCommand('');
+        await apis.sendCommand(command);
     };
 
     return (
@@ -259,27 +264,25 @@ const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLog
 
 export const InteractPage: React.FC = () => {
     const ctx = useSimContext();
-
     const [logs, setLogs] = useState<string[]>([]);
-    const [isRunning, setIsRunning] = useState(false);
-    const [privateChatAgent, setPrivateChatAgent] = useState<string>("");
 
+    const [isRunning, setIsRunning] = useState(true);
+    const [privateChatAgent, setPrivateChatAgent] = useState<string>("");
+    const [simRounds, setSimRounds] = useState<number>(1);
+
+    // New state for messages
+    const [publicMessages, setPublicMessages] = useState<ChatMessage[]>([]);
+    const [privateMessages, setPrivateMessages] = useState<Record<string, ChatMessage[]>>({});
 
     const addPublicMessage = (message: ChatMessage) => {
-        ctx.setData({
-            ...ctx.data,
-            publicMessages: [...ctx.data.publicMessages, message]
-        });
+        setPublicMessages(prevMessages => [...prevMessages, message]);
     };
 
     const addPrivateMessage = (agentName: string, message: ChatMessage) => {
-        ctx.setData({
-            ...ctx.data,
-            privateMessages: {
-                ...ctx.data.privateMessages,
-                [agentName]: [...(ctx.data.privateMessages[agentName] || []), message]
-            }
-        });
+        setPrivateMessages(prevMessages => ({
+            ...prevMessages,
+            [agentName]: [...(prevMessages[agentName] || []), message]
+        }));
     };
 
 
@@ -290,6 +293,34 @@ export const InteractPage: React.FC = () => {
     const clearLogs = () => {
         setLogs([]);
     };
+
+    const handleRunSimulation = async (rounds: number) => {
+        try {
+            setIsRunning(true);
+            await apis.runSim(rounds);
+        } catch (error) {
+            console.error("Error running simulation:", error);
+            // Handle the error, e.g., show an error message to the user
+        } finally {
+            setIsRunning(false);
+        }
+    };
+
+    useEffect(() => {
+        const checkStatus = async () => {
+            const status = await apis.queryStatus();
+            setIsRunning(status === 'running');
+        };
+
+        // Check status immediately on mount
+        checkStatus();
+
+        // Set up interval to check status
+        const intervalId = setInterval(checkStatus, 500); // Check every 5 seconds
+
+        // Clean up interval on unmount
+        return () => clearInterval(intervalId);
+    }, []);
 
 
     useEffect(() => {
@@ -331,8 +362,8 @@ export const InteractPage: React.FC = () => {
 
     useEffect(() => {
         // Create WebSocket connections when the component mounts
-        const newChatSocket = new WebSocket('ws://your-chat-websocket-url');
-        const newLogSocket = new WebSocket('ws://your-log-websocket-url');
+        const newChatSocket = apis.chatSocket();
+        const newLogSocket = apis.logSocket();
 
         // Update state with the new WebSocket instances
         setChatSocket(newChatSocket);
@@ -349,7 +380,6 @@ export const InteractPage: React.FC = () => {
 
     useEffect(() => {
         if (chatSocket) {
-            // Listen for messages from the chat WebSocket
             chatSocket.onmessage = (event) => {
                 const message: ChatMessage = JSON.parse(event.data);
 
@@ -364,13 +394,14 @@ export const InteractPage: React.FC = () => {
 
     useEffect(() => {
         if (logSocket) {
-            // Listen for messages from the log WebSocket
             logSocket.onmessage = (event) => {
-                const log = JSON.parse(event.data);
-                addLog(log.message);
+                console.log("Receive log data!!!")
+                console.log(event.data)
+                addLog(`• ${event.data}`);
             };
         }
     }, [logSocket]);
+
 
     // console.log(ctx.data)
     // const currentAgent = ctx.data.agents[privateChatAgent];
@@ -383,6 +414,7 @@ export const InteractPage: React.FC = () => {
         const handleSendMessage = async () => {
             if (message.trim()) {
                 try {
+                    setIsRunning(true);
                     const response = await apis.privateChat(simCode, agentName, chatType, message);
                     // Handle the response, e.g., update the chat messages
                     console.log(response);
@@ -402,12 +434,32 @@ export const InteractPage: React.FC = () => {
                         <Image className="h-4 w-4 mr-1" />
                         发布事件
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => setIsRunning(!isRunning)}>
-                        {isRunning ? '停止模拟' : '模拟1轮'}
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRunSimulation(1)}
+                        disabled={isRunning}
+                    >
+                        {isRunning ? '模拟中...' : '模拟1轮'}
                     </Button>
-                    <Button size="sm" variant="outline">
-                        9999
-                    </Button>
+                    <div className="flex items-center space-x-1">
+
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => { if (!isRunning) handleRunSimulation(simRounds) }}
+                            disabled={isRunning}
+                        >
+                            {isRunning ? '模拟中...' : `模拟${simRounds}轮`}
+                        </Button>
+                        <Input
+                            type="number"
+                            value={simRounds}
+                            onChange={(e) => setSimRounds(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-16 h-8"
+                            min="1"
+                        />
+                    </div>
                 </div>
                 <div className="flex w-full items-center space-x-2">
                     <Button size="icon" variant="outline">
@@ -430,7 +482,7 @@ export const InteractPage: React.FC = () => {
                         placeholder="说点什么..."
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                     />
                     <Button onClick={handleSendMessage}>
                         <Send className="h-4 w-4" />
@@ -456,7 +508,7 @@ export const InteractPage: React.FC = () => {
                             <TabsTrigger value="log"><FileText className="mr-2 h-4 w-4" />日志</TabsTrigger>
                         </TabsList>
                         <TabsContent value="dialog" className="flex-grow">
-                            <DialogTab />
+                            <DialogTab messages={publicMessages} />
                         </TabsContent>
                         <TabsContent value="map" className="flex-grow">
                             <MapTab />
@@ -465,10 +517,11 @@ export const InteractPage: React.FC = () => {
                             <AgentStatusTab />
                         </TabsContent>
                         <TabsContent value="log" className="flex-grow">
-                            <LogTab logs={logs} addLog={addLog} clearLogs={clearLogs} />
+                            <LogTab logs={logs} addLog={addLog} clearLogs={clearLogs} setIsRunning={setIsRunning} />
                         </TabsContent>
+
                     </Tabs>
-                    <StatusBar isRunning={true} />
+                    <StatusBar isRunning={isRunning} />
                 </div>
 
                 {/* Right panel with chat */}
@@ -501,8 +554,8 @@ export const InteractPage: React.FC = () => {
                             </DropdownMenu>
                         </CardHeader>
                         <CardContent className="flex-grow overflow-hidden">
-                            <ScrollArea className="h-[calc(100vh-350px)]">
-                                {privateChatAgent && ctx.data.privateMessages && ctx.data.privateMessages[privateChatAgent]?.map((msg, index) => (
+                            <ScrollArea className="h-[calc(100vh-350px)] px-4">
+                                {privateChatAgent && privateMessages[privateChatAgent]?.map((msg, index) => (
                                     <ChatMessageBox key={index} {...msg} />
                                 )) || (
                                         <p>No private messages with {privateChatAgent}</p>

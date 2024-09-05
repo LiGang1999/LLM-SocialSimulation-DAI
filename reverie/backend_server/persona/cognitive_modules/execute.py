@@ -8,11 +8,11 @@ Description: This defines the "Act" module for generative agents.
 import random
 import sys
 
-from utils import *
 from maze import OnlineMaze
 from memorynode import *
 from path_finder import *
 from persona.cognitive_modules.converse import *
+from utils import *
 from utils.config import *
 from utils.triggers import event_trigger
 
@@ -184,7 +184,7 @@ def execute_dai(persona, maze: OnlineMaze, retrived, plan, all_news):
             s = sub_retrived[event_name]["curr_event"].subject
             p = sub_retrived[event_name]["curr_event"].predicate
             o = sub_retrived[event_name]["curr_event"].object
-            event_trigger("agent_comment", {"name": persona.name, "content": comment})
+            event_trigger("agent_comment", {"name": persona.name, "content": comment, "subject" : s})
             memory_node = MemoryNode(persona.name, s, p, o, comment, True)
             maze.add_memory_to_event(event_name, memory_node)
         else:

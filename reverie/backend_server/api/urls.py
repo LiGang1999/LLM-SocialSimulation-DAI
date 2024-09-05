@@ -28,6 +28,7 @@ urlpatterns = [
     path("persona_detail", controls.persona_detail, name="persona_detail"),
     path("fetch_template/", controls.fetch_template, name="fetch_template"),
     path("publish_event/", controls.publish_event, name="publish_event"),
+    path("status/", controls.query_status, name="query_status"),
     path("chat/", controls.chat, name="chat"),
     path("run/", controls.run, name="run"),
     #

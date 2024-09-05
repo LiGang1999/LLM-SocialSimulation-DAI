@@ -327,5 +327,25 @@ export namespace apis {
         }
     };
 
+
+    export const queryStatus = async (): Promise<'running' | 'stopped' | 'started'> => {
+        try {
+            const response = await api.get('/status/');
+            return response.data.status;
+        } catch (error) {
+            console.error("Error querying status:", error);
+            throw error;
+        }
+    }
+
+    export const chatSocket = () => {
+        return new WebSocket(`ws://${apiBaseUrl}:${apiPort}/ws/chat`);
+    }
+
+    export const logSocket = () => {
+        return new WebSocket(`ws://${apiBaseUrl}:${apiPort}/ws/log`);
+    }
+
+
 }
 

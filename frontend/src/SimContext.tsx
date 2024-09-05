@@ -3,11 +3,13 @@ import { useLocalStorage, useSessionStorage } from "@uidotdev/usehooks";
 import { apis } from './lib/api';
 
 export interface ChatMessage {
-    sender: 'user' | 'agent';
+    sender: string;
+    role: string;
     type: 'public' | 'private';
     content: string;
     timestamp: string;
-    avatar: string;
+    subject: string;
+    // avatar: string;
 }
 
 export interface SimContext {

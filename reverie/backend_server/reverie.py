@@ -26,23 +26,38 @@ import math
 import os
 import pickle
 import shutil
+import threading
 import time
 import traceback
 from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
 
 import numpy
-from utils import *
 from institution import *
 from maze import *
 from memorynode import *
 from persona.persona import *
 from selenium import webdriver
+from utils import *
 from utils import config
 from utils.config import *
 from vector_db import *
 
-global_rs = None  # ???
+rs = None
+rs_lock = threading.Lock()
+
+
+def get_rs():
+    with rs_lock:
+        return rs
+
+
+def set_rs(new_rs):
+    global rs
+    with rs_lock:
+        rs = new_rs
+
+
 command_queue = Queue()
 online_relation = Queue()
 
@@ -222,6 +237,8 @@ class ReverieServer:
         # Check if all required fields in sim_config are populated
         missing_fields = []
 
+        self.is_running = False
+
         for field_name, field_value in vars(sim_config).items():
             if field_value is None or (isinstance(field_value, str) and field_value == ""):
                 missing_fields.append(field_name)
@@ -400,6 +417,7 @@ class ReverieServer:
         self.maze.need_stagely_planning = True  # extend planning cycle
 
         # Load all online events
+        self.is_running = True
         if self.sim_mode == "online":
             for event in sim_config.public_events:
                 self.load_online_event(
@@ -408,6 +426,10 @@ class ReverieServer:
                     websearch=event["websearch"],
                     access_list=event["access_list"],
                 )
+        self.is_running = False
+
+    # def is_running(self):
+    # return self.is_running
 
     def save(self):
         """
@@ -552,6 +574,7 @@ class ReverieServer:
         """
         # <sim_folder> points to the current simulation folder.
         sim_folder = f"{storage_path}/{self.sim_code}"
+        self.is_running = True
 
         # When a persona arrives at a game object, we give a unique event
         # to that object.
@@ -747,7 +770,9 @@ class ReverieServer:
         while True:
             # sim_command = input("Enter option: ")
             print("Enter option: ")
+            self.is_running = False
             sim_command = command_queue.get()
+            self.is_running = True
             print(sim_command)
             sim_command = sim_command.strip()
             ret_str = ""
@@ -893,7 +918,21 @@ class ReverieServer:
                         "analysis", self.maze.vbase, command_queue
                     )
                     # Do you want to run for mayor in the local election?
-                
+
+                elif "call -- chat to persona" in sim_command.lower():
+                    persona_name = sim_command[len("call -- chat to persona") :].strip()
+                    payload = json.loads(command_queue.get())
+                    mode = payload.get("mode", "analysis")
+                    prev_msgs = payload.get("prev_msgs", [])
+                    msg = payload.get("msg", "")
+
+                    retval = self.personas[persona_name].chat_to_persona(
+                        mode, self.maze.vbase, prev_msgs, msg
+                    )
+                    event_trigger(
+                        "chat_to_persona", {"mode": mode, "persona": persona_name, "reply": retval}
+                    )
+
                 elif "call -- whisper" in sim_command.lower():
                     # Starts a stateless chat session with the agent. It does not save
                     # anything to the agent's memory.
@@ -1081,10 +1120,10 @@ class ReverieServer:
 
 
 def start_sim(template_sim_name: str, sim_config: ReverieConfig):
-    global rs
-    rs = ReverieServer(template_sim_name, sim_config)
-    rs.start_server(sim_config.initial_rounds)
-    rs.open_server()
+    new_rs = ReverieServer(template_sim_name, sim_config)
+    set_rs(new_rs)
+    new_rs.start_server(sim_config.initial_rounds)
+    new_rs.open_server()
 
 
 if __name__ == "__main__":
@@ -1093,5 +1132,4 @@ if __name__ == "__main__":
     target = input("Enter the name of the new simulation: ").strip()
 
     rs = ReverieServer(origin, target)
-    global_rs = rs  #
     rs.open_server()

@@ -12,13 +12,13 @@ import sys
 
 sys.path.append("../")
 
-from utils import *
 from persona.cognitive_modules.base_sentiment import *
 from persona.cognitive_modules.retrieve import *
 from persona.memory_structures.associative_memory import *
 from persona.memory_structures.scratch import *
 from persona.memory_structures.spatial_memory import *
 from persona.prompt_template.run_gpt_prompt import *
+from utils import *
 
 
 def generate_agent_chat_summarize_ideas(init_persona, target_persona, retrieved, curr_context):
@@ -302,6 +302,40 @@ def load_history_via_whisper(personas, whispers):
             thought_embedding_pair,
             None,
         )
+
+
+def chat_to_persona(persona, convo_mode, vbase, prev_messages, message):
+    if convo_mode == "analysis":
+        interlocutor_desc = "Interviewer"
+
+        retrieved = new_retrieve(persona, [message], 50)[message]
+        summarized_idea = generate_summarize_ideas(persona, retrieved, message)
+        next_line = generate_next_line(
+            persona, interlocutor_desc, prev_messages, summarized_idea, vbase
+        )
+        return next_line
+    elif convo_mode == "whisper":
+        thought = generate_inner_thought(persona, message)
+        whisper = message
+        created = persona.scratch.curr_time
+        expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
+        s, p, o = generate_action_event_triple(thought, persona)
+        keywords = set([s, p, o])
+        thought_poignancy = generate_poig_score(persona, "event", whisper)
+        thought_embedding_pair = (thought, get_embedding(thought))
+        persona.a_mem.add_thought(
+            created,
+            expiration,
+            s,
+            p,
+            o,
+            thought,
+            keywords,
+            thought_poignancy,
+            thought_embedding_pair,
+            None,
+        )
+        return thought
 
 
 def open_convo_session(persona, convo_mode, vbase, input_queue):

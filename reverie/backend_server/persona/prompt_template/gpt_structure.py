@@ -299,6 +299,7 @@ def generate_prompt(curr_input, prompt_lib_file):
 def get_embedding(text, model="text-embedding-ada-002"):
 
     model = model if not override_model else override_model
+    model = "text-embedding-ada-002"
 
     text = text.replace("\n", " ")
     if not text:
