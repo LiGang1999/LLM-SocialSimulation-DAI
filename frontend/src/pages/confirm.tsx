@@ -5,6 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSimContext } from '@/SimContext';
 
+import start1 from '@/assets/template2.png';
+import chat from '@/assets/chat.png';
+import stf from '@/assets/start2.jpg'
+
 const truncateString = (str: string, num: number) => {
     if (str.length <= num) {
         return str;
@@ -21,31 +25,52 @@ export const ConfirmPage = () => {
 
     const { currentTemplate, llmConfig } = ctx.data;
 
+    const templateImage =
+        ctx.data.currSimCode === 'base_the_ville_isabella_maria_klaus_online' ? chat :
+            ctx.data.currSimCode === 'base_the_ville_isabella_maria_klaus' ? start1 :
+                ctx.data.currSimCode === 'base_the_ville_n25' ? stf :
+                    stf;
+
+
     const displayedAgents = currentTemplate.personas.slice(0, 4);
     const hasMoreAgents = currentTemplate.personas.length > 4;
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col bg-gray-100 min-h-screen">
             <Navbar />
-            <div className="container mx-auto">
+            <div className="container mx-auto ">
                 <h2 className="text-5xl font-bold my-12 text-left text-black-800">开始仿真</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
-                    <Card>
+                    <Card className="shadow-lg rounded-lg">
                         <CardHeader>
                             <CardTitle>模板信息</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <h3 className="font-semibold">{currentTemplate.meta.name}</h3>
-                            <img src="/api/placeholder/300/200" alt="模板图片" className="my-2 rounded-md" />
-                            <ul className="list-disc list-inside">
-                                {currentTemplate.meta.bullets.map((bullet, index) => (
-                                    <li key={index}>{bullet}</li>
-                                ))}
-                            </ul>
+                            <div className="flex flex-col md:flex-row items-start">
+                                {/* 左侧的文本信息 */}
+                                <div className="w-full md:w-1/2">
+                                    <h3 className="font-semibold">{currentTemplate.meta.name}</h3>
+                                    <ul className="list-disc list-inside">
+                                        {currentTemplate.meta.bullets.map((bullet, index) => (
+                                            <li key={index}>{bullet}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                {/* 右侧的图片，稍微放大图片尺寸 */}
+                                <div className="w-full md:w-1/2  md:ml-4 flex justify-center">
+                                    <img
+                                        src={templateImage}
+                                        alt="模板图片"
+                                        className="rounded-md"
+                                        style={{ maxWidth: '140px', height: 'auto' }}  // 将 maxWidth 设置为 120px
+                                    />
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
+
+                    <Card className="shadow-lg rounded-lg">
                         <CardHeader>
                             <CardTitle>智能体配置</CardTitle>
                         </CardHeader>
@@ -73,7 +98,7 @@ export const ConfirmPage = () => {
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="shadow-lg rounded-lg">
                         <CardHeader>
                             <CardTitle>方案设计</CardTitle>
                         </CardHeader>
@@ -89,7 +114,7 @@ export const ConfirmPage = () => {
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="shadow-lg rounded-lg">
                         <CardHeader>
                             <CardTitle>模型参数配置</CardTitle>
                         </CardHeader>

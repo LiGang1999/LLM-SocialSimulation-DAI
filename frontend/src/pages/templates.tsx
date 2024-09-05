@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from '@/components/Navbar';
 
-import start2 from '@/assets/start2.jpg';
+import start1 from '@/assets/template2.png';
+import chat from '@/assets/chat.png';
+import stf from '@/assets/start2.jpg'
+
 import { BottomNav } from '@/components/BottomNav';
 
 
@@ -11,7 +14,14 @@ import { apis } from '@/lib/api';
 
 // TODO Add background for this webpage
 const getTemplateImage = (template: apis.TemplateListItem) => {
-    return start2
+    if (template.template_sim_code === 'base_the_ville_isabella_maria_klaus_online') {
+        return chat;
+    } else if (template.template_sim_code === 'base_the_ville_isabella_maria_klaus') {
+        return start1;
+    }
+    else if (template.template_sim_code === 'base_the_ville_n25') {
+        return stf;
+    }
 }
 
 const mockTemplates: apis.TemplateListItem[] = [
