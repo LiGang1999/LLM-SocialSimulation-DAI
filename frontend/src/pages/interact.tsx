@@ -24,19 +24,18 @@ interface ChatMessage {
 }
 
 const ChatMessage: React.FC<ChatMessage> = ({ sender, content, timestamp, avatar }) => (
-    <div className={`flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4 items-end`}>
+    <div className={`flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}>
         {sender !== 'user' && (
-            <Avatar className="mr-2">
+            <Avatar className="mr-2 h-8 w-8">
                 <AvatarImage src={avatar} alt={sender} />
                 <AvatarFallback>{sender[0].toUpperCase()}</AvatarFallback>
             </Avatar>
         )}
-        <div className={`max-w-[70%] ${sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'} rounded-lg p-3`}>
-            <p className="text-sm">{content}</p>
-            <span className="text-xs text-muted-foreground">{timestamp}</span>
+        <div className={`max-w-[70%] ${sender === 'user' ? 'bg-[#FE2C55] text-white' : 'bg-[#F1F1F2] text-black'} rounded-2xl px-4 py-2`}>
+            <p className="text-sm leading-snug">{content}</p>
         </div>
         {sender === 'user' && (
-            <Avatar className="ml-2">
+            <Avatar className="ml-2 h-8 w-8">
                 <AvatarImage src={avatar} alt={sender} />
                 <AvatarFallback>U</AvatarFallback>
             </Avatar>
@@ -78,13 +77,17 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
 };
 
 
-const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => (
-    <ScrollArea className="h-[calc(100vh-350px)]">
-        {messages.map((msg, index) => (
-            <ChatMessage key={index} {...msg} />
-        ))}
-    </ScrollArea>
-);
+const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
+    return (
+        <ScrollArea className="h-[calc(100vh-350px)] px-4 bg-white">
+            <div className="space-y-2 py-4">
+                {messages.map((msg, index) => (
+                    <ChatMessage key={index} {...msg} />
+                ))}
+            </div>
+        </ScrollArea>
+    );
+};
 
 const MapTab: React.FC = () => {
     return <div id="phaser-container" />;

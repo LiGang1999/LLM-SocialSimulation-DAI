@@ -117,7 +117,7 @@ export const TemplatePage = () => {
 
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col bg-gray-100 min-h-screen">
             <Navbar />
             <main className="container flex-grow mx-auto">
                 <h2 className="text-5xl font-bold my-12 text-left text-black-800">选择仿真模板</h2>
