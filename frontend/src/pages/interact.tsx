@@ -8,22 +8,11 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, Paperclip, Trash2, MoreHorizontal, RefreshCw } from 'lucide-react';
-import { api, apiBaseUrl } from '@/lib/api';
+import { api, apiBaseUrl, apis } from '@/lib/api';
+import { ChatMessage, useSimContext } from '@/SimContext';
 
-interface Agent {
-    name: string;
-    avatar: string;
-    status: 'Online' | 'Offline' | 'Away';
-}
 
-interface ChatMessage {
-    sender: 'user' | 'agent';
-    content: string;
-    timestamp: string;
-    avatar: string;
-}
-
-const ChatMessage: React.FC<ChatMessage> = ({ sender, content, timestamp, avatar }) => (
+const ChatMessageBox: React.FC<ChatMessage> = ({ sender, content, timestamp, avatar }) => (
     <div className={`flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4 items-end`}>
         {sender !== 'user' && (
             <Avatar className="mr-2">
@@ -78,28 +67,25 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
 };
 
 
-const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => (
-    <ScrollArea className="h-[calc(100vh-350px)]">
-        {messages.map((msg, index) => (
-            <ChatMessage key={index} {...msg} />
-        ))}
-    </ScrollArea>
-);
+const DialogTab: React.FC = () => {
+    const { data } = useSimContext();
+
+    return (
+        <ScrollArea className="h-[calc(100vh-350px)]">
+            {data.publicMessages.map((msg, index) => (
+                <ChatMessageBox key={index} {...msg} />
+            ))}
+        </ScrollArea>
+    );
+};
+
 
 const MapTab: React.FC = () => {
     return <div id="phaser-container" />;
 };
 
-interface AgentStatus {
-    name: string;
-    avatar: string;
-    personality: string;
-    memory: string;
-    currentDoing: string;
-    plan: string;
-}
 
-const AgentStatusCard: React.FC<{ agent: AgentStatus }> = ({ agent }) => {
+const AgentStatusCard: React.FC<{ agent: apis.Agent }> = ({ agent }) => {
     const [expanded, setExpanded] = useState(false);
 
     return (
@@ -107,22 +93,26 @@ const AgentStatusCard: React.FC<{ agent: AgentStatus }> = ({ agent }) => {
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center space-x-4">
                     <Avatar>
-                        <AvatarImage src={agent.avatar} alt={agent.name} />
-                        <AvatarFallback>{agent.name[0]}</AvatarFallback>
+                        <AvatarImage src={agent.avatar} alt={`${agent.firstName} ${agent.lastName}`} />
+                        <AvatarFallback>{agent.firstName[0]}</AvatarFallback>
                     </Avatar>
-                    <h3 className="text-lg font-semibold">{agent.name}</h3>
+                    <h3 className="text-lg font-semibold">{`${agent.firstName} ${agent.lastName}`}</h3>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)}>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </CardHeader>
             <CardContent>
-                <p><strong>Personality:</strong> {agent.personality}</p>
-                <p><strong>Current Task:</strong> {agent.currentDoing}</p>
+                <p><strong>Age:</strong> {agent.age}</p>
+                <p><strong>Lifestyle:</strong> {agent.lifestyle}</p>
+                <p><strong>Currently:</strong> {agent.currently}</p>
                 {expanded && (
                     <>
-                        <p><strong>Memory:</strong> {agent.memory}</p>
-                        <p><strong>Plan:</strong> {agent.plan}</p>
+                        <p><strong>Memory:</strong> {agent.memory?.join(', ')}</p>
+                        <p><strong>Plan:</strong> {agent.plan?.join(', ')}</p>
+                        <p><strong>Bibliography:</strong> {agent.bibliography}</p>
+                        <p><strong>Innate Traits:</strong> {JSON.stringify(agent.innate)}</p>
+                        <p><strong>Learned Traits:</strong> {JSON.stringify(agent.learned)}</p>
                     </>
                 )}
             </CardContent>
@@ -137,7 +127,8 @@ const AgentStatusCard: React.FC<{ agent: AgentStatus }> = ({ agent }) => {
     );
 };
 
-const AgentStatusTab: React.FC<{ agents: AgentStatus[], fetchAgentStatus: () => void }> = ({ agents, fetchAgentStatus }) => (
+
+const AgentStatusTab: React.FC<{ agents: apis.Agent[], fetchAgentStatus: () => void }> = ({ agents, fetchAgentStatus }) => (
     <>
         <div className="flex justify-end mb-4">
             <Button onClick={fetchAgentStatus}>
@@ -192,48 +183,30 @@ const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLog
 };
 
 export const InteractPage: React.FC = () => {
-    const [selectedAgent, setSelectedAgent] = useState<Agent>({
-        name: "不加咖啡的奶茶",
-        avatar: "/api/placeholder/32/32",
-        status: "Online"
-    });
-
-    const [messages, setMessages] = useState<ChatMessage[]>([
-        { sender: 'agent', content: '你好!很近如何?', timestamp: '15:22', avatar: "/api/placeholder/32/32" },
-        { sender: 'user', content: '下周我有一场新工作面试,你有什么建议吗?', timestamp: '15:22', avatar: "/api/placeholder/32/32" },
-        { sender: 'agent', content: '完美的!我很高兴为你提供一些建议。', timestamp: '15:22', avatar: "/api/placeholder/32/32" },
-    ]);
-
-    const [agentStatus, setAgentStatus] = useState<AgentStatus[]>([
-        {
-            name: "Agent 1",
-            avatar: "/api/placeholder/32/32",
-            personality: "Friendly and helpful",
-            memory: "Remembers recent conversations",
-            currentDoing: "Assisting with customer inquiries",
-            plan: "Improve response time and accuracy"
-        },
-        // Add more agents as needed
-    ]);
+    const ctx = useSimContext();
 
     const [logs, setLogs] = useState<string[]>([]);
     const [isRunning, setIsRunning] = useState(false);
+    const [privateChatAgent, setPrivateChatAgent] = useState<string>("");
 
-    const agents: Agent[] = [
-        { name: "不加咖啡的奶茶", avatar: "/api/placeholder/32/32", status: "Online" },
-        { name: "Agent 2", avatar: "/api/placeholder/32/32", status: "Offline" },
-        { name: "Agent 3", avatar: "/api/placeholder/32/32", status: "Away" },
-    ];
 
-    const addChat = (sender: 'user' | 'agent', content: string) => {
-        const newMessage: ChatMessage = {
-            sender,
-            content,
-            timestamp: new Date().toLocaleTimeString(),
-            avatar: sender === 'user' ? "/api/placeholder/32/32" : selectedAgent.avatar
-        };
-        setMessages(prevMessages => [...prevMessages, newMessage]);
+    const addPublicMessage = (message: ChatMessage) => {
+        ctx.setData({
+            ...ctx.data,
+            publicMessages: [...ctx.data.publicMessages, message]
+        });
     };
+
+    const addPrivateMessage = (agentName: string, message: ChatMessage) => {
+        ctx.setData({
+            ...ctx.data,
+            privateMessages: {
+                ...ctx.data.privateMessages,
+                [agentName]: [...(ctx.data.privateMessages[agentName] || []), message]
+            }
+        });
+    };
+
 
     const addLog = (log: string) => {
         setLogs(prevLogs => [...prevLogs, log]);
@@ -279,8 +252,13 @@ export const InteractPage: React.FC = () => {
         if (chatSocket) {
             // Listen for messages from the chat WebSocket
             chatSocket.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                addChat(message.sender, message.content);
+                const message: ChatMessage = JSON.parse(event.data);
+
+                if (message.type === 'public') {
+                    addPublicMessage(message);
+                } else if (message.type === 'private') {
+                    addPrivateMessage(message.sender, message);
+                }
             };
         }
     }, [chatSocket]);
@@ -311,13 +289,13 @@ export const InteractPage: React.FC = () => {
                             <TabsTrigger value="log"><FileText className="mr-2 h-4 w-4" />日志</TabsTrigger>
                         </TabsList>
                         <TabsContent value="dialog" className="flex-grow">
-                            <DialogTab messages={messages} />
+                            <DialogTab />
                         </TabsContent>
                         <TabsContent value="map" className="flex-grow">
                             <MapTab />
                         </TabsContent>
                         <TabsContent value="ai" className="flex-grow">
-                            <AgentStatusTab agents={agentStatus} fetchAgentStatus={fetchAgentStatus} />
+                            <AgentStatusTab agents={ctx.data.agents} fetchAgentStatus={fetchAgentStatus} />
                         </TabsContent>
                         <TabsContent value="log" className="flex-grow">
                             <LogTab logs={logs} addLog={addLog} clearLogs={clearLogs} />
@@ -334,34 +312,37 @@ export const InteractPage: React.FC = () => {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="p-0 hover:bg-transparent">
                                         <Avatar>
-                                            <AvatarImage src={selectedAgent.avatar} alt={selectedAgent.name} />
-                                            <AvatarFallback>{selectedAgent.name[0]}</AvatarFallback>
+                                            <AvatarImage src={ctx.data.agents[privateChatAgent].avatar} alt={ctx.data.agents[privateChatAgent].name} />
+                                            <AvatarFallback>{ctx.data.agents[privateChatAgent].name[0]}</AvatarFallback>
                                         </Avatar>
                                         <div className="ml-2 text-left">
-                                            <h2 className="text-xl font-bold">{selectedAgent.name}</h2>
-                                            <p className="text-sm text-muted-foreground">{selectedAgent.status}</p>
+                                            <h2 className="text-xl font-bold">{ctx.data.agents[privateChatAgent].name}</h2>
+                                            {/* <p className="text-sm text-muted-foreground">{ctx.data.agents[privateChatAgent].status}</p> */}
                                         </div>
                                         <ChevronDown className="ml-2" />
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align='start'>
-                                    {agents.map((agent) => (
-                                        <DropdownMenuItem key={agent.name} onSelect={() => setSelectedAgent(agent)}>
+                                    {ctx.data.currentTemplate && ctx.data.currentTemplate.personas.map((persona: apis.Agent) => (
+                                        <DropdownMenuItem key={persona.name} onSelect={() => setPrivateChatAgent(persona.name)}>
                                             <Avatar className="mr-2">
-                                                <AvatarImage src={agent.avatar} alt={agent.name} />
-                                                <AvatarFallback>{agent.name[0]}</AvatarFallback>
+                                                <AvatarImage src={persona.avatar} alt={`${persona.firstName} ${persona.lastName}`} />
+                                                <AvatarFallback>{persona.firstName[0]}</AvatarFallback>
                                             </Avatar>
-                                            <span>{agent.name}</span>
+                                            <span>{`${persona.firstName} ${persona.lastName}`}</span>
                                         </DropdownMenuItem>
                                     ))}
                                 </DropdownMenuContent>
+
                             </DropdownMenu>
                         </CardHeader>
                         <CardContent className="flex-grow overflow-hidden">
                             <ScrollArea className="h-[calc(100vh-350px)]">
-                                {messages.map((msg, index) => (
-                                    <ChatMessage key={index} {...msg} />
-                                ))}
+                                {ctx.data.privateMessages[selectedAgent.name]?.map((msg, index) => (
+                                    <ChatMessageBox key={index} {...msg} />
+                                )) || (
+                                        <p>No private messages with {selectedAgent.name}</p>
+                                    )}
                             </ScrollArea>
                         </CardContent>
                         <CardFooter className="p-4 flex-col">

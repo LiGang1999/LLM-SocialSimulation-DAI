@@ -27,10 +27,6 @@ export namespace apis {
         learned: string;
     }
 
-    export interface AgentStatus {
-
-    }
-
     export interface Meta {
         template_sim_code: string;
         name: string;
