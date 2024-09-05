@@ -52,12 +52,12 @@ export namespace apis {
         dailyPlanReq: string;
         innate: any;
         learned: any;
-        currently: string;
-        lifestyle: string;
-        livingArea: string;
-        plan: string[];
-        memory: string[];
-        bibliography: string;
+        currently: string | undefined;
+        lifestyle: string | undefined;
+        livingArea: string | undefined;
+        plan: string[] | undefined;
+        memory: string[] | undefined;
+        bibliography: string | undefined;
     }
 
     export interface LLMConfig {
@@ -178,7 +178,7 @@ export namespace apis {
         }
     };
 
-    export const agentsInfo = async (): Promise<AgentStatus[]> => {
+    export const agentsInfo = async (): Promise<Agent[]> => {
         try {
             const response = await api.get('/agents_info/');
             return response.data;

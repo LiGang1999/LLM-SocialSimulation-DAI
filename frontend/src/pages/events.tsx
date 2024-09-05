@@ -20,12 +20,31 @@ export interface Event {
 export const EventsPage = () => {
     const ctx = useSimContext();
 
-    const [experimentName, setExperimentName] = useState('');
-    const [replicateCount, setReplicateCount] = useState('');
+    const [experimentName, setExperimentName] = useState(ctx.data.currSimCode || '');
+    const [replicateCount, setReplicateCount] = useState(ctx.data.initialRounds?.toString() || '');
     const [events, setEvents] = useState<Event[] | undefined>(
         ctx.data.currentTemplate?.events
     );
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+
+    const updateExperimentName = (value: string) => {
+        setExperimentName(value);
+        ctx.setData({
+            ...ctx.data,
+            currSimCode: value
+        });
+    };
+
+    const updateReplicateCount = (value: string) => {
+        setReplicateCount(value);
+        const numValue = parseInt(value, 10);
+        if (!isNaN(numValue)) {
+            ctx.setData({
+                ...ctx.data,
+                initialRounds: numValue
+            });
+        }
+    };
 
     const addNewEvent = () => {
         const newEvent: Event = {
@@ -35,10 +54,26 @@ export const EventsPage = () => {
             description: '',
         };
         setEvents([...events || [], newEvent]);
+        ctx.setData(
+            {
+                ...ctx.data,
+                currentTemplate: ctx.data.currentTemplate ? {
+                    ...ctx.data.currentTemplate,
+                    events: [...events || [], newEvent]
+                } : undefined
+            }
+        )
     };
 
     const removeEvent = (name: string) => {
         setEvents(events?.filter(event => event.name !== name));
+        ctx.setData({
+            ...ctx.data,
+            currentTemplate: ctx.data.currentTemplate ? {
+                ...ctx.data.currentTemplate,
+                events: ctx.data.currentTemplate?.events.filter(event => event.name !== name) || []
+            } : undefined
+        })
         if (selectedEvent && selectedEvent.name === name) {
             setSelectedEvent(null);
         }
@@ -49,6 +84,14 @@ export const EventsPage = () => {
             const updatedEvent = { ...selectedEvent, [field]: value };
             setSelectedEvent(updatedEvent);
             setEvents(events?.map(e => e.name === selectedEvent.name ? updatedEvent : e));
+
+            ctx.setData({
+                ...ctx.data,
+                currentTemplate: ctx.data.currentTemplate ? {
+                    ...ctx.data.currentTemplate,
+                    events: events?.map(e => e.name === selectedEvent.name ? updatedEvent : e) || []
+                } : undefined
+            })
         }
     };
 
@@ -93,7 +136,7 @@ export const EventsPage = () => {
                                         <Input
                                             id="experimentName"
                                             value={experimentName}
-                                            onChange={(e) => setExperimentName(e.target.value)}
+                                            onChange={(e) => updateExperimentName(e.target.value)}
                                             placeholder="请输入实验名称"
                                             className="w-full"
                                         />
@@ -105,7 +148,7 @@ export const EventsPage = () => {
                                             <Input
                                                 id="replicateCount"
                                                 value={replicateCount}
-                                                onChange={(e) => setReplicateCount(e.target.value)}
+                                                onChange={(e) => updateReplicateCount(e.target.value)}
                                                 placeholder="请输入仿真轮数"
                                                 className="mr-2"
                                             />

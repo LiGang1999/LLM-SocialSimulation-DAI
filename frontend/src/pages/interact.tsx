@@ -60,7 +60,7 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
             </div>
             {isRunning && (
                 <div className="flex items-center space-x-2 flex-grow mx-16">
-                    <span className="text-sm text-nowrap">Running simulation...</span>
+                    <span className="text-sm text-nowrap ">仿真正在运行，请稍等...</span>
                     <div className="w-full bg-primary/20 rounded-full h-2 overflow-hidden">
                         <div
                             className="bg-primary h-full rounded-full animate-stripe"

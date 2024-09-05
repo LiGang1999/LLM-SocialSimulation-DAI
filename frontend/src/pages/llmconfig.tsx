@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,25 +11,32 @@ import '@/App.css'
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 
+const defaultConfig: apis.LLMConfig = {
+    type: 'default',
+    baseUrl: 'https://api.openai.com/v1',
+    key: '',
+    engine: 'gpt-3.5-turbo',
+    temperature: 0.7,
+    maxTokens: 512,
+    topP: 0.7,
+    freqPenalty: 0,
+    presPenalty: 0,
+    stream: false,
+};
 
 export const ConfigPage = () => {
     const ctx = useSimContext();
-
-    const [temperature, setTemperature] = useState(0.7);
-    const [topP, setTopP] = useState(0.7);
-    const [frequencyPenalty, setFrequencyPenalty] = useState(0);
-    const [presencePenalty, setPresencePenalty] = useState(0);
+    const [config, setConfig] = useState<apis.LLMConfig>(ctx.data.llmConfig || defaultConfig);
 
     useEffect(() => {
         const fetchTemplates = async () => {
             try {
                 if (ctx.data.currSimCode && !ctx.data.currentTemplate) {
-                    // should fetch the template data!
                     const templateData = await apis.fetchTemplate(ctx.data.currSimCode);
                     ctx.setData({
                         ...ctx.data,
                         currentTemplate: templateData
-                    })
+                    });
                 }
             } catch (err) {
                 console.error("Failed to fetch template detail:", err);
@@ -37,8 +44,13 @@ export const ConfigPage = () => {
         }
 
         fetchTemplates();
-    }, [])
+    }, []);
 
+    const updateConfig = (key: keyof apis.LLMConfig, value: any) => {
+        const newConfig = { ...config, [key]: value };
+        setConfig(newConfig);
+        ctx.setData({ ...ctx.data, llmConfig: newConfig });
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
@@ -49,7 +61,7 @@ export const ConfigPage = () => {
                     <CardContent className="space-y-6 my-4">
                         <div className="space-y-2">
                             <Label htmlFor="configType">Configuration Type</Label>
-                            <Select defaultValue="default">
+                            <Select value={config.type} onValueChange={(value) => updateConfig('type', value)}>
                                 <SelectTrigger id="configType">
                                     <SelectValue placeholder="Select configuration type" />
                                 </SelectTrigger>
@@ -63,22 +75,38 @@ export const ConfigPage = () => {
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="apiBase">API Base</Label>
-                                <Input id="apiBase" placeholder="https://api.openai.com/v1" />
+                                <Input
+                                    id="apiBase"
+                                    value={config.baseUrl}
+                                    onChange={(e) => updateConfig('baseUrl', e.target.value)}
+                                    placeholder="https://api.openai.com/v1"
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="apiKey">API Key</Label>
-                                <Input id="apiKey" type="password" placeholder="Your API key" />
+                                <Input
+                                    id="apiKey"
+                                    type="password"
+                                    value={config.key}
+                                    onChange={(e) => updateConfig('key', e.target.value)}
+                                    placeholder="Your API key"
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="engine">Engine</Label>
-                                <Input id="engine" placeholder="e.g., gpt-3.5-turbo" />
+                                <Input
+                                    id="engine"
+                                    value={config.engine}
+                                    onChange={(e) => updateConfig('engine', e.target.value)}
+                                    placeholder="e.g., gpt-3.5-turbo"
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="temperature">Temperature: {temperature.toFixed(1)}</Label>
+                                <Label htmlFor="temperature">Temperature: {config.temperature.toFixed(1)}</Label>
                                 <Slider
                                     id="temperature"
-                                    value={[temperature]}
-                                    onValueChange={(value) => setTemperature(value[0])}
+                                    value={[config.temperature]}
+                                    onValueChange={(value) => updateConfig('temperature', value[0])}
                                     max={1}
                                     step={0.1}
                                     className="w-full"
@@ -86,25 +114,31 @@ export const ConfigPage = () => {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="maxTokens">Max Tokens</Label>
-                                <Input id="maxTokens" type="number" placeholder="512" />
+                                <Input
+                                    id="maxTokens"
+                                    type="number"
+                                    value={config.maxTokens}
+                                    onChange={(e) => updateConfig('maxTokens', parseInt(e.target.value))}
+                                    placeholder="512"
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="topP">Top P: {topP.toFixed(1)}</Label>
+                                <Label htmlFor="topP">Top P: {config.topP.toFixed(1)}</Label>
                                 <Slider
                                     id="topP"
-                                    value={[topP]}
-                                    onValueChange={(value) => setTopP(value[0])}
+                                    value={[config.topP]}
+                                    onValueChange={(value) => updateConfig('topP', value[0])}
                                     max={1}
                                     step={0.1}
                                     className="w-full"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="frequencyPenalty">Frequency Penalty: {frequencyPenalty.toFixed(1)}</Label>
+                                <Label htmlFor="frequencyPenalty">Frequency Penalty: {config.freqPenalty.toFixed(1)}</Label>
                                 <Slider
                                     id="frequencyPenalty"
-                                    value={[frequencyPenalty]}
-                                    onValueChange={(value) => setFrequencyPenalty(value[0])}
+                                    value={[config.freqPenalty]}
+                                    onValueChange={(value) => updateConfig('freqPenalty', value[0])}
                                     min={-2}
                                     max={2}
                                     step={0.1}
@@ -112,11 +146,11 @@ export const ConfigPage = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="presencePenalty">Presence Penalty: {presencePenalty.toFixed(1)}</Label>
+                                <Label htmlFor="presencePenalty">Presence Penalty: {config.presPenalty.toFixed(1)}</Label>
                                 <Slider
                                     id="presencePenalty"
-                                    value={[presencePenalty]}
-                                    onValueChange={(value) => setPresencePenalty(value[0])}
+                                    value={[config.presPenalty]}
+                                    onValueChange={(value) => updateConfig('presPenalty', value[0])}
                                     min={-2}
                                     max={2}
                                     step={0.1}
@@ -124,7 +158,11 @@ export const ConfigPage = () => {
                                 />
                             </div>
                             <div className="flex items-center space-x-2">
-                                <Checkbox id="stream" />
+                                <Checkbox
+                                    id="stream"
+                                    checked={config.stream}
+                                    onCheckedChange={(checked) => updateConfig('stream', checked)}
+                                />
                                 <Label htmlFor="stream">Enable streaming</Label>
                             </div>
                         </div>

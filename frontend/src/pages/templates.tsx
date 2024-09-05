@@ -85,15 +85,23 @@ export const TemplatePage = () => {
         };
 
         fetchTemplates();
+
+        if (ctx.data.currSimCode) {
+            setSelectedTemplate(ctx.data.currSimCode)
+        }
     }, []);
 
     const handleSelectTemplate = (templateCode: string) => {
         ctx.setData({
             ...ctx.data,
-            currentTemplate: templateCode == ctx.data.currSimCode ? ctx.data.currentTemplate : null,
+            currentTemplate: undefined,
             currSimCode: templateCode
         })
-        setSelectedTemplate(templateCode === selectedTemplate ? null : templateCode);
+        setSelectedTemplate(templateCode);
+        ctx.setData({
+            ...ctx.data,
+            currSimCode: templateCode
+        })
     };
 
 

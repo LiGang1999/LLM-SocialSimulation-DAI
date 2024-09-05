@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import App from './App.tsx';
 import DashboardPage from './pages/dashboard.tsx';
 import { TabsDemo } from './pages/tabsdemo.tsx';
@@ -19,7 +19,9 @@ createRoot(document.getElementById('root')!).render(
     <SimContextProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<App />} />
+          <Route path="/" element={
+            <Navigate to="/welcome" replace />
+          } />
           <Route path="/confirm" element={<ConfirmPage />} />
           <Route path="/llmconfig" element={<ConfigPage />} />
           <Route path="/templates" element={<TemplatePage />} />
