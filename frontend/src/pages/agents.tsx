@@ -16,52 +16,75 @@ const mockAgents: (apis.Agent & { id: number })[] = [
     {
         id: 1,
         name: 'Isabella Rodriguez',
-        firstName: 'Isabella',
-        lastName: 'Rodriguez',
+        first_name: 'Isabella',
+        last_name: 'Rodriguez',
         age: 34,
-        dailyPlanReq: 'Isabella Rodriguez opens Hobbs Cafe at 8am everyday, and works at the counter until 8pm, at which point she closes the cafe.',
+        daily_plan_req: 'Isabella Rodriguez opens Hobbs Cafe at 8am everyday, and works at the counter until 8pm, at which point she closes the cafe.',
+        daily_req: [],
+        f_daily_schedule: [],
+        f_daily_schedule_hourly_org: [],
         innate: 'friendly, outgoing, hospitable',
         learned: 'Isabella Rodriguez is a cafe owner of Hobbs Cafe who loves to make people feel welcome. She is always looking for ways to make the cafe a place where people can come to relax and enjoy themselves. She is concerned with environmental issues and big global events, although she does not have professional knowledge in these areas.',
-        currently: undefined,
+        currently: '',
         lifestyle: 'Busy cafe owner, health-conscious',
-        livingArea: 'Small apartment above Hobbs Cafe',
-        plan: undefined,
-        memory: undefined,
-        bibliography: 'Local business owner, community pillar'
+        living_area: 'Small apartment above Hobbs Cafe',
+        plan: [],
+        memory: [],
+        bibliography: 'Local business owner, community pillar',
+        act_event: [''],
+        act_obj_event: [],
+        act_path_set: false,
+        planned_path: [],
+        chatting_with_buffer: {}
     },
-    // Add more mock agents if needed
     {
         id: 2,
         name: 'Marcus Chen',
-        firstName: 'Marcus',
-        lastName: 'Chen',
+        first_name: 'Marcus',
+        last_name: 'Chen',
         age: 28,
-        dailyPlanReq: 'Marcus Chen starts his day at 7am with a morning run. He works as a software developer from 9am to 6pm, with a lunch break at noon. After work, he often attends local tech meetups or works on personal coding projects until around 10pm.',
+        daily_plan_req: 'Marcus Chen starts his day at 7am with a morning run. He works as a software developer from 9am to 6pm, with a lunch break at noon. After work, he often attends local tech meetups or works on personal coding projects until around 10pm.',
+        daily_req: [],
+        f_daily_schedule: [],
+        f_daily_schedule_hourly_org: [],
         innate: 'analytical, introverted, creative',
-        learned: 'Marcus Chen is a talented software developer who specializes in AI and machine learning. He\'s passionate about technology and its potential to solve complex problems.He\'s also an advocate for open - source software and contributes to several projects in his free time.',
-        currently: undefined,
+        learned: 'Marcus Chen is a talented software developer who specializes in AI and machine learning. He\'s passionate about technology and its potential to solve complex problems. He\'s also an advocate for open-source software and contributes to several projects in his free time.',
+        currently: '',
         lifestyle: 'Tech-savvy, fitness enthusiast',
-        livingArea: 'Modern studio apartment in the city center',
-        plan: undefined,
-        memory: undefined,
-        bibliography: 'Rising star in the local tech scene'
+        living_area: 'Modern studio apartment in the city center',
+        plan: [],
+        memory: [],
+        bibliography: 'Rising star in the local tech scene',
+        act_event: [''],
+        act_obj_event: [],
+        act_path_set: false,
+        planned_path: [],
+        chatting_with_buffer: {}
     },
     {
         id: 3,
         name: 'Aisha Patel',
-        firstName: 'Aisha',
-        lastName: 'Patel',
+        first_name: 'Aisha',
+        last_name: 'Patel',
         age: 42,
-        dailyPlanReq: 'Aisha Patel begins her day at 6am with yoga and meditation. She sees patients at her clinic from 9am to 5pm, with a break for lunch and paperwork. In the evenings, she often volunteers at a local community health center or attends medical conferences.',
+        daily_plan_req: 'Aisha Patel begins her day at 6am with yoga and meditation. She sees patients at her clinic from 9am to 5pm, with a break for lunch and paperwork. In the evenings, she often volunteers at a local community health center or attends medical conferences.',
+        daily_req: [],
+        f_daily_schedule: [],
+        f_daily_schedule_hourly_org: [],
         innate: 'empathetic, detail-oriented, calm',
-        learned: 'Aisha Patel is a respected pediatrician with over 15 years of experience. She\'s known for her holistic approach to healthcare, combining Western medicine with traditional practices.She\'s actively involved in public health initiatives and regularly gives talks on child nutrition and preventive care.',
-        currently: undefined,
+        learned: 'Aisha Patel is a respected pediatrician with over 15 years of experience. She\'s known for her holistic approach to healthcare, combining Western medicine with traditional practices. She\'s actively involved in public health initiatives and regularly gives talks on child nutrition and preventive care.',
+        currently: '',
         lifestyle: 'Health-focused, community-oriented',
-        livingArea: 'Spacious family home in a quiet suburb',
-        plan: undefined,
-        memory: undefined,
-        bibliography: 'Renowned pediatrician and public health advocate'
-    },
+        living_area: 'Spacious family home in a quiet suburb',
+        plan: [],
+        memory: [],
+        bibliography: 'Renowned pediatrician and public health advocate',
+        act_event: [''],
+        act_obj_event: [],
+        act_path_set: false,
+        planned_path: [],
+        chatting_with_buffer: {}
+    }
 ];
 
 export const AgentsPage = () => {
@@ -142,7 +165,7 @@ export const AgentsPage = () => {
         const existingNumbers = agents
             .map(a => a.name.match(/智能体 (\d+)/))
             .filter(Boolean)
-            .map(match => parseInt(match[1], 10));
+            .map(match => parseInt((match || "")[1], 10));
         const highestNumber = Math.max(...existingNumbers, 0);
         const newNumber = highestNumber + 1;
 
@@ -151,19 +174,37 @@ export const AgentsPage = () => {
         const newAgent: apis.Agent & { id: number } = {
             id: newId,
             name: newName,
-            firstName: newName,
-            lastName: '',
+            first_name: newName.split(' ')[0],  // Assuming newName might include a last name
+            last_name: newName.split(' ').slice(1).join(' ') || '',  // Get last name if exists
             age: 0,
-            dailyPlanReq: '',
+            daily_plan_req: '',
+            daily_req: [],
+            f_daily_schedule: [],
+            f_daily_schedule_hourly_org: [],
             innate: '',
             learned: '',
-            currently: undefined,
+            currently: '',
             lifestyle: '',
-            livingArea: '',
-            plan: undefined,
-            memory: undefined,
-            bibliography: ''
+            living_area: '',
+            plan: [],
+            memory: [],
+            bibliography: '',
+            act_event: ['', '', ''],
+            act_obj_event: ['', '', ''],
+            act_path_set: false,
+            act_address: '',
+            act_description: '',
+            act_duration: '',
+            act_start_time: '',
+            act_obj_description: '',
+            act_obj_pronunciatio: '',
+            act_pronunciatio: '',
+            chatting_with_buffer: {},
+            planned_path: [],  // This was missing in the original object
+            curr_time: 0,  // Added with a default value
+            curr_tile: '',  // Added with a default value
         };
+
         const updatedAgents = [...agents, newAgent];
         setAgents(updatedAgents);
         setSelectedAgentId(newId);
@@ -218,8 +259,8 @@ export const AgentsPage = () => {
                                                 onClick={() => handleAgentSelect(agent.id)}
                                             >
                                                 <div className="flex items-center space-x-4">
-                                                    <RandomAvatar className="h-10 w-10" name={`${agent.firstName} ${agent.lastName}`} />
-                                                    <span className="font-medium">{`${agent.firstName} ${agent.lastName}`}</span>
+                                                    <RandomAvatar className="h-10 w-10" name={`${agent.first_name} ${agent.last_name}`} />
+                                                    <span className="font-medium">{`${agent.first_name} ${agent.last_name}`}</span>
                                                 </div>
                                             </Button>
                                         ))}
@@ -237,7 +278,7 @@ export const AgentsPage = () => {
                                             <div className="flex items-center space-x-4">
                                                 <RandomAvatar
                                                     className="h-[80px] w-[80px]"
-                                                    name={`${agents.find(a => a.id === localAgent.id)?.firstName} ${agents.find(a => a.id === localAgent.id)?.lastName}`}
+                                                    name={`${agents.find(a => a.id === localAgent.id)?.first_name} ${agents.find(a => a.id === localAgent.id)?.last_name}`}
                                                 />
                                                 <h2 className="text-2xl font-bold">{agents.find(a => a.id === localAgent.id)?.name}</h2>
                                             </div>
@@ -245,11 +286,11 @@ export const AgentsPage = () => {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">名字</label>
-                                                <Input name="firstName" value={localAgent.firstName} onChange={handleInputChange} placeholder="名字" className="w-full" />
+                                                <Input name="firstName" value={localAgent.first_name} onChange={handleInputChange} placeholder="名字" className="w-full" />
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">姓氏</label>
-                                                <Input name="lastName" value={localAgent.lastName} onChange={handleInputChange} placeholder="姓氏" className="w-full" />
+                                                <Input name="lastName" value={localAgent.last_name} onChange={handleInputChange} placeholder="姓氏" className="w-full" />
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">年龄</label>
@@ -262,7 +303,7 @@ export const AgentsPage = () => {
                                         </div>
                                         <div className="mt-4">
                                             <label className="block text-sm font-medium text-gray-700 mb-1">日常计划要求</label>
-                                            <AutoResizeTextarea name="dailyPlanReq" value={localAgent.dailyPlanReq} onChange={handleInputChange} placeholder="日常计划要求" className="w-full h-20" />
+                                            <AutoResizeTextarea name="dailyPlanReq" value={localAgent.daily_plan_req} onChange={handleInputChange} placeholder="日常计划要求" className="w-full h-20" />
                                         </div>
                                         <div className="mt-4">
                                             <label className="block text-sm font-medium text-gray-700 mb-1">固有特征</label>
@@ -274,7 +315,7 @@ export const AgentsPage = () => {
                                         </div>
                                         <div className="mt-4">
                                             <label className="block text-sm font-medium text-gray-700 mb-1">居住区域</label>
-                                            <Input name="livingArea" value={localAgent.livingArea} onChange={handleInputChange} placeholder="居住区域" className="w-full" />
+                                            <Input name="livingArea" value={localAgent.living_area} onChange={handleInputChange} placeholder="居住区域" className="w-full" />
                                         </div>
                                         <div className="mt-4">
                                             <label className="block text-sm font-medium text-gray-700 mb-1">个人简介</label>

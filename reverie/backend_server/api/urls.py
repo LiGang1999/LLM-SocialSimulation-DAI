@@ -24,8 +24,11 @@ urlpatterns = [
     path("command/", controls.add_command, name="add_command"),
     path("fetch_templates/", controls.fetch_templates, name="fetch_templates"),
     path("persona/", controls.get_persona, name="persona"),
+    path("personas_info", controls.personas_info, name="personas_info"),
+    path("persona_detail", controls.persona_detail, name="persona_detail"),
     path("fetch_template/", controls.fetch_template, name="fetch_template"),
     path("publish_event/", controls.publish_event, name="publish_event"),
+    path("chat/", controls.chat, name="chat"),
     path("run/", controls.run, name="run"),
     #
     # The following are migrated from the original frontend server

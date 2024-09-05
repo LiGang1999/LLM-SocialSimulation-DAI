@@ -886,13 +886,22 @@ class ReverieServer:
                     # Starts a stateless chat session with the agent. It does not save
                     # anything to the agent's memory.
                     # Ex: call -- analysis Isabella Rodriguez
-                    persona_name = sim_command[
-                        len("call -- analysis") :
-                    ].strip()  # Do you support Isabella Rodriguez as mayor?
+                    persona_name = sim_command[len("call -- analysis") :].strip()
+                    # Do you support Isabella Rodriguez as mayor?
                     # self.personas[persona_name].open_convo_session("analysis")#Do you want to run for mayor in the local election?
                     self.personas[persona_name].open_convo_session(
                         "analysis", self.maze.vbase, command_queue
-                    )  # Do you want to run for mayor in the local election?
+                    )
+                    # Do you want to run for mayor in the local election?
+                
+                elif "call -- whisper" in sim_command.lower():
+                    # Starts a stateless chat session with the agent. It does not save
+                    # anything to the agent's memory.
+                    # Ex: call -- whisper Isabella Rodriguez
+                    persona_name = sim_command[len("call -- whisper") :].strip()
+                    self.personas[persona_name].open_convo_session(
+                        "whisper", self.maze.vbase, command_queue
+                    )
 
                 elif "call -- load history" in sim_command.lower():
                     curr_file = (

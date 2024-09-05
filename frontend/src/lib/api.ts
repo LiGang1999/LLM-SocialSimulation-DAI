@@ -41,20 +41,83 @@ export namespace apis {
         step: number;
     }
 
+
+    // An Agent interface contains:
+    // {
+    //     "curr_time": null,
+    //     "curr_tile": null,
+    //     "daily_plan_req": "Isabella Rodriguez opens Hobbs Cafe at 8am everyday, and works at the counter until 8pm, at which point she closes the cafe.",
+    //     "name": "Isabella Rodriguez",
+    //     "first_name": "Isabella",
+    //     "last_name": "Rodriguez",
+    //     "age": 34,
+    //     "innate": "friendly, outgoing, hospitable",
+    //     "learned": "Isabella Rodriguez is a cafe owner of Hobbs Cafe who loves to make people feel welcome. She is always looking for ways to make the cafe a place where people can come to relax and enjoy themselves. She is concerned with environmental issues and big global events, although she does not have professional knowledge in these areas.",
+    //     "currently": "Isabella Rodriguez is participating in online discussions. Although not an expert, Isabella is expressing her concerns and personal ideas as a regular citizen who cares about the environment and country and is seeking to understand the impact of these events.",
+    //     "lifestyle": "Isabella Rodriguez goes to bed around 11pm, awakes up around 6am.",
+    //     "living_area": "the Ville:Isabella Rodriguez's apartment:main room",
+    //     "daily_req": [],
+    //     "f_daily_schedule": [],
+    //     "f_daily_schedule_hourly_org": [],
+    //     "act_address": null,
+    //     "act_start_time": null,
+    //     "act_duration": null,
+    //     "act_description": null,
+    //     "act_pronunciatio": null,
+    //     "act_event": [
+    //       "Isabella Rodriguez",
+    //       null,
+    //       null
+    //     ],
+    //     "act_obj_description": null,
+    //     "act_obj_pronunciatio": null,
+    //     "act_obj_event": [
+    //       null,
+    //       null,
+    //       null
+    //     ],
+    //     "chatting_with": null,
+    //     "chat": null,
+    //     "chatting_with_buffer": {},
+    //     "chatting_end_time": null,
+    //     "act_path_set": false,
+    //     "planned_path": []
+    //   }
     export interface Agent {
+        curr_time?: number;
+        curr_tile?: string;
+        daily_plan_req: string;
         name: string;
-        firstName: string;
-        lastName: string;
+        first_name: string;
+        last_name: string;
         age: number;
-        dailyPlanReq: string;
-        innate: any;
-        learned: any;
-        currently: string | undefined;
-        lifestyle: string | undefined;
-        livingArea: string | undefined;
-        plan: string[] | undefined;
-        memory: string[] | undefined;
-        bibliography: string | undefined;
+        innate: string;
+        learned: string;
+        currently?: string;
+        lifestyle?: string;
+        living_area?: string;
+        daily_req: string[];
+        f_daily_schedule: string[];
+        f_daily_schedule_hourly_org: string[];
+        act_address?: string;
+        act_start_time?: string;
+        act_duration?: string;
+        act_description?: string;
+        act_pronunciatio?: string;
+        act_event: [string, string?, string?];
+        act_obj_description?: string;
+        act_obj_pronunciatio?: string;
+        act_obj_event: [string?, string?, string?];
+        chatting_with?: string;
+        chat?: string;
+        chatting_with_buffer: Record<string, string>;
+        chatting_end_time?: string;
+        act_path_set: boolean;
+        planned_path: string[];
+        avatar?: string;
+        plan?: string[];
+        memory?: string[];
+        bibliography?: string;
     }
 
     export interface LLMConfig {
@@ -112,20 +175,41 @@ export namespace apis {
                     description: event.description,
                 })),
                 personas: Object.values(personas).map(persona => ({
+                    curr_time: undefined,
+                    curr_tile: undefined,
+                    daily_plan_req: persona.daily_plan_req,
                     name: persona.name,
-                    firstName: persona.first_name,
-                    lastName: persona.last_name,
+                    first_name: persona.first_name,
+                    last_name: persona.last_name,
                     age: persona.age,
-                    avatar: persona.avatar,
-                    dailyPlanReq: persona.daily_plan_req,
                     innate: persona.innate,
                     learned: persona.learned,
                     currently: persona.currently,
                     lifestyle: persona.lifestyle,
-                    livingArea: persona.living_area,
-                    plan: persona.plan,
-                    memory: persona.memory,
-                    bibliography: persona.bibliography,
+                    living_area: persona.living_area,
+                    daily_req: [],
+                    f_daily_schedule: [],
+                    f_daily_schedule_hourly_org: [],
+                    act_address: undefined,
+                    act_start_time: undefined,
+                    act_duration: undefined,
+                    act_description: undefined,
+                    act_pronunciatio: undefined,
+                    act_event: [persona.name, undefined, undefined],
+                    act_obj_description: undefined,
+                    act_obj_pronunciatio: undefined,
+                    act_obj_event: [undefined, undefined, undefined],
+                    chatting_with: undefined,
+                    chat: undefined,
+                    chatting_with_buffer: {},
+                    chatting_end_time: undefined,
+                    act_path_set: false,
+                    planned_path: [],
+                    // Additional fields from your original mapping
+                    // avatar: persona.avatar,
+                    // plan: persona.plan,
+                    // memory: persona.memory,
+                    // bibliography: persona.bibliography,
                 })),
                 meta,
             };
@@ -185,9 +269,14 @@ export namespace apis {
         }
     };
 
-    export const agentsInfo = async (): Promise<Agent[]> => {
+
+
+    // get the information for all agents, briefly
+    export const agentsInfo = async (sim_code: string): Promise<Agent[]> => {
         try {
-            const response = await api.get('/agents_info/');
+            const response = await api.get('/personas_info/', {
+                params: { sim_code }
+            });
             return response.data;
         } catch (error) {
             console.error("Error fetching agents info:", error);
@@ -195,9 +284,12 @@ export namespace apis {
         }
     };
 
-    export const agentDetail = async (agentId: string): Promise<Agent[]> => {
+    // get the information for a single agent, in detail
+    export const agentDetail = async (sim_code: string, agent_name: string): Promise<Agent> => {
         try {
-            const response = await api.get(`/agent_detail/${agentId}/`);
+            const response = await api.get('/persona_detail/', {
+                params: { sim_code, agent_name }
+            });
             return response.data;
         } catch (error) {
             console.error("Error fetching agent detail:", error);
@@ -214,6 +306,16 @@ export namespace apis {
             throw error;
         }
     };
+
+    export const privateChat = async (sim_code: string, person: string, type: 'analysis' | 'whisper', content: string): Promise<any> => {
+        try {
+            const response = await api.post('/chat/', { sim_code, agent_name: person, type, content });
+            return response.data;
+        } catch (error) {
+            console.error("Error sending private chat:", error);
+            throw error;
+        }
+    }
 
     export const publishEvent = async (eventData: EventConfig): Promise<any> => {
         try {

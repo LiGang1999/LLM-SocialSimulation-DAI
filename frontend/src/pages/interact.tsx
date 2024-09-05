@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, Paperclip, Trash2, MoreHorizontal, RefreshCw } from 'lucide-react';
-import { api, apiBaseUrl, apis } from '@/lib/api';
+import { apis } from '@/lib/api';
 import { ChatMessage, useSimContext } from '@/SimContext';
+import { RandomAvatar } from '@/components/Avatars';
 
 
 const ChatMessageBox: React.FC<ChatMessage> = ({ sender, content, timestamp, avatar }) => (
@@ -85,7 +87,7 @@ const MapTab: React.FC = () => {
 };
 
 
-const AgentStatusCard: React.FC<{ agent: apis.Agent }> = ({ agent }) => {
+const AgentStatusCard: React.FC<{ agent: apis.Agent, onViewFullInfo: (agentName: string) => void }> = ({ agent, onViewFullInfo }) => {
     const [expanded, setExpanded] = useState(false);
 
     return (
@@ -93,10 +95,9 @@ const AgentStatusCard: React.FC<{ agent: apis.Agent }> = ({ agent }) => {
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center space-x-4">
                     <Avatar>
-                        <AvatarImage src={agent.avatar} alt={`${agent.firstName} ${agent.lastName}`} />
-                        <AvatarFallback>{agent.firstName[0]}</AvatarFallback>
+                        <RandomAvatar name={`${agent.first_name} ${agent.last_name}`} />
                     </Avatar>
-                    <h3 className="text-lg font-semibold">{`${agent.firstName} ${agent.lastName}`}</h3>
+                    <h3 className="text-lg font-semibold">{`${agent.first_name} ${agent.last_name}`}</h3>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)}>
                     <MoreHorizontal className="h-4 w-4" />
@@ -111,14 +112,14 @@ const AgentStatusCard: React.FC<{ agent: apis.Agent }> = ({ agent }) => {
                         <p><strong>Memory:</strong> {agent.memory?.join(', ')}</p>
                         <p><strong>Plan:</strong> {agent.plan?.join(', ')}</p>
                         <p><strong>Bibliography:</strong> {agent.bibliography}</p>
-                        <p><strong>Innate Traits:</strong> {JSON.stringify(agent.innate)}</p>
-                        <p><strong>Learned Traits:</strong> {JSON.stringify(agent.learned)}</p>
+                        <p><strong>Innate Traits:</strong> {agent.innate}</p>
+                        <p><strong>Learned Traits:</strong> {agent.learned}</p>
                     </>
                 )}
             </CardContent>
             {expanded && (
                 <CardFooter>
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full" onClick={() => onViewFullInfo(agent.name)}>
                         查看全部信息
                     </Button>
                 </CardFooter>
@@ -127,22 +128,94 @@ const AgentStatusCard: React.FC<{ agent: apis.Agent }> = ({ agent }) => {
     );
 };
 
+const AgentStatusTab: React.FC = () => {
+    const [agents, setAgents] = useState<apis.Agent[]>([]);
+    const [selectedAgent, setSelectedAgent] = useState<apis.Agent | null>(null);
 
-const AgentStatusTab: React.FC<{ agents: apis.Agent[], fetchAgentStatus: () => void }> = ({ agents, fetchAgentStatus }) => (
-    <>
-        <div className="flex justify-end mb-4">
-            <Button onClick={fetchAgentStatus}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Refresh
-            </Button>
-        </div>
-        <ScrollArea className="h-[calc(100vh-400px)]">
-            {agents.map((agent, index) => (
-                <AgentStatusCard key={index} agent={agent} />
-            ))}
-        </ScrollArea>
-    </>
-);
+    const { data } = useSimContext();
+
+    const fetchAgentStatus = async () => {
+        const agentsInfo = await apis.agentsInfo(data.currSimCode || "");
+        setAgents(agentsInfo);
+    };
+
+    useEffect(() => {
+        fetchAgentStatus();
+    }, []);
+
+    const handleViewFullInfo = async (agentName: string) => {
+        try {
+            const agentDetail = await apis.agentDetail(data.currSimCode || "", agentName);
+            setSelectedAgent(agentDetail);
+        } catch (error) {
+            console.error('Error fetching agent detail:', error);
+            // Handle error (e.g., show an error message to the user)
+        }
+    };
+
+    return (
+        <>
+            <div className="flex justify-end mb-4">
+                <Button onClick={fetchAgentStatus}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Refresh
+                </Button>
+            </div>
+            <ScrollArea className="h-[calc(100vh-400px)]">
+                {agents.map((agent, index) => (
+                    <AgentStatusCard key={index} agent={agent} onViewFullInfo={handleViewFullInfo} />
+                ))}
+            </ScrollArea>
+            {selectedAgent && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <Card className="w-2/3 max-h-[80vh] overflow-y-auto">
+                        <CardHeader>
+                            <h2 className="text-2xl font-bold">{selectedAgent.name} - Full Information</h2>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p><strong>Name:</strong> {selectedAgent.name}</p>
+                                    <p><strong>First Name:</strong> {selectedAgent.first_name}</p>
+                                    <p><strong>Last Name:</strong> {selectedAgent.last_name}</p>
+                                    <p><strong>Age:</strong> {selectedAgent.age}</p>
+                                    <p><strong>Daily Plan Requirement:</strong> {selectedAgent.daily_plan_req}</p>
+                                    <p><strong>Innate Traits:</strong> {selectedAgent.innate}</p>
+                                    <p><strong>Learned Traits:</strong> {selectedAgent.learned}</p>
+                                    <p><strong>Currently:</strong> {selectedAgent.currently}</p>
+                                    <p><strong>Lifestyle:</strong> {selectedAgent.lifestyle}</p>
+                                    <p><strong>Living Area:</strong> {selectedAgent.living_area}</p>
+                                </div>
+                                <div>
+                                    <p><strong>Current Time:</strong> {selectedAgent.curr_time}</p>
+                                    <p><strong>Current Tile:</strong> {selectedAgent.curr_tile}</p>
+                                    <p><strong>Daily Requirements:</strong> {selectedAgent.daily_req?.join(', ')}</p>
+                                    <p><strong>Daily Schedule:</strong> {selectedAgent.f_daily_schedule?.join(', ')}</p>
+                                    <p><strong>Hourly Schedule:</strong> {selectedAgent.f_daily_schedule_hourly_org?.join(', ')}</p>
+                                    <p><strong>Current Activity:</strong> {selectedAgent.act_description}</p>
+                                    <p><strong>Activity Start Time:</strong> {selectedAgent.act_start_time}</p>
+                                    <p><strong>Activity Duration:</strong> {selectedAgent.act_duration}</p>
+                                    <p><strong>Chatting With:</strong> {selectedAgent.chatting_with}</p>
+                                    <p><strong>Chatting End Time:</strong> {selectedAgent.chatting_end_time}</p>
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                <p><strong>Memory:</strong> {selectedAgent.memory?.join(', ')}</p>
+                                <p><strong>Plan:</strong> {selectedAgent.plan?.join(', ')}</p>
+                                <p><strong>Bibliography:</strong> {selectedAgent.bibliography}</p>
+                                <p><strong>Current Event:</strong> {selectedAgent.act_event?.join(', ')}</p>
+                                <p><strong>Planned Path:</strong> {selectedAgent.planned_path?.join(' → ')}</p>
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button onClick={() => setSelectedAgent(null)}>Close</Button>
+                        </CardFooter>
+                    </Card>
+                </div>
+            )}
+        </>
+    );
+};
 
 
 const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLogs: () => void }> = ({ logs, addLog, clearLogs }) => {
@@ -182,6 +255,8 @@ const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLog
     );
 };
 
+
+
 export const InteractPage: React.FC = () => {
     const ctx = useSimContext();
 
@@ -216,18 +291,40 @@ export const InteractPage: React.FC = () => {
         setLogs([]);
     };
 
-    const fetchAgentStatus = async () => {
-        try {
-            const response = await api.get('/agentStatus');
-            setAgentStatus(response.data);
-        } catch (error) {
-            console.error('Error fetching agent status:', error);
-        }
-    };
 
     useEffect(() => {
-        fetchAgentStatus();
-    }, []);
+        console.log('Entering interact page')
+        // console.log(Object.keys(ctx.data.agents).length)
+        if (!ctx.data.agents || Object.keys(ctx.data.agents).length === 0) {
+            const personasObject = (ctx.data.currentTemplate?.personas || []).reduce((acc, persona) => {
+                if (persona.name) {
+                    acc[persona.name] = persona;
+                }
+                return acc;
+            }, {} as Record<string, any>);
+
+            const updatedData = {
+                ...ctx.data,
+                agents: personasObject
+            };
+
+            ctx.setData(updatedData);
+
+            // console.log(ctx.data.agents)
+            // console.log(personasObject)
+
+            // Set the privateChatAgent to the first agent's name
+            if (Object.keys(personasObject).length > 0) {
+                setPrivateChatAgent(Object.keys(personasObject)[0]);
+            }
+        } else if (privateChatAgent === "" && Object.keys(ctx.data.agents).length > 0) {
+            // If agents already exist but privateChatAgent is not set, set it to the first agent
+            setPrivateChatAgent(Object.keys(ctx.data.agents)[0]);
+        }
+
+        console.log(ctx.data)
+
+    }, [ctx.data.currentTemplate, ctx.data.agents]);
 
     const [chatSocket, setChatSocket] = useState<WebSocket | null>(null);
     const [logSocket, setLogSocket] = useState<WebSocket | null>(null);
@@ -246,6 +343,8 @@ export const InteractPage: React.FC = () => {
             newChatSocket.close();
             newLogSocket.close();
         };
+
+
     }, []);
 
     useEffect(() => {
@@ -273,6 +372,74 @@ export const InteractPage: React.FC = () => {
         }
     }, [logSocket]);
 
+    // console.log(ctx.data)
+    // const currentAgent = ctx.data.agents[privateChatAgent];
+
+
+    const ChatFooter: React.FC<{ simCode: string, agentName: string }> = ({ simCode, agentName }) => {
+        const [message, setMessage] = useState('');
+        const [chatType, setChatType] = useState<'whisper' | 'analysis'>('whisper');
+
+        const handleSendMessage = async () => {
+            if (message.trim()) {
+                try {
+                    const response = await apis.privateChat(simCode, agentName, chatType, message);
+                    // Handle the response, e.g., update the chat messages
+                    console.log(response);
+                    // Clear the input after sending
+                    setMessage('');
+                } catch (error) {
+                    console.error("Error sending private chat:", error);
+                    // Handle the error, e.g., show an error message to the user
+                }
+            }
+        };
+
+        return (
+            <CardFooter className="p-4 flex-col">
+                <div className="flex w-full justify-start space-x-2 mb-2">
+                    <Button size="sm" variant="outline">
+                        <Image className="h-4 w-4 mr-1" />
+                        发布事件
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setIsRunning(!isRunning)}>
+                        {isRunning ? '停止模拟' : '模拟1轮'}
+                    </Button>
+                    <Button size="sm" variant="outline">
+                        9999
+                    </Button>
+                </div>
+                <div className="flex w-full items-center space-x-2">
+                    <Button size="icon" variant="outline">
+                        <Paperclip className="h-4 w-4" />
+                    </Button>
+                    <Select
+                        value={chatType}
+                        onValueChange={(value: 'whisper' | 'analysis') => setChatType(value)}
+                    >
+                        <SelectTrigger className="w-[100px]">
+                            <SelectValue placeholder="Chat type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="whisper">Whisper</SelectItem>
+                            <SelectItem value="analysis">Analysis</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Input
+                        className="flex-grow"
+                        placeholder="说点什么..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    />
+                    <Button onClick={handleSendMessage}>
+                        <Send className="h-4 w-4" />
+                    </Button>
+                </div>
+            </CardFooter>
+        );
+    };
+
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Navbar />
@@ -280,7 +447,7 @@ export const InteractPage: React.FC = () => {
                 {/* Left panel with tabs and status bar */}
                 <div className="w-2/3 pr-4 flex flex-col">
                     <Tabs defaultValue="map" className="w-full flex-grow"
-                        onValueChange={(value) => value === 'ai' && fetchAgentStatus()}
+                    // onValueChange={(value) => value === 'ai' && fetchAgentStatus()}
                     >
                         <TabsList className="grid w-full grid-cols-4">
                             <TabsTrigger value="dialog"><MessageSquare className="mr-2 h-4 w-4" />对话</TabsTrigger>
@@ -295,7 +462,7 @@ export const InteractPage: React.FC = () => {
                             <MapTab />
                         </TabsContent>
                         <TabsContent value="ai" className="flex-grow">
-                            <AgentStatusTab agents={ctx.data.agents} fetchAgentStatus={fetchAgentStatus} />
+                            <AgentStatusTab />
                         </TabsContent>
                         <TabsContent value="log" className="flex-grow">
                             <LogTab logs={logs} addLog={addLog} clearLogs={clearLogs} />
@@ -312,24 +479,21 @@ export const InteractPage: React.FC = () => {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="p-0 hover:bg-transparent">
                                         <Avatar>
-                                            <AvatarImage src={ctx.data.agents[privateChatAgent].avatar} alt={ctx.data.agents[privateChatAgent].name} />
-                                            <AvatarFallback>{ctx.data.agents[privateChatAgent].name[0]}</AvatarFallback>
+                                            {privateChatAgent && ctx.data.agents && <RandomAvatar className='w-12 h-12' name={`${ctx.data.agents[privateChatAgent].first_name} ${ctx.data.agents[privateChatAgent].last_name}`} />}
                                         </Avatar>
                                         <div className="ml-2 text-left">
-                                            <h2 className="text-xl font-bold">{ctx.data.agents[privateChatAgent].name}</h2>
-                                            {/* <p className="text-sm text-muted-foreground">{ctx.data.agents[privateChatAgent].status}</p> */}
+                                            {privateChatAgent && ctx.data.agents && <h2 className="text-xl font-bold">{ctx.data.agents[privateChatAgent].name}</h2>}
                                         </div>
                                         <ChevronDown className="ml-2" />
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align='start'>
                                     {ctx.data.currentTemplate && ctx.data.currentTemplate.personas.map((persona: apis.Agent) => (
-                                        <DropdownMenuItem key={persona.name} onSelect={() => setPrivateChatAgent(persona.name)}>
+                                        <DropdownMenuItem key={persona.name} onSelect={() => setPrivateChatAgent(persona.name)} className='flex flex-row items-center align-center'>
                                             <Avatar className="mr-2">
-                                                <AvatarImage src={persona.avatar} alt={`${persona.firstName} ${persona.lastName}`} />
-                                                <AvatarFallback>{persona.firstName[0]}</AvatarFallback>
+                                                <RandomAvatar className='w-8 h-8 mt-1' name={`${persona.first_name} ${persona.last_name}`} />
                                             </Avatar>
-                                            <span>{`${persona.firstName} ${persona.lastName}`}</span>
+                                            <span>{`${persona.first_name} ${persona.last_name}`}</span>
                                         </DropdownMenuItem>
                                     ))}
                                 </DropdownMenuContent>
@@ -338,36 +502,14 @@ export const InteractPage: React.FC = () => {
                         </CardHeader>
                         <CardContent className="flex-grow overflow-hidden">
                             <ScrollArea className="h-[calc(100vh-350px)]">
-                                {ctx.data.privateMessages[selectedAgent.name]?.map((msg, index) => (
+                                {privateChatAgent && ctx.data.privateMessages && ctx.data.privateMessages[privateChatAgent]?.map((msg, index) => (
                                     <ChatMessageBox key={index} {...msg} />
                                 )) || (
-                                        <p>No private messages with {selectedAgent.name}</p>
+                                        <p>No private messages with {privateChatAgent}</p>
                                     )}
                             </ScrollArea>
                         </CardContent>
-                        <CardFooter className="p-4 flex-col">
-                            <div className="flex w-full justify-start space-x-2 mb-2">
-                                <Button size="sm" variant="outline">
-                                    <Image className="h-4 w-4 mr-1" />
-                                    发布事件
-                                </Button>
-                                <Button size="sm" variant="outline" onClick={() => setIsRunning(!isRunning)}>
-                                    {isRunning ? '停止模拟' : '模拟1轮'}
-                                </Button>
-                                <Button size="sm" variant="outline">
-                                    9999
-                                </Button>
-                            </div>
-                            <div className="flex w-full items-center space-x-2">
-                                <Button size="icon" variant="outline">
-                                    <Paperclip className="h-4 w-4" />
-                                </Button>
-                                <Input className="flex-grow" placeholder="说点什么..." />
-                                <Button onClick={() => addChat('user', 'Test message')}>
-                                    <Send className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </CardFooter>
+                        <ChatFooter simCode={ctx.data.currSimCode || ""} agentName={privateChatAgent} />
                     </Card>
                 </div>
             </div>

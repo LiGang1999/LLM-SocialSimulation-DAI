@@ -333,7 +333,8 @@ def open_convo_session(persona, convo_mode, vbase, input_queue):
                 curr_convo += [[persona.scratch.name, next_line]]
 
     elif convo_mode == "whisper":
-        whisper = input("Enter Input: ")
+        # whisper = input("Enter Input: ")
+        whisper = input_queue.get()
         thought = generate_inner_thought(persona, whisper)
 
         created = persona.scratch.curr_time
