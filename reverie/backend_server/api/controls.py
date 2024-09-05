@@ -94,36 +94,36 @@ def start(request):
         data = json.loads(request.body)
         L.debug(f"Received data: {data}")
 
-        template_name = data.get("template")
-        config_data = data.get("config", {})
+        sim_code = data.get("simCode")
+        template = data.get("template")
+        llm_config = data.get("llmConfig")
+        initial_rounds = data.get("initialRounds")
 
-        if not config_data.get("sim_code"):
-            return JsonResponse({"error": "Missing sim_code in config"}, status=400)
-
-        if not template_name or not config_data:
+        if not sim_code or not template or not llm_config:
             return JsonResponse({"error": "Missing required parameters"}, status=400)
 
-        if template_name in BASE_TEMPLATES:
+        if template.get("simCode") in BASE_TEMPLATES:
             return JsonResponse({"error": "Cannot overwrite base template"}, status=400)
 
-        llm_config = parse_llm_config(config_data.get("llm_config", {}))
-        persona_configs = parse_persona_configs(config_data.get("personas", []))
-        public_events = parse_public_events(config_data.get("events", []))
+        parsed_llm_config = parse_llm_config(llm_config)
+        persona_configs = parse_persona_configs(template.get("personas", []))
+        public_events = parse_public_events(template.get("events", []))
 
         reverie_config = ReverieConfig(
-            sim_code=config_data.get("sim_code", ""),
-            sim_mode=config_data.get("sim_mode", ""),
-            start_date=config_data.get("start_date", ""),
-            curr_time=config_data.get("curr_time", ""),
-            maze_name=config_data.get("maze_name", ""),
-            step=int(config_data.get("step", 0)),
-            llm_config=llm_config,
+            sim_code=sim_code,
+            sim_mode=template.get("meta", {}).get("sim_mode", ""),
+            start_date=template.get("meta", {}).get("start_date", ""),
+            curr_time=template.get("meta", {}).get("curr_time", ""),
+            maze_name=template.get("meta", {}).get("maze_name", ""),
+            step=int(template.get("meta", {}).get("step", 0)),
+            llm_config=parsed_llm_config,
             persona_configs=persona_configs,
             public_events=public_events,
-            direction=config_data.get("direction", ""),
+            direction=template.get("meta", {}).get("direction", ""),
+            initial_rounds=initial_rounds or 1,
         )
 
-        thread = threading.Thread(target=start_sim, args=(template_name, reverie_config))
+        thread = threading.Thread(target=start_sim, args=(template.get("simCode"), reverie_config))
         thread.start()
 
         return JsonResponse({"status": "success", "message": "Simulation started"})

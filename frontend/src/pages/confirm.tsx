@@ -1,9 +1,11 @@
-import React from 'react';
+import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSimContext } from '@/SimContext';
+import { apis } from "@/lib/api";
+import { RandomAvatar } from "@/components/Avatars";
 
 const truncateString = (str: string, num: number) => {
     if (str.length <= num) {
@@ -14,6 +16,7 @@ const truncateString = (str: string, num: number) => {
 
 export const ConfirmPage = () => {
     const ctx = useSimContext();
+    const navigate = useNavigate();
 
     if (!ctx || !ctx.data.currentTemplate) {
         return <div>Loading...</div>;
@@ -24,11 +27,31 @@ export const ConfirmPage = () => {
     const displayedAgents = currentTemplate.personas.slice(0, 4);
     const hasMoreAgents = currentTemplate.personas.length > 4;
 
+    const handleNextClick = async () => {
+        if (!ctx || !ctx.data.currentTemplate || !ctx.data.llmConfig) {
+            console.error("Missing required data");
+            return;
+        }
+
+        try {
+            await apis.startSim(
+                ctx.data.currSimCode || '',
+                ctx.data.currentTemplate,
+                ctx.data.llmConfig,
+                ctx.data.initialRounds || 1
+            );
+            // navigate('/interact');
+        } catch (error) {
+            console.error("Failed to start simulation:", error);
+            // Handle error (e.g., show an error message to the user)
+        }
+    };
+
     return (
         <div className="flex flex-col min-h-screen">
             <Navbar />
             <div className="container mx-auto">
-                <h2 className="text-5xl font-bold my-12 text-left text-black-800">开始仿真</h2>
+                <h2 className="text-5xl font-bold my-12 text-left text-black-800">确认您的方案</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
                     <Card>
                         <CardHeader>
@@ -54,10 +77,7 @@ export const ConfirmPage = () => {
                             <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {displayedAgents.map((agent, index) => (
                                     <div key={index} className="flex items-center mb-2">
-                                        <Avatar className="mr-2">
-                                            <AvatarImage src={agent.avatar} alt={agent.name} />
-                                            <AvatarFallback>{agent.firstName[0]}</AvatarFallback>
-                                        </Avatar>
+                                        <RandomAvatar className="h-10 w-10 mr-4" name={`${agent.firstName} ${agent.lastName}`} />
                                         <div>
                                             <p className="font-semibold">{agent.firstName} {agent.lastName}</p>
                                             <p className="text-sm">{agent.age}岁</p>
@@ -110,12 +130,11 @@ export const ConfirmPage = () => {
                 <BottomNav
                     prevLink='/llmconfig'
                     nextLink=''
-                    onClickNext={() => {
-                        console.log("next clicked!");
-                    }}
+                    onClickNext={handleNextClick}
                     currStep={4}
                     disabled={false}
-                    className='mt-16'
+                    className='my-8'
+                    variant="final"
                 />
             </div>
         </div>

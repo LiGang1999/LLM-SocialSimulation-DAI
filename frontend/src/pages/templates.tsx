@@ -86,22 +86,22 @@ export const TemplatePage = () => {
 
         fetchTemplates();
 
-        if (ctx.data.currSimCode) {
-            setSelectedTemplate(ctx.data.currSimCode)
+        if (ctx.data.templateCode) {
+            setSelectedTemplate(ctx.data.templateCode)
         }
     }, []);
 
+
+    // Lesson lerant from this: You should never call a setState twice at one place, otherwise there will be race conditions
     const handleSelectTemplate = (templateCode: string) => {
-        ctx.setData({
+        const updatedData = {
             ...ctx.data,
             currentTemplate: undefined,
-            currSimCode: templateCode
-        })
+            templateCode: templateCode
+        };
+
+        ctx.setData(updatedData);
         setSelectedTemplate(templateCode);
-        ctx.setData({
-            ...ctx.data,
-            currSimCode: templateCode
-        })
     };
 
 

@@ -46,6 +46,13 @@ global_rs = None  # ???
 command_queue = Queue()
 online_relation = Queue()
 
+BASE_TEMPLATES = [
+    "base_the_villie_isabella_maria_klaus",
+    "base_the_villie_isabella_maria_klaus_online",
+    "base_the_villie_n25",
+]
+
+
 ##############################################################################
 #                                  REVERIE                                   #
 ##############################################################################
@@ -112,6 +119,7 @@ class ReverieConfig:
     persona_configs: dict[str, PersonaConfig] = field(default_factory=dict)  # persona config
     public_events: List[dict] = field(default_factory=list)  # public events
     direction: str | None = ""  # The instruction of what the agents should do with each other
+    initial_rounds: int | None = 0  # The number of initial rounds
 
 
 def bootstrap_persona(path: str, config: PersonaConfig):
@@ -204,26 +212,42 @@ def bootstrap_persona(path: str, config: PersonaConfig):
 
 
 class ReverieServer:
+    BASE_TEMPLATES = [
+        "base_the_villie_isabella_maria_klaus",
+        "base_the_villie_isabella_maria_klaus_online",
+        "base_the_villie_n25",
+    ]
+
     def __init__(self, template_sim_code, sim_config: ReverieConfig):
-        # FORKING FROM A PRIOR SIMULATION:
-        # <template_sim_code> indicates the simulation we are forking from.
-        # Interestingly, all simulations must be forked from some initial
-        # simulation, where the first simulation is "hand-crafted".
+        # Check if all required fields in sim_config are populated
+        missing_fields = []
+
+        for field_name, field_value in vars(sim_config).items():
+            if field_value is None or (isinstance(field_value, str) and field_value == ""):
+                missing_fields.append(field_name)
+
+        if missing_fields:
+            L.error(f"Missing required fields in sim_config: {', '.join(missing_fields)}")
+            # You can raise an exception here if necessary:
+            # raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+
         self.template_sim_code = template_sim_code
         template_folder = f"{storage_path}/{self.template_sim_code}"
 
-        # init_api(model)
-
-        # <sim_code> indicates our current simulation. The first step here is to
-        # copy everything that's in <template_sim_code>, but edit its
-        # reverie/meta/json's fork variable.
         self.sim_code = sim_config.sim_code
         sim_folder = f"{storage_path}/{self.sim_code}"
+
         if check_if_dir_exists(sim_folder):
-            L.warning(
-                f"Simulation {sim_folder} exists. It will be overwritten by the new environment."
-            )
-            removeanything(sim_folder)
+            if self.template_sim_code in BASE_TEMPLATES:
+                L.error(
+                    f"Cannot overwrite base template {self.template_sim_code}. Operation aborted."
+                )
+            else:
+                L.warning(
+                    f"Simulation {sim_folder} exists. It will be overwritten by the new environment."
+                )
+                removeanything(sim_folder)
+
         copyanything(template_folder, sim_folder)
 
         self.sim_mode = sim_config.sim_mode
@@ -1047,9 +1071,10 @@ class ReverieServer:
                 pass
 
 
-def start_sim(template_sim_name, sim_config):
+def start_sim(template_sim_name: str, sim_config: ReverieConfig):
     global rs
     rs = ReverieServer(template_sim_name, sim_config)
+    rs.start_server(sim_config.initial_rounds)
     rs.open_server()
 
 

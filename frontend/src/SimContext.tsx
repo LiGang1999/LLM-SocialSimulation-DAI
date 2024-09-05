@@ -3,6 +3,7 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 import { apis } from './lib/api';
 
 interface SimContext {
+    templateCode: string | undefined;
     currSimCode: string | undefined;
     allTemplates: apis.TemplateListItem[] | undefined;
     currentTemplate: apis.Template | undefined;
@@ -20,6 +21,7 @@ const SimContext = createContext<SimContextPair | undefined>(undefined);
 export const SimContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [get, set] = useLocalStorage<SimContext>('simContext', {
         currSimCode: "",
+        templateCode: "",
         allTemplates: [],
         currentTemplate: undefined,
         llmConfig: undefined,

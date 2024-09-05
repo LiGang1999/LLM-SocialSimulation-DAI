@@ -41,6 +41,7 @@ export namespace apis {
         sec_per_step: number;
         maze_name: string;
         persona_names: string[];
+        sim_mode: string[],
         step: number;
     }
 
@@ -148,9 +149,19 @@ export namespace apis {
         }
     };
 
-    export const startSim = async (template: string, config: any): Promise<any> => {
+    export const startSim = async (
+        simCode: string,
+        template: apis.Template,
+        llmConfig: apis.LLMConfig,
+        initialRounds: number
+    ): Promise<any> => {
         try {
-            const response = await api.post('/start/', { template, config });
+            const response = await api.post('/start/', {
+                simCode,
+                template,
+                llmConfig,
+                initialRounds
+            });
             return response.data;
         } catch (error) {
             console.error("Error starting simulation:", error);
