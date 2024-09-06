@@ -415,9 +415,9 @@ export const InteractPage: React.FC = () => {
             setPrivateMessages(initialPrivateMessages);
         }
 
-        setIsOffline(ctx.data.currentTemplate?.meta.sim_mode != "online" || true);
+        setIsOffline(ctx.data.currentTemplate?.meta.sim_mode != "online");
         console.log(ctx.data.currentTemplate?.meta.sim_mode)
-    }, [ctx.data.currentTemplate, ctx.data.agents]);
+    }, [ctx.data.currentTemplate, ctx.data.agents, ctx.data.currentTemplate?.meta.sim_mode]);
 
     const [chatSocket, setChatSocket] = useState<WebSocket | null>(null);
     const [logSocket, setLogSocket] = useState<WebSocket | null>(null);

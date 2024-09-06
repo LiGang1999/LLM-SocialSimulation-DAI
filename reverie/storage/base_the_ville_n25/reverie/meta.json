@@ -1,0 +1,41 @@
+{
+  "template_sim_code": "base_the_ville_n25",
+  "name": "市长竞选",
+  "bullets": [
+    "25 个 智能体",
+    "大规模社会群体模拟"
+  ],
+  "description": "观察这个微缩社会中的复杂互动：候选人如何制定和宣传政策，选民如何权衡各种信息做出决策，以及社区领袖如何影响舆论走向。从竞选动员到政策辩论，从街头拉票到社交媒体宣传，这个模拟全方位展现了现代民主选举的方方面面。",
+  "start_date": "February 13, 2023",
+  "curr_time": "February 13, 2023, 00:00:00",
+  "sec_per_step": 10,
+  "maze_name": "the_ville",
+  "persona_names": [
+    "Latoya Williams",
+    "Rajiv Patel",
+    "Abigail Chen",
+    "Francisco Lopez",
+    "Hailey Johnson",
+    "Arthur Burton",
+    "Ryan Park",
+    "Isabella Rodriguez",
+    "Giorgio Rossi",
+    "Carlos Gomez",
+    "Klaus Mueller",
+    "Maria Lopez",
+    "Ayesha Khan",
+    "Wolfgang Schulz",
+    "Mei Lin",
+    "John Lin",
+    "Eddy Lin",
+    "Tom Moreno",
+    "Jane Moreno",
+    "Tamara Taylor",
+    "Carmen Ortiz",
+    "Sam Moore",
+    "Jennifer Moore",
+    "Yuriko Yamamoto",
+    "Adam Smith"
+  ],
+  "step": 0
+}

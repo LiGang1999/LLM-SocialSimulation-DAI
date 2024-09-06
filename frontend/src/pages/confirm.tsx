@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSimContext } from '@/SimContext';
 import { apis } from "@/lib/api";
 import { RandomAvatar } from "@/components/Avatars";
+import React, { useState, useEffect } from "react";
 
 import start1 from '@/assets/template2.png';
 import chat from '@/assets/chat.png';
@@ -21,18 +22,13 @@ const truncateString = (str: string, num: number) => {
 export const ConfirmPage = () => {
     const ctx = useSimContext();
     const navigate = useNavigate();
+    const [templateImage, setTemplateImage] = useState(stf);
 
     if (!ctx || !ctx.data.currentTemplate) {
         return <div>Loading...</div>;
     }
 
     const { currentTemplate, llmConfig } = ctx.data;
-
-    const templateImage =
-        ctx.data.currSimCode === 'base_the_ville_isabella_maria_klaus_online' ? chat :
-            ctx.data.currSimCode === 'base_the_ville_isabella_maria_klaus' ? start1 :
-                ctx.data.currSimCode === 'base_the_ville_n25' ? stf :
-                    stf;
 
 
     const displayedAgents = currentTemplate.personas.slice(0, 4);
@@ -58,6 +54,24 @@ export const ConfirmPage = () => {
         }
     };
 
+    useEffect(() => {
+        if (ctx && ctx.data.currentTemplate?.simCode) {
+            switch (ctx.data.currentTemplate.simCode) {
+                case 'base_the_ville_isabella_maria_klaus_online':
+                    setTemplateImage(chat);
+                    break;
+                case 'base_the_ville_isabella_maria_klaus':
+                    setTemplateImage(start1);
+                    break;
+                case 'base_the_ville_n25':
+                    setTemplateImage(stf);
+                    break;
+                default:
+                    setTemplateImage(stf);
+            }
+        }
+    }, [ctx, ctx?.data.currentTemplate.simCode]);
+
     return (
         <div className="flex flex-col bg-gray-100 min-h-screen">
             <Navbar />
@@ -80,12 +94,12 @@ export const ConfirmPage = () => {
                                     </ul>
                                 </div>
                                 {/* 右侧的图片，稍微放大图片尺寸 */}
-                                <div className="w-full md:w-1/2  md:ml-4 flex justify-center">
+                                <div className="w-full md:w-1/2 md:ml-4 flex justify-center">
                                     <img
                                         src={templateImage}
                                         alt="模板图片"
                                         className="rounded-md"
-                                        style={{ maxWidth: '140px', height: 'auto' }}  // 将 maxWidth 设置为 120px
+                                        style={{ maxWidth: '140px', height: 'auto' }}
                                     />
                                 </div>
                             </div>

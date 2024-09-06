@@ -1,12 +1,12 @@
 {
   "template_sim_code": "base_the_ville_isabella_maria_klaus",
-  "name": "Basic Village",
+  "name": "2d 幻想小镇",
   "bullets": [
-    "3 personas",
-    "small-sized village",
-    "different jobs and routines"
+    "3 个 智能体",
+    "不同的职业、性格、日常规划",
+    "模拟小型社区活动"
   ],
-  "description": "",
+  "description": "每个角色都有独特的职业、个性和日常规划，他们的互动和生活轨迹交织成一幅生动的小镇图景。玩家可以观察他们如何应对日常挑战，参与各种社区活动，以及他们之间如何建立关系。从清晨的市集到夜晚的聚会，从工作中的合作到休闲时的娱乐。",
   "start_date": "February 13, 2023",
   "curr_time": "February 13, 2023, 00:00:00",
   "sec_per_step": 10,
