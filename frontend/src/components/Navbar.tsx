@@ -50,7 +50,7 @@ const routeList: RouteProps[] = [
 export const Navbar = () => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     return (
-        <header className="sticky border-b-[1px] top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
+        <header className="sticky top-0 z-40 w-full border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background">
             <NavigationMenu className="mx-auto">
                 <NavigationMenuList className="container h-14 px-4 w-screen flex justify-between ">
                     <NavigationMenuItem className="font-bold flex">
@@ -101,7 +101,7 @@ export const Navbar = () => {
                                     <a
                                         rel="noreferrer noopener"
                                         href={github_link}
-                                        className="w-[110px] border"
+                                        className="w-[110px] border-[1px] border-white border-opacity-40"
                                     >
                                         <GitHubLogoIcon className="mr-2 w-5 h-5" />
                                         Github
@@ -132,7 +132,7 @@ export const Navbar = () => {
                             rel="noreferrer noopener"
                             href={github_link}
                             target="_blank"
-                            className={`border ${buttonVariants({ variant: "ghost" })}`}
+                            className={`border ${buttonVariants({ variant: "ghost" })} border-opacity-40 border-white`}
                         >
                             <GitHubLogoIcon className="mr-2 w-5 h-5" />
                             Github

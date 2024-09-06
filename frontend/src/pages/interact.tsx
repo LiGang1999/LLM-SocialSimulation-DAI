@@ -77,7 +77,7 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
 // Update DialogTab to accept messages as a prop
 const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
     return (
-        <ScrollArea className="h-[calc(100vh-200px)] border-4 border-gray-100 rounded-md pl-2">
+        <ScrollArea className="h-[calc(100vh-200px)] border-4 bg-gray-100 rounded-md border-gray-100 rounded-md pl-2">
             {messages.map((msg, index) => (
                 <ChatMessageBox key={index} {...msg} />
             ))}
