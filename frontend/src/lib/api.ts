@@ -278,7 +278,7 @@ export namespace apis {
             const response = await api.get('/personas_info/', {
                 params: { sim_code }
             });
-            return response.data;
+            return response.data.personas;
         } catch (error) {
             console.error("Error fetching agents info:", error);
             throw error;

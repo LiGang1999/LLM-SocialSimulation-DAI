@@ -39,7 +39,7 @@ export const EventsPage = () => {
     const updateReplicateCount = (value: string) => {
         setReplicateCount(value);
         const numValue = parseInt(value, 10);
-        if (!isNaN(numValue) && numValue > 0) {
+        if (!isNaN(numValue) && numValue >= 0) {
             ctx.setData({
                 ...ctx.data,
                 initialRounds: numValue
@@ -54,7 +54,7 @@ export const EventsPage = () => {
 
     const isFormValid = () => {
         const numValue = parseInt(replicateCount, 10);
-        return experimentName.trim() !== '' && !isNaN(numValue) && numValue > 0;
+        return experimentName.trim() !== '' && !isNaN(numValue) && numValue >= 0;
     };
 
     const addNewEvent = () => {
@@ -164,7 +164,7 @@ export const EventsPage = () => {
                                                 value={replicateCount}
                                                 onChange={(e) => updateReplicateCount(e.target.value)}
                                                 placeholder="请输入仿真轮数"
-                                                className={`mr-2 ${replicateCount.trim() === '' || isNaN(parseInt(replicateCount, 10)) || parseInt(replicateCount, 10) <= 0 ? 'border-red-500' : ''}`}
+                                                className={`mr-2 ${replicateCount.trim() === '' || isNaN(parseInt(replicateCount, 10)) || parseInt(replicateCount, 10) < 0 ? 'border-red-500' : ''}`}
                                             />
                                             <span className="text-gray-600">轮</span>
                                         </div>

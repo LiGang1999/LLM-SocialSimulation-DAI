@@ -145,3 +145,6 @@ class DaiPersona(Persona):
         # to Python variables.
         f_scratch = f"{save_folder}/scratch.json"
         self.scratch.save(f_scratch)
+
+    # def chat_to_persona(self, mode, vbase, prev_msgs, msg):
+    # chat_to_persona(self, mode, vbase, prev_msgs, msg)

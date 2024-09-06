@@ -38,7 +38,7 @@ export const ConfirmPage = () => {
                 ctx.data.currSimCode || '',
                 ctx.data.currentTemplate,
                 ctx.data.llmConfig,
-                ctx.data.initialRounds || 1
+                ctx.data.initialRounds || 0
             );
             navigate('/interact');
         } catch (error) {

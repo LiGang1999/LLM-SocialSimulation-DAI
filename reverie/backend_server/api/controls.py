@@ -128,7 +128,7 @@ def start(request):
             persona_configs=persona_configs,
             public_events=public_events,
             direction=template.get("meta", {}).get("direction", ""),
-            initial_rounds=initial_rounds or 1,
+            initial_rounds=initial_rounds or 0,
         )
 
         thread = threading.Thread(target=start_sim, args=(template.get("simCode"), reverie_config))
@@ -327,11 +327,10 @@ def chat(request):
         if not all([sim_code, persona_name, chat_type, content]):
             return JsonResponse({"error": "Missing required fields"}, status=400)
 
-        command_queue.add_command(f"call -- chat to persona {persona_name}")
-        command_queue.add_command(
-            json.dumps({"mode": chat_type, "prev_msgs": history, "msg": content})
-        )
-    except:
+        command_queue.put(f"call -- chat to persona {persona_name}")
+        command_queue.put(json.dumps({"mode": chat_type, "prev_msgs": history, "msg": content}))
+    except Exception as e:
+        L.warning(f"Error processing chat request: {e}")
         return JsonResponse({"error": "Invalid simulation or persona"}, status=404)
 
 

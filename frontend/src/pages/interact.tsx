@@ -98,9 +98,7 @@ const AgentStatusCard: React.FC<{ agent: apis.Agent, onViewFullInfo: (agentName:
         <Card className="mb-4">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center space-x-4">
-                    <Avatar>
-                        <RandomAvatar name={`${agent.first_name} ${agent.last_name}`} />
-                    </Avatar>
+                    <RandomAvatar name={`${agent.first_name} ${agent.last_name}`} className='w-14 h-14' />
                     <h3 className="text-lg font-semibold">{`${agent.first_name} ${agent.last_name}`}</h3>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)}>
@@ -140,6 +138,7 @@ const AgentStatusTab: React.FC = () => {
 
     const fetchAgentStatus = async () => {
         const agentsInfo = await apis.agentsInfo(data.currSimCode || "");
+        console.log(agentsInfo);
         setAgents(agentsInfo);
     };
 
@@ -171,7 +170,7 @@ const AgentStatusTab: React.FC = () => {
                 ))}
             </ScrollArea>
             {selectedAgent && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <Card className="w-2/3 max-h-[80vh] overflow-y-auto">
                         <CardHeader>
                             <h2 className="text-2xl font-bold">{selectedAgent.name} - Full Information</h2>
@@ -273,6 +272,7 @@ export const InteractPage: React.FC = () => {
     // New state for messages
     const [publicMessages, setPublicMessages] = useState<ChatMessage[]>([]);
     const [privateMessages, setPrivateMessages] = useState<Record<string, ChatMessage[]>>({});
+    const [isOffline, setIsOffline] = useState<boolean>(false);
 
     const addPublicMessage = (message: ChatMessage) => {
         setPublicMessages(prevMessages => [...prevMessages, message]);
@@ -316,7 +316,7 @@ export const InteractPage: React.FC = () => {
         checkStatus();
 
         // Set up interval to check status
-        const intervalId = setInterval(checkStatus, 500); // Check every 5 seconds
+        const intervalId = setInterval(checkStatus, 5000); // Check every 5 seconds
 
         // Clean up interval on unmount
         return () => clearInterval(intervalId);
@@ -348,13 +348,27 @@ export const InteractPage: React.FC = () => {
             if (Object.keys(personasObject).length > 0) {
                 setPrivateChatAgent(Object.keys(personasObject)[0]);
             }
+
+            // Initialize privateMessages with empty arrays for each agent
+            const initialPrivateMessages = Object.keys(personasObject).reduce((acc, agentName) => {
+                acc[agentName] = [];
+                return acc;
+            }, {} as Record<string, ChatMessage[]>);
+            setPrivateMessages(initialPrivateMessages);
         } else if (privateChatAgent === "" && Object.keys(ctx.data.agents).length > 0) {
             // If agents already exist but privateChatAgent is not set, set it to the first agent
             setPrivateChatAgent(Object.keys(ctx.data.agents)[0]);
+
+            // Initialize privateMessages with empty arrays for each agent
+            const initialPrivateMessages = Object.keys(ctx.data.agents).reduce((acc, agentName) => {
+                acc[agentName] = [];
+                return acc;
+            }, {} as Record<string, ChatMessage[]>);
+            setPrivateMessages(initialPrivateMessages);
         }
 
-        console.log(ctx.data)
-
+        setIsOffline(ctx.data.currentTemplate?.meta.sim_mode == "offline");
+        console.log(ctx.data.currentTemplate?.meta.sim_mode)
     }, [ctx.data.currentTemplate, ctx.data.agents]);
 
     const [chatSocket, setChatSocket] = useState<WebSocket | null>(null);
@@ -412,8 +426,10 @@ export const InteractPage: React.FC = () => {
         const [chatType, setChatType] = useState<'whisper' | 'analysis'>('whisper');
 
         const handleSendMessage = async () => {
+            console.log("Sending message:", simCode, agentName, chatType, privateMessages[agentName], message);
             if (message.trim()) {
                 try {
+                    console.log("Sending message:", simCode, agentName, chatType, privateMessages[agentName], message);
                     setIsRunning(true);
                     const response = await apis.privateChat(simCode, agentName, chatType, privateMessages[agentName], message);
                     // Handle the response, e.g., update the chat messages
@@ -501,16 +517,16 @@ export const InteractPage: React.FC = () => {
                     <Tabs defaultValue="map" className="w-full flex-grow"
                     // onValueChange={(value) => value === 'ai' && fetchAgentStatus()}
                     >
-                        <TabsList className="grid w-full grid-cols-4">
+                        <TabsList className={isOffline ? `grid w-full grid-cols-4` : `grid w-full grid-cols-3`}>
                             <TabsTrigger value="dialog"><MessageSquare className="mr-2 h-4 w-4" />对话</TabsTrigger>
-                            <TabsTrigger value="map"><MapPin className="mr-2 h-4 w-4" />地图</TabsTrigger>
+                            {isOffline && <TabsTrigger value="map"><MapPin className="mr-2 h-4 w-4" />地图</TabsTrigger>}
                             <TabsTrigger value="ai"><Bot className="mr-2 h-4 w-4" />智能体状态</TabsTrigger>
                             <TabsTrigger value="log"><FileText className="mr-2 h-4 w-4" />日志</TabsTrigger>
                         </TabsList>
                         <TabsContent value="dialog" className="flex-grow">
                             <DialogTab messages={publicMessages} />
                         </TabsContent>
-                        {ctx.data.currentTemplate?.meta.sim_mode == "offline" && <TabsContent value="map" className="flex-grow">
+                        {isOffline && <TabsContent value="map" className="flex-grow">
                             <MapTab />
                         </TabsContent>}
                         <TabsContent value="ai" className="flex-grow">
