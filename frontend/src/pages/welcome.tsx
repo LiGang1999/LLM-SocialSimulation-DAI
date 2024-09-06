@@ -55,7 +55,7 @@ export const WelcomePage = () => {
 
 
                     {/* Left Column */}
-                    <div className="md:w-1/2 text-white z-10 relative flex flex-col justify-between">
+                    <div className="md:w-1/2 text-white z-10 relative animate-fade-in-up flex flex-col justify-between">
                         <div>
                             <h1 className="text-5xl font-bold mb-6">欢迎来到</h1>
                             <h1 className="text-7xl font-bold mb-8">基于LLM的 <br /> 通用社会仿真平台</h1>
