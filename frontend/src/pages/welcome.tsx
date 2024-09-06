@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight, Github, Play } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Github, Play, Trash2 } from 'lucide-react'
 
 import start1 from '@/assets/start1.jpg'
 import start2 from '@/assets/start2.jpg'
@@ -36,6 +36,10 @@ export const WelcomePage = () => {
         setNextBtnEnabled(emblaApi.canScrollNext())
     }, [emblaApi])
 
+    const clearLocalStorage = () => {
+        localStorage.clear();
+        alert('Local storage has been cleared.');
+    }
     useEffect(() => {
         if (!emblaApi) return
         onSelect()
@@ -62,7 +66,7 @@ export const WelcomePage = () => {
                             <p className="text-2xl text-gray-300 mb-8">Developed by DAI Lab, Zhejiang University</p>
                         </div>
 
-                        <div className="flex flex-wrap space-x-6 mb-12">
+                        <div className="flex flex-wrap items-center space-x-6 mb-12">
                             <a href={'/templates'}>
                                 <Button className="text-2xl h-16 px-8 font-bold text-white bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg transform transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center justify-center">
                                     <Play size={20} className='mr-2' /> 立即开始
@@ -73,6 +77,14 @@ export const WelcomePage = () => {
                                     <Github className="mr-2 h-6 w-6" /> GitHub
                                 </Button>
                             </a>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-white opacity-50 hover:opacity-100"
+                                onClick={clearLocalStorage}
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
                         </div>
                     </div>
 
