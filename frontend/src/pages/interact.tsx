@@ -158,17 +158,19 @@ const AgentStatusTab: React.FC = () => {
 
     return (
         <>
-            <div className="flex justify-end mb-4">
-                <Button onClick={fetchAgentStatus}>
+
+            <ScrollArea className="h-[calc(100vh-230px)] bg-gray-100 p-4 rounded-lg">
+                {agents.map((agent, index) => (
+                    <AgentStatusCard key={index} agent={agent} onViewFullInfo={handleViewFullInfo} />
+                ))}
+
+            </ScrollArea>
+            <div className="w-full">
+                <Button onClick={fetchAgentStatus} className='w-full'>
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Refresh
                 </Button>
             </div>
-            <ScrollArea className="h-[calc(100vh-400px)]">
-                {agents.map((agent, index) => (
-                    <AgentStatusCard key={index} agent={agent} onViewFullInfo={handleViewFullInfo} />
-                ))}
-            </ScrollArea>
             {selectedAgent && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <Card className="w-2/3 max-h-[80vh] overflow-y-auto">
@@ -232,8 +234,8 @@ const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLog
     };
 
     return (
-        <div className="flex-col">
-            <ScrollArea className="font-mono text-sm h-[calc(100vh-250px)]">
+        <div className="flex-col rounded-lg bg-gray-100 p-4">
+            <ScrollArea className="font-mono text-sm h-[calc(100vh-280px)]">
                 {logs.map((log, index) => (
                     <div key={index}>{log}</div>
                 ))}
