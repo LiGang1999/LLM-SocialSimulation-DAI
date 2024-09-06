@@ -163,13 +163,20 @@ export namespace apis {
         sim_mode: string;
     }
 
+    function isEmptyObject(obj: Record<string, any> | any[]): boolean {
+        if (Array.isArray(obj)) {
+            return false;
+        }
+        return Object.keys(obj).length === 0;
+    }
+
     export const fetchTemplate = async (templateName: string): Promise<Template> => {
         try {
             const response = await api.get<{ meta: any, events: any[], personas: Record<string, any> }>('/fetch_template/', { params: { sim_code: templateName } });
             const { meta, events, personas } = response.data;
             return {
                 simCode: templateName,
-                events: events.map(event => ({
+                events: isEmptyObject(events) ? [] : events.map(event => ({
                     name: event.name,
                     policy: event.policy,
                     websearch: event.websearch,

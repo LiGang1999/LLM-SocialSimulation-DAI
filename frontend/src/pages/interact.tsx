@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, Paperclip, Trash2, MoreHorizontal, RefreshCw } from 'lucide-react';
+import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, Paperclip, Trash2, MoreHorizontal, RefreshCw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
 import { apis } from '@/lib/api';
 import { ChatMessage, useSimContext } from '@/SimContext';
 import { RandomAvatar } from '@/components/Avatars';
+import mockBg from '@/assets/map.png'
 
 
 const ChatMessageBox: React.FC<ChatMessage> = ({ sender, content, timestamp, subject }) => (
@@ -87,7 +88,52 @@ const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
 
 
 const MapTab: React.FC = () => {
-    return <div id="phaser-container" />;
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const moveStep = 50; // pixels to move per click
+
+    const moveMap = (direction: 'up' | 'down' | 'left' | 'right') => {
+        setPosition(prev => {
+            switch (direction) {
+                case 'up': return { ...prev, y: prev.y + moveStep };
+                case 'down': return { ...prev, y: prev.y - moveStep };
+                case 'left': return { ...prev, x: prev.x + moveStep };
+                case 'right': return { ...prev, x: prev.x - moveStep };
+            }
+        });
+    };
+
+    const resetPosition = () => setPosition({ x: 0, y: 0 });
+
+    return (
+        <div className="relative w-full h-[calc(100vh-200px)] overflow-hidden">
+            <img
+                src={mockBg}
+                alt="Map"
+                className="w-full h-full object-cover absolute"
+                style={{
+                    transform: `translate(${position.x}px, ${position.y}px)`,
+                    transition: 'transform 0.3s ease-out',
+                }}
+                onError={(e) => {
+                    // e.currentTarget.style.display = 'none';
+                    // e.currentTarget.parentElement.classList.add('bg-gray-200');
+                }}
+            />
+            <div className="absolute bottom-4 right-4">
+                <div className="grid grid-cols-3 gap-2">
+                    <div></div>
+                    <button className="p-2 bg-white rounded-full shadow-md" onClick={() => moveMap('up')}><ArrowUp /></button>
+                    <div></div>
+                    <button className="p-2 bg-white rounded-full shadow-md" onClick={() => moveMap('left')}><ArrowLeft /></button>
+                    <button className="p-2 bg-white rounded-full shadow-md" onClick={resetPosition}><RotateCcw /></button>
+                    <button className="p-2 bg-white rounded-full shadow-md" onClick={() => moveMap('right')}><ArrowRight /></button>
+                    <div></div>
+                    <button className="p-2 bg-white rounded-full shadow-md" onClick={() => moveMap('down')}><ArrowDown /></button>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 
@@ -315,10 +361,10 @@ export const InteractPage: React.FC = () => {
         };
 
         // Check status immediately on mount
-        checkStatus();
+        // checkStatus();
 
         // Set up interval to check status
-        const intervalId = setInterval(checkStatus, 5000); // Check every 5 seconds
+        const intervalId = setInterval(checkStatus, 100); // Check every 5 seconds
 
         // Clean up interval on unmount
         return () => clearInterval(intervalId);
@@ -369,7 +415,7 @@ export const InteractPage: React.FC = () => {
             setPrivateMessages(initialPrivateMessages);
         }
 
-        setIsOffline(ctx.data.currentTemplate?.meta.sim_mode == "offline");
+        setIsOffline(ctx.data.currentTemplate?.meta.sim_mode != "online" || true);
         console.log(ctx.data.currentTemplate?.meta.sim_mode)
     }, [ctx.data.currentTemplate, ctx.data.agents]);
 
@@ -528,7 +574,7 @@ export const InteractPage: React.FC = () => {
                         <TabsContent value="dialog" className="flex-grow">
                             <DialogTab messages={publicMessages} />
                         </TabsContent>
-                        {isOffline && <TabsContent value="map" className="flex-grow">
+                        {isOffline && <TabsContent value="map" className="h-full w-full">
                             <MapTab />
                         </TabsContent>}
                         <TabsContent value="ai" className="flex-grow">

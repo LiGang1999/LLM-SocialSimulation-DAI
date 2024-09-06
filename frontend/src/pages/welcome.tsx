@@ -69,7 +69,7 @@ export const WelcomePage = () => {
                                 </Button>
                             </a>
                             <a href={github_link}>
-                                <Button variant="outline" className="text-2xl h-16 px-8 font-bold border-2 border-purple-400 text-white bg-transparent hover:bg-purple-400 hover:text-white rounded-lg transform transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center justify-center">
+                                <Button variant="outline" className="text-2xl h-16 px-8 font-bold border-2 border-purple-400 bg-white backdrop-filter backdrop-blur-lg bg-opacity-50 text-purple-900 hover:bg-purple-400 hover:text-white rounded-lg transform transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center justify-center">
                                     <Github className="mr-2 h-6 w-6" /> GitHub
                                 </Button>
                             </a>

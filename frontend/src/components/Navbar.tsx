@@ -120,7 +120,7 @@ export const Navbar = () => {
                                 key={i}
                                 className={`text-[17px] ${buttonVariants({
                                     variant: "ghost",
-                                })}`}
+                                })} bg-opacity-50`}
                             >
                                 {route.label}
                             </a>
