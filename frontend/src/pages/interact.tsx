@@ -5,43 +5,41 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, Paperclip, Trash2, MoreHorizontal, RefreshCw } from 'lucide-react';
-import { api, apiBaseUrl } from '@/lib/api';
+import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, Paperclip, Trash2, MoreHorizontal, RefreshCw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
+import { apis } from '@/lib/api';
+import { ChatMessage, useSimContext } from '@/SimContext';
+import { RandomAvatar } from '@/components/Avatars';
+import mockBg from '@/assets/map.png'
 
-interface Agent {
-    name: string;
-    avatar: string;
-    status: 'Online' | 'Offline' | 'Away';
-}
 
-interface ChatMessage {
-    sender: 'user' | 'agent';
-    content: string;
-    timestamp: string;
-    avatar: string;
-}
-
-const ChatMessage: React.FC<ChatMessage> = ({ sender, content, timestamp, avatar }) => (
-    <div className={`flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}>
+const ChatMessageBox: React.FC<ChatMessage> = ({ sender, content, timestamp, subject }) => (
+    <div className={`flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4 items-start`}>
         {sender !== 'user' && (
-            <Avatar className="mr-2 h-8 w-8">
-                <AvatarImage src={avatar} alt={sender} />
-                <AvatarFallback>{sender[0].toUpperCase()}</AvatarFallback>
+            <Avatar className="mr-2 mt-1">
+                <RandomAvatar name={sender} className='h-8 w-8' />
             </Avatar>
         )}
-        <div className={`max-w-[70%] ${sender === 'user' ? 'bg-[#FE2C55] text-white' : 'bg-[#F1F1F2] text-black'} rounded-2xl px-4 py-2`}>
-            <p className="text-sm leading-snug">{content}</p>
+        <div className={`max-w-[70%] ${sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'} rounded-lg p-3`}>
+            {sender !== 'user' && (
+                <p className="text-xs font-semibold mb-1">
+                    {sender}
+                    {subject && <span className="text-muted-foreground"> about <span className="font-normal italic">{subject}</span></span>}
+                </p>
+            )}
+            <p className="text-sm">{content}</p>
+            <span className="text-xs text-muted-foreground block mt-1">{timestamp}</span>
         </div>
         {sender === 'user' && (
-            <Avatar className="ml-2 h-8 w-8">
-                <AvatarImage src={avatar} alt={sender} />
-                <AvatarFallback>U</AvatarFallback>
+            <Avatar className="ml-2 mt-1">
+                <RandomAvatar name="Administrator" className='h-8 w-8' />
             </Avatar>
         )}
     </div>
 );
+
 
 const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -77,8 +75,10 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
 };
 
 
+// Update DialogTab to accept messages as a prop
 const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
     return (
+<<<<<<< HEAD
         <div className="bg-gray-50 rounded-md h-full overflow-hidden flex flex-col"> {/* Added flex flex-col */}
             <ScrollArea className="flex-grow px-4"> {/* Changed to flex-grow */}
                 <div className="space-y-2 py-4">
@@ -88,52 +88,98 @@ const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
                 </div>
             </ScrollArea>
         </div>
+=======
+        <ScrollArea className="h-[calc(100vh-200px)] border-4 bg-gray-100 rounded-md border-gray-100 rounded-md pl-2">
+            {messages.map((msg, index) => (
+                <ChatMessageBox key={index} {...msg} />
+            ))}
+        </ScrollArea>
+>>>>>>> zjy-patch-1
     );
 };
 
+
 const MapTab: React.FC = () => {
-    return <div id="phaser-container" />;
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const moveStep = 50; // pixels to move per click
+
+    const moveMap = (direction: 'up' | 'down' | 'left' | 'right') => {
+        setPosition(prev => {
+            switch (direction) {
+                case 'up': return { ...prev, y: prev.y + moveStep };
+                case 'down': return { ...prev, y: prev.y - moveStep };
+                case 'left': return { ...prev, x: prev.x + moveStep };
+                case 'right': return { ...prev, x: prev.x - moveStep };
+            }
+        });
+    };
+
+    const resetPosition = () => setPosition({ x: 0, y: 0 });
+
+    return (
+        <div className="relative w-full h-[calc(100vh-200px)] overflow-hidden">
+            <img
+                src={mockBg}
+                alt="Map"
+                className="w-full h-full object-cover absolute"
+                style={{
+                    transform: `translate(${position.x}px, ${position.y}px)`,
+                    transition: 'transform 0.3s ease-out',
+                }}
+                onError={(e) => {
+                    // e.currentTarget.style.display = 'none';
+                    // e.currentTarget.parentElement.classList.add('bg-gray-200');
+                }}
+            />
+            <div className="absolute bottom-4 right-4">
+                <div className="grid grid-cols-3 gap-2">
+                    <div></div>
+                    <button className="p-2 bg-white rounded-full shadow-md" onClick={() => moveMap('up')}><ArrowUp /></button>
+                    <div></div>
+                    <button className="p-2 bg-white rounded-full shadow-md" onClick={() => moveMap('left')}><ArrowLeft /></button>
+                    <button className="p-2 bg-white rounded-full shadow-md" onClick={resetPosition}><RotateCcw /></button>
+                    <button className="p-2 bg-white rounded-full shadow-md" onClick={() => moveMap('right')}><ArrowRight /></button>
+                    <div></div>
+                    <button className="p-2 bg-white rounded-full shadow-md" onClick={() => moveMap('down')}><ArrowDown /></button>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+    );
 };
 
-interface AgentStatus {
-    name: string;
-    avatar: string;
-    personality: string;
-    memory: string;
-    currentDoing: string;
-    plan: string;
-}
 
-const AgentStatusCard: React.FC<{ agent: AgentStatus }> = ({ agent }) => {
+const AgentStatusCard: React.FC<{ agent: apis.Agent, onViewFullInfo: (agentName: string) => void }> = ({ agent, onViewFullInfo }) => {
     const [expanded, setExpanded] = useState(false);
 
     return (
         <Card className="mb-4">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center space-x-4">
-                    <Avatar>
-                        <AvatarImage src={agent.avatar} alt={agent.name} />
-                        <AvatarFallback>{agent.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <h3 className="text-lg font-semibold">{agent.name}</h3>
+                    <RandomAvatar name={`${agent.first_name} ${agent.last_name}`} className='w-14 h-14' />
+                    <h3 className="text-lg font-semibold">{`${agent.first_name} ${agent.last_name}`}</h3>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)}>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </CardHeader>
             <CardContent>
-                <p><strong>Personality:</strong> {agent.personality}</p>
-                <p><strong>Current Task:</strong> {agent.currentDoing}</p>
+                <p><strong>Age:</strong> {agent.age}</p>
+                <p><strong>Lifestyle:</strong> {agent.lifestyle}</p>
+                <p><strong>Currently:</strong> {agent.currently}</p>
                 {expanded && (
                     <>
-                        <p><strong>Memory:</strong> {agent.memory}</p>
-                        <p><strong>Plan:</strong> {agent.plan}</p>
+                        <p><strong>Memory:</strong> {agent.memory?.join(', ')}</p>
+                        <p><strong>Plan:</strong> {agent.plan?.join(', ')}</p>
+                        <p><strong>Bibliography:</strong> {agent.bibliography}</p>
+                        <p><strong>Innate Traits:</strong> {agent.innate}</p>
+                        <p><strong>Learned Traits:</strong> {agent.learned}</p>
                     </>
                 )}
             </CardContent>
             {expanded && (
                 <CardFooter>
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full" onClick={() => onViewFullInfo(agent.name)}>
                         查看全部信息
                     </Button>
                 </CardFooter>
@@ -142,35 +188,112 @@ const AgentStatusCard: React.FC<{ agent: AgentStatus }> = ({ agent }) => {
     );
 };
 
-const AgentStatusTab: React.FC<{ agents: AgentStatus[], fetchAgentStatus: () => void }> = ({ agents, fetchAgentStatus }) => (
-    <>
-        <div className="flex justify-end mb-4">
-            <Button onClick={fetchAgentStatus}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Refresh
-            </Button>
-        </div>
-        <ScrollArea className="h-[calc(100vh-400px)]">
-            {agents.map((agent, index) => (
-                <AgentStatusCard key={index} agent={agent} />
-            ))}
-        </ScrollArea>
-    </>
-);
+const AgentStatusTab: React.FC = () => {
+    const [agents, setAgents] = useState<apis.Agent[]>([]);
+    const [selectedAgent, setSelectedAgent] = useState<apis.Agent | null>(null);
 
+    const { data } = useSimContext();
 
-const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLogs: () => void }> = ({ logs, addLog, clearLogs }) => {
-    const [command, setCommand] = useState('');
+    const fetchAgentStatus = async () => {
+        const agentsInfo = await apis.agentsInfo(data.currSimCode || "");
+        console.log(agentsInfo);
+        setAgents(agentsInfo);
+    };
 
-    const handleCommand = () => {
-        addLog(`> ${command}`);
-        // Process command here
-        setCommand('');
+    useEffect(() => {
+        fetchAgentStatus();
+    }, []);
+
+    const handleViewFullInfo = async (agentName: string) => {
+        try {
+            const agentDetail = await apis.agentDetail(data.currSimCode || "", agentName);
+            setSelectedAgent(agentDetail);
+        } catch (error) {
+            console.error('Error fetching agent detail:', error);
+            // Handle error (e.g., show an error message to the user)
+        }
     };
 
     return (
-        <div className="flex-col">
-            <ScrollArea className="font-mono text-sm h-[calc(100vh-250px)]">
+        <>
+
+            <ScrollArea className="h-[calc(100vh-230px)] bg-gray-100 p-4 rounded-lg">
+                {agents.map((agent, index) => (
+                    <AgentStatusCard key={index} agent={agent} onViewFullInfo={handleViewFullInfo} />
+                ))}
+
+            </ScrollArea>
+            <div className="w-full">
+                <Button onClick={fetchAgentStatus} className='w-full'>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Refresh
+                </Button>
+            </div>
+            {selectedAgent && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <Card className="w-2/3 max-h-[80vh] overflow-y-auto">
+                        <CardHeader>
+                            <h2 className="text-2xl font-bold">{selectedAgent.name} - Full Information</h2>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p><strong>Name:</strong> {selectedAgent.name}</p>
+                                    <p><strong>First Name:</strong> {selectedAgent.first_name}</p>
+                                    <p><strong>Last Name:</strong> {selectedAgent.last_name}</p>
+                                    <p><strong>Age:</strong> {selectedAgent.age}</p>
+                                    <p><strong>Daily Plan Requirement:</strong> {selectedAgent.daily_plan_req}</p>
+                                    <p><strong>Innate Traits:</strong> {selectedAgent.innate}</p>
+                                    <p><strong>Learned Traits:</strong> {selectedAgent.learned}</p>
+                                    <p><strong>Currently:</strong> {selectedAgent.currently}</p>
+                                    <p><strong>Lifestyle:</strong> {selectedAgent.lifestyle}</p>
+                                    <p><strong>Living Area:</strong> {selectedAgent.living_area}</p>
+                                </div>
+                                <div>
+                                    <p><strong>Current Time:</strong> {selectedAgent.curr_time}</p>
+                                    <p><strong>Current Tile:</strong> {selectedAgent.curr_tile}</p>
+                                    <p><strong>Daily Requirements:</strong> {selectedAgent.daily_req?.join(', ')}</p>
+                                    <p><strong>Daily Schedule:</strong> {selectedAgent.f_daily_schedule?.join(', ')}</p>
+                                    <p><strong>Hourly Schedule:</strong> {selectedAgent.f_daily_schedule_hourly_org?.join(', ')}</p>
+                                    <p><strong>Current Activity:</strong> {selectedAgent.act_description}</p>
+                                    <p><strong>Activity Start Time:</strong> {selectedAgent.act_start_time}</p>
+                                    <p><strong>Activity Duration:</strong> {selectedAgent.act_duration}</p>
+                                    <p><strong>Chatting With:</strong> {selectedAgent.chatting_with}</p>
+                                    <p><strong>Chatting End Time:</strong> {selectedAgent.chatting_end_time}</p>
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                <p><strong>Memory:</strong> {selectedAgent.memory?.join(', ')}</p>
+                                <p><strong>Plan:</strong> {selectedAgent.plan?.join(', ')}</p>
+                                <p><strong>Bibliography:</strong> {selectedAgent.bibliography}</p>
+                                <p><strong>Current Event:</strong> {selectedAgent.act_event?.join(', ')}</p>
+                                <p><strong>Planned Path:</strong> {selectedAgent.planned_path?.join(' → ')}</p>
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button onClick={() => setSelectedAgent(null)}>Close</Button>
+                        </CardFooter>
+                    </Card>
+                </div>
+            )}
+        </>
+    );
+};
+
+
+const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLogs: () => void, setIsRunning: (isRunning: boolean) => void }> = ({ logs, addLog, clearLogs, setIsRunning }) => {
+    const [command, setCommand] = useState('');
+
+    const handleCommand = async () => {
+        setIsRunning(true);
+        addLog(`> ${command}`);
+        // Process command here
+        await apis.sendCommand(command);
+    };
+
+    return (
+        <div className="flex-col rounded-lg bg-gray-100 p-4">
+            <ScrollArea className="font-mono text-sm h-[calc(100vh-280px)]">
                 {logs.map((log, index) => (
                     <div key={index}>{log}</div>
                 ))}
@@ -196,49 +319,32 @@ const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLog
     );
 };
 
+
+
 export const InteractPage: React.FC = () => {
-    const [selectedAgent, setSelectedAgent] = useState<Agent>({
-        name: "不加咖啡的奶茶",
-        avatar: "/api/placeholder/32/32",
-        status: "Online"
-    });
-
-    const [messages, setMessages] = useState<ChatMessage[]>([
-        { sender: 'agent', content: '你好!很近如何?', timestamp: '15:22', avatar: "/api/placeholder/32/32" },
-        { sender: 'user', content: '下周我有一场新工作面试,你有什么建议吗?', timestamp: '15:22', avatar: "/api/placeholder/32/32" },
-        { sender: 'agent', content: '完美的!我很高兴为你提供一些建议。', timestamp: '15:22', avatar: "/api/placeholder/32/32" },
-    ]);
-
-    const [agentStatus, setAgentStatus] = useState<AgentStatus[]>([
-        {
-            name: "Agent 1",
-            avatar: "/api/placeholder/32/32",
-            personality: "Friendly and helpful",
-            memory: "Remembers recent conversations",
-            currentDoing: "Assisting with customer inquiries",
-            plan: "Improve response time and accuracy"
-        },
-        // Add more agents as needed
-    ]);
-
+    const ctx = useSimContext();
     const [logs, setLogs] = useState<string[]>([]);
-    const [isRunning, setIsRunning] = useState(false);
 
-    const agents: Agent[] = [
-        { name: "不加咖啡的奶茶", avatar: "/api/placeholder/32/32", status: "Online" },
-        { name: "Agent 2", avatar: "/api/placeholder/32/32", status: "Offline" },
-        { name: "Agent 3", avatar: "/api/placeholder/32/32", status: "Away" },
-    ];
+    const [isRunning, setIsRunning] = useState(true);
+    const [privateChatAgent, setPrivateChatAgent] = useState<string>("");
+    const [simRounds, setSimRounds] = useState<number>(1);
 
-    const addChat = (sender: 'user' | 'agent', content: string) => {
-        const newMessage: ChatMessage = {
-            sender,
-            content,
-            timestamp: new Date().toLocaleTimeString(),
-            avatar: sender === 'user' ? "/api/placeholder/32/32" : selectedAgent.avatar
-        };
-        setMessages(prevMessages => [...prevMessages, newMessage]);
+    // New state for messages
+    const [publicMessages, setPublicMessages] = useState<ChatMessage[]>([]);
+    const [privateMessages, setPrivateMessages] = useState<Record<string, ChatMessage[]>>({});
+    const [isOffline, setIsOffline] = useState<boolean>(false);
+
+    const addPublicMessage = (message: ChatMessage) => {
+        setPublicMessages(prevMessages => [...prevMessages, message]);
     };
+
+    const addPrivateMessage = (agentName: string, message: ChatMessage) => {
+        setPrivateMessages(prevMessages => ({
+            ...prevMessages,
+            [agentName]: [...(prevMessages[agentName] || []), message]
+        }));
+    };
+
 
     const addLog = (log: string) => {
         setLogs(prevLogs => [...prevLogs, log]);
@@ -248,26 +354,90 @@ export const InteractPage: React.FC = () => {
         setLogs([]);
     };
 
-    const fetchAgentStatus = async () => {
+    const handleRunSimulation = async (rounds: number) => {
         try {
-            const response = await api.get('/agentStatus');
-            setAgentStatus(response.data);
+            setIsRunning(true);
+            await apis.runSim(rounds);
         } catch (error) {
-            console.error('Error fetching agent status:', error);
+            console.error("Error running simulation:", error);
+            // Handle the error, e.g., show an error message to the user
+        } finally {
+            setIsRunning(false);
         }
     };
 
     useEffect(() => {
-        fetchAgentStatus();
+        const checkStatus = async () => {
+            const status = await apis.queryStatus();
+            setIsRunning(status === 'running');
+        };
+
+        // Check status immediately on mount
+        // checkStatus();
+
+        // Set up interval to check status
+        const intervalId = setInterval(checkStatus, 100); // Check every 5 seconds
+
+        // Clean up interval on unmount
+        return () => clearInterval(intervalId);
     }, []);
+
+
+    useEffect(() => {
+        console.log('Entering interact page')
+        // console.log(Object.keys(ctx.data.agents).length)
+        if (!ctx.data.agents || Object.keys(ctx.data.agents).length === 0) {
+            const personasObject = (ctx.data.currentTemplate?.personas || []).reduce((acc, persona) => {
+                if (persona.name) {
+                    acc[persona.name] = persona;
+                }
+                return acc;
+            }, {} as Record<string, any>);
+
+            const updatedData = {
+                ...ctx.data,
+                agents: personasObject
+            };
+
+            ctx.setData(updatedData);
+
+            // console.log(ctx.data.agents)
+            // console.log(personasObject)
+
+            // Set the privateChatAgent to the first agent's name
+            if (Object.keys(personasObject).length > 0) {
+                setPrivateChatAgent(Object.keys(personasObject)[0]);
+            }
+
+            // Initialize privateMessages with empty arrays for each agent
+            const initialPrivateMessages = Object.keys(personasObject).reduce((acc, agentName) => {
+                acc[agentName] = [];
+                return acc;
+            }, {} as Record<string, ChatMessage[]>);
+            setPrivateMessages(initialPrivateMessages);
+        } else if (privateChatAgent === "" && Object.keys(ctx.data.agents).length > 0) {
+            // If agents already exist but privateChatAgent is not set, set it to the first agent
+            setPrivateChatAgent(Object.keys(ctx.data.agents)[0]);
+
+            // Initialize privateMessages with empty arrays for each agent
+            const initialPrivateMessages = Object.keys(ctx.data.agents).reduce((acc, agentName) => {
+                acc[agentName] = [];
+                return acc;
+            }, {} as Record<string, ChatMessage[]>);
+            setPrivateMessages(initialPrivateMessages);
+        }
+
+        setIsOffline(ctx.data.currentTemplate?.meta.sim_mode != "online" || true);
+        console.log(ctx.data.currentTemplate?.meta.sim_mode)
+    }, [ctx.data.currentTemplate, ctx.data.agents]);
 
     const [chatSocket, setChatSocket] = useState<WebSocket | null>(null);
     const [logSocket, setLogSocket] = useState<WebSocket | null>(null);
 
     useEffect(() => {
         // Create WebSocket connections when the component mounts
-        const newChatSocket = new WebSocket('ws://your-chat-websocket-url');
-        const newLogSocket = new WebSocket('ws://your-log-websocket-url');
+        const newChatSocket = apis.chatSocket();
+        const newLogSocket = apis.logSocket();
 
         // Update state with the new WebSocket instances
         setChatSocket(newChatSocket);
@@ -278,27 +448,125 @@ export const InteractPage: React.FC = () => {
             newChatSocket.close();
             newLogSocket.close();
         };
+
+
     }, []);
 
     useEffect(() => {
         if (chatSocket) {
-            // Listen for messages from the chat WebSocket
             chatSocket.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                addChat(message.sender, message.content);
+                const message: ChatMessage = JSON.parse(event.data);
+
+                if (message.type === 'public') {
+                    addPublicMessage(message);
+                } else if (message.type === 'private') {
+                    addPrivateMessage(message.sender, message);
+                }
             };
         }
     }, [chatSocket]);
 
     useEffect(() => {
         if (logSocket) {
-            // Listen for messages from the log WebSocket
             logSocket.onmessage = (event) => {
-                const log = JSON.parse(event.data);
-                addLog(log.message);
+                console.log("Receive log data!!!")
+                console.log(event.data)
+                addLog(`• ${event.data}`);
             };
         }
     }, [logSocket]);
+
+
+    // console.log(ctx.data)
+    // const currentAgent = ctx.data.agents[privateChatAgent];
+
+
+    const ChatFooter: React.FC<{ simCode: string, agentName: string }> = ({ simCode, agentName }) => {
+        const [message, setMessage] = useState('');
+        const [chatType, setChatType] = useState<'whisper' | 'analysis'>('whisper');
+
+        const handleSendMessage = async () => {
+            console.log("Sending message:", simCode, agentName, chatType, privateMessages[agentName], message);
+            if (message.trim()) {
+                try {
+                    console.log("Sending message:", simCode, agentName, chatType, privateMessages[agentName], message);
+                    setIsRunning(true);
+                    const response = await apis.privateChat(simCode, agentName, chatType, privateMessages[agentName], message);
+                    // Handle the response, e.g., update the chat messages
+                    console.log(response);
+                    // Clear the input after sending
+                    setMessage('');
+                } catch (error) {
+                    console.error("Error sending private chat:", error);
+                    // Handle the error, e.g., show an error message to the user
+                }
+            }
+        };
+
+        return (
+            <CardFooter className="p-4 flex-col">
+                <div className="flex w-full justify-start space-x-2 mb-2">
+                    <Button size="sm" variant="outline">
+                        <Image className="h-4 w-4 mr-1" />
+                        发布事件
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRunSimulation(1)}
+                        disabled={isRunning}
+                    >
+                        {isRunning ? '模拟中...' : '模拟1轮'}
+                    </Button>
+                    <div className="flex items-center space-x-1">
+
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => { if (!isRunning) handleRunSimulation(simRounds) }}
+                            disabled={isRunning}
+                        >
+                            {isRunning ? '模拟中...' : `模拟${simRounds}轮`}
+                        </Button>
+                        <Input
+                            type="number"
+                            value={simRounds}
+                            onChange={(e) => setSimRounds(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-16 h-8"
+                            min="1"
+                        />
+                    </div>
+                </div>
+                <div className="flex w-full items-center space-x-2">
+                    <Button size="icon" variant="outline">
+                        <Paperclip className="h-4 w-4" />
+                    </Button>
+                    <Select
+                        value={chatType}
+                        onValueChange={(value: 'whisper' | 'analysis') => setChatType(value)}
+                    >
+                        <SelectTrigger className="w-[100px]">
+                            <SelectValue placeholder="Chat type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="whisper">Whisper</SelectItem>
+                            <SelectItem value="analysis">Analysis</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Input
+                        className="flex-grow"
+                        placeholder="说点什么..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                    />
+                    <Button onClick={handleSendMessage}>
+                        <Send className="h-4 w-4" />
+                    </Button>
+                </div>
+            </CardFooter>
+        );
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -306,29 +574,44 @@ export const InteractPage: React.FC = () => {
             <div className="container flex w-full mx-auto mt-4 mb-4 px-4 flex-grow">
                 {/* Left panel with tabs and status bar */}
                 <div className="w-2/3 pr-4 flex flex-col">
+<<<<<<< HEAD
                     <Tabs defaultValue="dialog" className="flex flex-col flex-grow">
                         <TabsList className="grid w-full grid-cols-4">
+=======
+                    <Tabs defaultValue="map" className="w-full flex-grow"
+                    // onValueChange={(value) => value === 'ai' && fetchAgentStatus()}
+                    >
+                        <TabsList className={isOffline ? `grid w-full grid-cols-4` : `grid w-full grid-cols-3`}>
+>>>>>>> zjy-patch-1
                             <TabsTrigger value="dialog"><MessageSquare className="mr-2 h-4 w-4" />对话</TabsTrigger>
-                            <TabsTrigger value="map"><MapPin className="mr-2 h-4 w-4" />地图</TabsTrigger>
+                            {isOffline && <TabsTrigger value="map"><MapPin className="mr-2 h-4 w-4" />地图</TabsTrigger>}
                             <TabsTrigger value="ai"><Bot className="mr-2 h-4 w-4" />智能体状态</TabsTrigger>
                             <TabsTrigger value="log"><FileText className="mr-2 h-4 w-4" />日志</TabsTrigger>
                         </TabsList>
+<<<<<<< HEAD
                         <TabsContent value="dialog" className="flex-grow overflow-hidden mt-2">
                             <DialogTab messages={messages} />
                         </TabsContent>
 
 
                         <TabsContent value="map" className="flex-grow">
-                            <MapTab />
+=======
+                        <TabsContent value="dialog" className="flex-grow">
+                            <DialogTab messages={publicMessages} />
                         </TabsContent>
+                        {isOffline && <TabsContent value="map" className="h-full w-full">
+>>>>>>> zjy-patch-1
+                            <MapTab />
+                        </TabsContent>}
                         <TabsContent value="ai" className="flex-grow">
-                            <AgentStatusTab agents={agentStatus} fetchAgentStatus={fetchAgentStatus} />
+                            <AgentStatusTab />
                         </TabsContent>
                         <TabsContent value="log" className="flex-grow">
-                            <LogTab logs={logs} addLog={addLog} clearLogs={clearLogs} />
+                            <LogTab logs={logs} addLog={addLog} clearLogs={clearLogs} setIsRunning={setIsRunning} />
                         </TabsContent>
+
                     </Tabs>
-                    <StatusBar isRunning={true} />
+                    <StatusBar isRunning={isRunning} />
                 </div>
 
                 {/* Right panel with chat */}
@@ -339,59 +622,37 @@ export const InteractPage: React.FC = () => {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="p-0 hover:bg-transparent">
                                         <Avatar>
-                                            <AvatarImage src={selectedAgent.avatar} alt={selectedAgent.name} />
-                                            <AvatarFallback>{selectedAgent.name[0]}</AvatarFallback>
+                                            {privateChatAgent && ctx.data.agents && <RandomAvatar className='w-12 h-12' name={`${ctx.data.agents[privateChatAgent].first_name} ${ctx.data.agents[privateChatAgent].last_name}`} />}
                                         </Avatar>
                                         <div className="ml-2 text-left">
-                                            <h2 className="text-xl font-bold">{selectedAgent.name}</h2>
-                                            <p className="text-sm text-muted-foreground">{selectedAgent.status}</p>
+                                            {privateChatAgent && ctx.data.agents && <h2 className="text-xl font-bold">{ctx.data.agents[privateChatAgent].name}</h2>}
                                         </div>
                                         <ChevronDown className="ml-2" />
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align='start'>
-                                    {agents.map((agent) => (
-                                        <DropdownMenuItem key={agent.name} onSelect={() => setSelectedAgent(agent)}>
+                                    {ctx.data.currentTemplate && ctx.data.currentTemplate.personas.map((persona: apis.Agent) => (
+                                        <DropdownMenuItem key={persona.name} onSelect={() => setPrivateChatAgent(persona.name)} className='flex flex-row items-center align-center'>
                                             <Avatar className="mr-2">
-                                                <AvatarImage src={agent.avatar} alt={agent.name} />
-                                                <AvatarFallback>{agent.name[0]}</AvatarFallback>
+                                                <RandomAvatar className='w-8 h-8 mt-1' name={`${persona.first_name} ${persona.last_name}`} />
                                             </Avatar>
-                                            <span>{agent.name}</span>
+                                            <span>{`${persona.first_name} ${persona.last_name}`}</span>
                                         </DropdownMenuItem>
                                     ))}
                                 </DropdownMenuContent>
+
                             </DropdownMenu>
                         </CardHeader>
                         <CardContent className="flex-grow overflow-hidden">
-                            <ScrollArea className="h-[calc(100vh-350px)]">
-                                {messages.map((msg, index) => (
-                                    <ChatMessage key={index} {...msg} />
-                                ))}
+                            <ScrollArea className="h-[calc(100vh-350px)] px-4">
+                                {privateChatAgent && privateMessages[privateChatAgent]?.map((msg, index) => (
+                                    <ChatMessageBox key={index} {...msg} />
+                                )) || (
+                                        <p>No private messages with {privateChatAgent}</p>
+                                    )}
                             </ScrollArea>
                         </CardContent>
-                        <CardFooter className="p-4 flex-col">
-                            <div className="flex w-full justify-start space-x-2 mb-2">
-                                <Button size="sm" variant="outline">
-                                    <Image className="h-4 w-4 mr-1" />
-                                    发布事件
-                                </Button>
-                                <Button size="sm" variant="outline" onClick={() => setIsRunning(!isRunning)}>
-                                    {isRunning ? '停止模拟' : '模拟1轮'}
-                                </Button>
-                                <Button size="sm" variant="outline">
-                                    9999
-                                </Button>
-                            </div>
-                            <div className="flex w-full items-center space-x-2">
-                                <Button size="icon" variant="outline">
-                                    <Paperclip className="h-4 w-4" />
-                                </Button>
-                                <Input className="flex-grow" placeholder="说点什么..." />
-                                <Button onClick={() => addChat('user', 'Test message')}>
-                                    <Send className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </CardFooter>
+                        <ChatFooter simCode={ctx.data.currSimCode || ""} agentName={privateChatAgent} />
                     </Card>
                 </div>
             </div>

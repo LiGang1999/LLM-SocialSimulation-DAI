@@ -45,6 +45,24 @@ def another_data_handler(payload):
     print(f"Another handler for data event with payload: {payload}")
 
 
+@event_handler("chat_to_persona")
+def handle_chat_to_persona(payload):
+    # event_trigger(
+    #     "chat_to_persona", {"mode": mode, "persona": persona_name, "reply": retval}
+    # )
+    sock_send(
+        "chat",
+        {
+            "sender": payload["persona"],
+            "role": "agent",
+            "type": "private",
+            "content": payload["reply"],
+            "timestamp": "",
+            "subject": payload.get("subject", ""),
+        },
+    )
+
+
 @event_handler("agent_comment")
 def handle_chat(payload):
     """
@@ -64,4 +82,14 @@ def handle_chat(payload):
         # This will send a message like:
         # {"role": "agent", "name": "Agent Smith", "content": "Hello, how can I help you?"}
     """
-    sock_send("chat", {"role": "agent", "name": payload["name"], "content": payload["content"]})
+    sock_send(
+        "chat",
+        {
+            "sender": payload["name"],
+            "role": "agent",
+            "type": "public",
+            "content": payload["content"],
+            "timestamp": "",
+            "subject": payload.get("subject", ""),
+        },
+    )

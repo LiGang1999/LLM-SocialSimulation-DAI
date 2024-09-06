@@ -1,3 +1,7 @@
-server_ip: 127.0.0.1
+server_ip: 10.72.74.13
 front_port: 10056
+<<<<<<< HEAD
 back_port: 10069
+=======
+back_port: 10058
+>>>>>>> zjy-patch-1

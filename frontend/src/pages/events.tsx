@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { X, Plus, Edit, ChevronRight } from "lucide-react";
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
+import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
 
 export interface Event {
     name: string;
@@ -38,12 +39,22 @@ export const EventsPage = () => {
     const updateReplicateCount = (value: string) => {
         setReplicateCount(value);
         const numValue = parseInt(value, 10);
-        if (!isNaN(numValue)) {
+        if (!isNaN(numValue) && numValue >= 0) {
             ctx.setData({
                 ...ctx.data,
                 initialRounds: numValue
             });
+        } else {
+            ctx.setData({
+                ...ctx.data,
+                initialRounds: undefined
+            });
         }
+    };
+
+    const isFormValid = () => {
+        const numValue = parseInt(replicateCount, 10);
+        return experimentName.trim() !== '' && !isNaN(numValue) && numValue >= 0;
     };
 
     const addNewEvent = () => {
@@ -98,8 +109,8 @@ export const EventsPage = () => {
     useEffect(() => {
         const fetchTemplates = async () => {
             try {
-                if (ctx.data.currSimCode && !ctx.data.currentTemplate) {
-                    const templateData = await apis.fetchTemplate(ctx.data.currSimCode);
+                if (ctx.data.templateCode && !ctx.data.currentTemplate) {
+                    const templateData = await apis.fetchTemplate(ctx.data.templateCode);
                     const events = templateData.events.map((value, index) => ({
                         ...value,
                         name: value.name || `事件 ${index + 1}`
@@ -138,7 +149,7 @@ export const EventsPage = () => {
                                             value={experimentName}
                                             onChange={(e) => updateExperimentName(e.target.value)}
                                             placeholder="请输入实验名称"
-                                            className="w-full"
+                                            className={`w-full ${experimentName.trim() === '' ? 'border-red-500' : ''}`}
                                         />
                                     </div>
 
@@ -147,10 +158,13 @@ export const EventsPage = () => {
                                         <div className="flex items-center">
                                             <Input
                                                 id="replicateCount"
+                                                type="number"
+                                                min="1"
+                                                step="1"
                                                 value={replicateCount}
                                                 onChange={(e) => updateReplicateCount(e.target.value)}
                                                 placeholder="请输入仿真轮数"
-                                                className="mr-2"
+                                                className={`mr-2 ${replicateCount.trim() === '' || isNaN(parseInt(replicateCount, 10)) || parseInt(replicateCount, 10) < 0 ? 'border-red-500' : ''}`}
                                             />
                                             <span className="text-gray-600">轮</span>
                                         </div>
@@ -161,7 +175,7 @@ export const EventsPage = () => {
                                     <h3 className="text-lg font-semibold text-gray-700 mb-3">事件列表</h3>
                                     <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
                                         {events?.map((event) => (
-                                            <div key={event.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg transition-shadow">
+                                            <div key={event.name} className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg transition-shadow">
                                                 <span className="text-gray-700 font-medium">{event.name}</span>
                                                 <div>
                                                     <Button variant="ghost" size="sm" onClick={() => setSelectedEvent(event)} className="text-blue-500 hover:text-blue-700">
@@ -184,13 +198,13 @@ export const EventsPage = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-gray-50 p-6 rounded-lg">
+                            <div className="bg-indigo-50 p-6 rounded-lg">
                                 <h3 className="text-lg font-semibold text-gray-700 mb-4">事件详情</h3>
                                 {selectedEvent ? (
                                     <div className="space-y-4">
                                         <div>
                                             <label htmlFor="eventDescription" className="block text-sm font-medium text-gray-700 mb-1">事件描述</label>
-                                            <Textarea
+                                            <AutoResizeTextarea
                                                 id="eventDescription"
                                                 value={selectedEvent.description}
                                                 onChange={(e) => updateEvent('description', e.target.value)}
@@ -209,7 +223,7 @@ export const EventsPage = () => {
                                         </div>
                                         <div>
                                             <label htmlFor="eventPolicy" className="block text-sm font-medium text-gray-700 mb-1">事件政策</label>
-                                            <Textarea
+                                            <AutoResizeTextarea
                                                 id="eventPolicy"
                                                 value={selectedEvent.policy}
                                                 onChange={(e) => updateEvent('policy', e.target.value)}
@@ -219,7 +233,7 @@ export const EventsPage = () => {
                                         </div>
                                         <div>
                                             <label htmlFor="eventWebsearch" className="block text-sm font-medium text-gray-700 mb-1">网络搜索</label>
-                                            <Textarea
+                                            <AutoResizeTextarea
                                                 id="eventWebsearch"
                                                 value={selectedEvent.websearch}
                                                 onChange={(e) => updateEvent('websearch', e.target.value)}
@@ -235,7 +249,13 @@ export const EventsPage = () => {
                         </div>
                     </CardContent>
                 </Card>
-                <BottomNav prevLink='/templates' nextLink='/agents' currStep={1} disabled={false} className='my-8' />
+                <BottomNav
+                    prevLink='/templates'
+                    nextLink='/agents'
+                    currStep={1}
+                    disabled={!isFormValid()}
+                    className='my-8'
+                />
             </div>
         </div>
     );

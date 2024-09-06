@@ -13,8 +13,8 @@ default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
 
 default_llm_config = override_gpt_param
 
-print_raw_log = False
-print_short_log = True
+print_raw_log = True
+print_short_log = False
 
 
 def llm_logging_repr(object):
@@ -196,7 +196,8 @@ def llm_request(
                 time.sleep(retry_delay)
             else:
                 L.error("Max retries exceeded. Request failed.")
-                raise e
+                result = ""
+                # raise e
 
     return failsafe_fn(result, kwargs)
 
@@ -214,10 +215,11 @@ Here is the example user input and the answer:
     # TODO shoud we include the example inputs and outputs here?
     prompt = f"""\n
  
-You MUST reply the answer in the following json format (the contents are for reference only):
+You MUST reply the answer in the following json format (the values for each key are for reference only):
 {json.dumps(example_retval, indent=4)}
 
 You should not give any explanation unless it is required in your answer.
+You MUST not add additional formats (headers, footers, points ) in your answer.
 You MUST not reply anything else. Just reply the json answer.
 """
 

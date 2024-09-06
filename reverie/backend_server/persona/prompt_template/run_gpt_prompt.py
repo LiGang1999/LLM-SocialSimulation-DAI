@@ -11,10 +11,9 @@ import datetime
 import re
 import sys
 
-
-from utils import *
 from persona.prompt_template.gpt_structure import *
 from persona.prompt_template.print_prompt import *
+from utils import *
 from utils.llm_function import llm_function
 
 
@@ -3939,7 +3938,7 @@ def run_gpt_generate_iterative_comment_utt_new(
     ):
 
         # You must write an example of output here
-        return {"comment": f"{persona_name}'s comments on news"}
+        return {"comment": f"<comments on news>"}
 
     # Step 1. Create prompt inputs
     pm = ""

@@ -9,57 +9,82 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PlusCircle, Save, Trash2 } from 'lucide-react'
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
+import { RandomAvatar } from '@/components/Avatars';
+import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
 
 const mockAgents: (apis.Agent & { id: number })[] = [
     {
         id: 1,
         name: 'Isabella Rodriguez',
-        firstName: 'Isabella',
-        lastName: 'Rodriguez',
+        first_name: 'Isabella',
+        last_name: 'Rodriguez',
         age: 34,
-        dailyPlanReq: 'Isabella Rodriguez opens Hobbs Cafe at 8am everyday, and works at the counter until 8pm, at which point she closes the cafe.',
+        daily_plan_req: 'Isabella Rodriguez opens Hobbs Cafe at 8am everyday, and works at the counter until 8pm, at which point she closes the cafe.',
+        daily_req: [],
+        f_daily_schedule: [],
+        f_daily_schedule_hourly_org: [],
         innate: 'friendly, outgoing, hospitable',
         learned: 'Isabella Rodriguez is a cafe owner of Hobbs Cafe who loves to make people feel welcome. She is always looking for ways to make the cafe a place where people can come to relax and enjoy themselves. She is concerned with environmental issues and big global events, although she does not have professional knowledge in these areas.',
-        currently: undefined,
+        currently: '',
         lifestyle: 'Busy cafe owner, health-conscious',
-        livingArea: 'Small apartment above Hobbs Cafe',
-        plan: undefined,
-        memory: undefined,
-        bibliography: 'Local business owner, community pillar'
+        living_area: 'Small apartment above Hobbs Cafe',
+        plan: [],
+        memory: [],
+        bibliography: 'Local business owner, community pillar',
+        act_event: [''],
+        act_obj_event: [],
+        act_path_set: false,
+        planned_path: [],
+        chatting_with_buffer: {}
     },
-    // Add more mock agents if needed
     {
         id: 2,
         name: 'Marcus Chen',
-        firstName: 'Marcus',
-        lastName: 'Chen',
+        first_name: 'Marcus',
+        last_name: 'Chen',
         age: 28,
-        dailyPlanReq: 'Marcus Chen starts his day at 7am with a morning run. He works as a software developer from 9am to 6pm, with a lunch break at noon. After work, he often attends local tech meetups or works on personal coding projects until around 10pm.',
+        daily_plan_req: 'Marcus Chen starts his day at 7am with a morning run. He works as a software developer from 9am to 6pm, with a lunch break at noon. After work, he often attends local tech meetups or works on personal coding projects until around 10pm.',
+        daily_req: [],
+        f_daily_schedule: [],
+        f_daily_schedule_hourly_org: [],
         innate: 'analytical, introverted, creative',
-        learned: 'Marcus Chen is a talented software developer who specializes in AI and machine learning. He\'s passionate about technology and its potential to solve complex problems.He\'s also an advocate for open - source software and contributes to several projects in his free time.',
-        currently: undefined,
+        learned: 'Marcus Chen is a talented software developer who specializes in AI and machine learning. He\'s passionate about technology and its potential to solve complex problems. He\'s also an advocate for open-source software and contributes to several projects in his free time.',
+        currently: '',
         lifestyle: 'Tech-savvy, fitness enthusiast',
-        livingArea: 'Modern studio apartment in the city center',
-        plan: undefined,
-        memory: undefined,
-        bibliography: 'Rising star in the local tech scene'
+        living_area: 'Modern studio apartment in the city center',
+        plan: [],
+        memory: [],
+        bibliography: 'Rising star in the local tech scene',
+        act_event: [''],
+        act_obj_event: [],
+        act_path_set: false,
+        planned_path: [],
+        chatting_with_buffer: {}
     },
     {
         id: 3,
         name: 'Aisha Patel',
-        firstName: 'Aisha',
-        lastName: 'Patel',
+        first_name: 'Aisha',
+        last_name: 'Patel',
         age: 42,
-        dailyPlanReq: 'Aisha Patel begins her day at 6am with yoga and meditation. She sees patients at her clinic from 9am to 5pm, with a break for lunch and paperwork. In the evenings, she often volunteers at a local community health center or attends medical conferences.',
+        daily_plan_req: 'Aisha Patel begins her day at 6am with yoga and meditation. She sees patients at her clinic from 9am to 5pm, with a break for lunch and paperwork. In the evenings, she often volunteers at a local community health center or attends medical conferences.',
+        daily_req: [],
+        f_daily_schedule: [],
+        f_daily_schedule_hourly_org: [],
         innate: 'empathetic, detail-oriented, calm',
-        learned: 'Aisha Patel is a respected pediatrician with over 15 years of experience. She\'s known for her holistic approach to healthcare, combining Western medicine with traditional practices.She\'s actively involved in public health initiatives and regularly gives talks on child nutrition and preventive care.',
-        currently: undefined,
+        learned: 'Aisha Patel is a respected pediatrician with over 15 years of experience. She\'s known for her holistic approach to healthcare, combining Western medicine with traditional practices. She\'s actively involved in public health initiatives and regularly gives talks on child nutrition and preventive care.',
+        currently: '',
         lifestyle: 'Health-focused, community-oriented',
-        livingArea: 'Spacious family home in a quiet suburb',
-        plan: undefined,
-        memory: undefined,
-        bibliography: 'Renowned pediatrician and public health advocate'
-    },
+        living_area: 'Spacious family home in a quiet suburb',
+        plan: [],
+        memory: [],
+        bibliography: 'Renowned pediatrician and public health advocate',
+        act_event: [''],
+        act_obj_event: [],
+        act_path_set: false,
+        planned_path: [],
+        chatting_with_buffer: {}
+    }
 ];
 
 export const AgentsPage = () => {
@@ -67,12 +92,13 @@ export const AgentsPage = () => {
 
     const [agents, setAgents] = useState<(apis.Agent & { id: number })[]>([]);
     const [selectedAgentId, setSelectedAgentId] = useState<number | null>(null);
+    const [localAgent, setLocalAgent] = useState<(apis.Agent & { id: number }) | null>(null);
 
     useEffect(() => {
         const fetchTemplates = async () => {
             try {
-                if (ctx.data.currSimCode && !ctx.data.currentTemplate) {
-                    const templateData = await apis.fetchTemplate(ctx.data.currSimCode);
+                if (ctx.data.templateCode && !ctx.data.currentTemplate) {
+                    const templateData = await apis.fetchTemplate(ctx.data.templateCode);
                     ctx.setData({
                         ...ctx.data,
                         currentTemplate: templateData
@@ -94,48 +120,91 @@ export const AgentsPage = () => {
             }));
             setAgents(agentsWithId);
             setSelectedAgentId(agentsWithId[0].id);
-        } else {
+        } else if (!ctx.data.currentTemplate && agents.length === 0) {
             setAgents(mockAgents);
             setSelectedAgentId(mockAgents[0].id);
+        } else if (ctx.data.currentTemplate && ctx.data.currentTemplate.personas.length === 0) {
+            setAgents([]);
+            setSelectedAgentId(null);
         }
     }, [ctx.data.currentTemplate]);
+
+    useEffect(() => {
+        if (selectedAgentId) {
+            const agent = agents.find(a => a.id === selectedAgentId);
+            setLocalAgent(agent ? { ...agent } : null);
+        }
+    }, [selectedAgentId, agents]);
 
     const handleAgentSelect = (id: number) => {
         setSelectedAgentId(id);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        if (selectedAgentId !== null) {
-            setAgents(agents.map(agent =>
-                agent.id === selectedAgentId
-                    ? { ...agent, [e.target.name]: e.target.value }
-                    : agent
-            ));
+        if (localAgent) {
+            setLocalAgent({
+                ...localAgent,
+                [e.target.name]: e.target.value
+            });
         }
     };
 
     const handleSave = () => {
-        updateContextPersonas(agents);
+        if (localAgent) {
+            const updatedAgents = agents.map(agent =>
+                agent.id === localAgent.id ? localAgent : agent
+            );
+            setAgents(updatedAgents);
+            updateContextPersonas(updatedAgents);
+        }
     };
 
     const handleAddAgent = () => {
         const newId = Math.max(...agents.map(a => a.id), 0) + 1;
+
+        const existingNumbers = agents
+            .map(a => a.name.match(/智能体 (\d+)/))
+            .filter(Boolean)
+            .map(match => parseInt((match || "")[1], 10));
+        const highestNumber = Math.max(...existingNumbers, 0);
+        const newNumber = highestNumber + 1;
+
+        const newName = `智能体 ${newNumber}`;
+
         const newAgent: apis.Agent & { id: number } = {
             id: newId,
-            name: 'New Agent',
-            firstName: '',
-            lastName: '',
+            name: newName,
+            first_name: newName.split(' ')[0],  // Assuming newName might include a last name
+            last_name: newName.split(' ').slice(1).join(' ') || '',  // Get last name if exists
             age: 0,
-            dailyPlanReq: '',
+            daily_plan_req: '',
+            daily_req: [],
+            f_daily_schedule: [],
+            f_daily_schedule_hourly_org: [],
             innate: '',
             learned: '',
-            currently: undefined,
+            currently: '',
             lifestyle: '',
-            livingArea: '',
-            plan: undefined,
-            memory: undefined,
-            bibliography: ''
+            living_area: '',
+            plan: [],
+            memory: [],
+            bibliography: '',
+            act_event: ['', '', ''],
+            act_obj_event: ['', '', ''],
+            act_path_set: false,
+            act_address: '',
+            act_description: '',
+            act_duration: '',
+            act_start_time: '',
+            act_obj_description: '',
+            act_obj_pronunciatio: '',
+            act_pronunciatio: '',
+            chatting_with_buffer: {},
+            planned_path: [],  // This was missing in the original object
+            curr_time: 0,  // Added with a default value
+            curr_tile: '',  // Added with a default value
         };
+
         const updatedAgents = [...agents, newAgent];
         setAgents(updatedAgents);
         setSelectedAgentId(newId);
@@ -148,6 +217,16 @@ export const AgentsPage = () => {
             setAgents(updatedAgents);
             setSelectedAgentId(updatedAgents.length > 0 ? updatedAgents[0].id : null);
             updateContextPersonas(updatedAgents);
+
+            if (updatedAgents.length === 0) {
+                ctx.setData({
+                    ...ctx.data,
+                    currentTemplate: ctx.data.currentTemplate ? {
+                        ...ctx.data.currentTemplate,
+                        personas: []
+                    } : undefined
+                });
+            }
         }
     };
 
@@ -161,8 +240,6 @@ export const AgentsPage = () => {
         });
     };
 
-    const selectedAgent = agents.find(agent => agent.id === selectedAgentId);
-
     return (
         <div className="flex flex-col min-h-screen bg-gray-100">
             <Navbar />
@@ -171,21 +248,19 @@ export const AgentsPage = () => {
                 <Card className="shadow-lg overflow-hidden">
                     <CardContent className='px-0'>
                         <div className="flex">
-                            <div className={`${selectedAgent ? 'w-1/3' : 'w-full'} border-r border-gray-200`}>
+                            <div className={`${localAgent ? 'w-1/3' : 'w-full'} border-r border-gray-200`}>
                                 <div className="p-4">
                                     <div className="space-y-2">
                                         {agents.map(agent => (
                                             <Button
                                                 key={agent.id}
                                                 variant={selectedAgentId === agent.id ? "secondary" : "ghost"}
-                                                className="w-full justify-start py-3 px-4 rounded-lg transition-colors duration-200"
+                                                className="w-full justify-start py-3 h-12 px-4 rounded-lg transition-colors duration-200"
                                                 onClick={() => handleAgentSelect(agent.id)}
                                             >
                                                 <div className="flex items-center space-x-4">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AvatarFallback>{agent.firstName[0]}{agent.lastName[0]}</AvatarFallback>
-                                                    </Avatar>
-                                                    <span className="font-medium">{`${agent.firstName} ${agent.lastName}`}</span>
+                                                    <RandomAvatar className="h-10 w-10" name={`${agent.first_name} ${agent.last_name}`} />
+                                                    <span className="font-medium">{`${agent.first_name} ${agent.last_name}`}</span>
                                                 </div>
                                             </Button>
                                         ))}
@@ -196,54 +271,55 @@ export const AgentsPage = () => {
                                 </div>
                             </div>
 
-                            {selectedAgent && (
+                            {localAgent && (
                                 <div className="w-2/3 bg-white">
                                     <div className="p-6">
                                         <div className="flex items-center justify-between mb-6">
                                             <div className="flex items-center space-x-4">
-                                                <Avatar className="h-16 w-16">
-                                                    <AvatarFallback>{selectedAgent.firstName[0]}{selectedAgent.lastName[0]}</AvatarFallback>
-                                                </Avatar>
-                                                <h2 className="text-2xl font-bold">{selectedAgent.name}</h2>
+                                                <RandomAvatar
+                                                    className="h-[80px] w-[80px]"
+                                                    name={`${agents.find(a => a.id === localAgent.id)?.first_name} ${agents.find(a => a.id === localAgent.id)?.last_name}`}
+                                                />
+                                                <h2 className="text-2xl font-bold">{agents.find(a => a.id === localAgent.id)?.name}</h2>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                                                <Input name="firstName" value={selectedAgent.firstName} onChange={handleInputChange} placeholder="First Name" className="w-full" />
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">名字</label>
+                                                <Input name="firstName" value={localAgent.first_name} onChange={handleInputChange} placeholder="名字" className="w-full" />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                                                <Input name="lastName" value={selectedAgent.lastName} onChange={handleInputChange} placeholder="Last Name" className="w-full" />
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">姓氏</label>
+                                                <Input name="lastName" value={localAgent.last_name} onChange={handleInputChange} placeholder="姓氏" className="w-full" />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
-                                                <Input name="age" type="number" value={selectedAgent.age} onChange={handleInputChange} placeholder="Age" className="w-full" />
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">年龄</label>
+                                                <Input name="age" type="number" value={localAgent.age} onChange={handleInputChange} placeholder="年龄" className="w-full" />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Lifestyle</label>
-                                                <Input name="lifestyle" value={selectedAgent.lifestyle} onChange={handleInputChange} placeholder="Lifestyle" className="w-full" />
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">生活方式</label>
+                                                <Input name="lifestyle" value={localAgent.lifestyle} onChange={handleInputChange} placeholder="生活方式" className="w-full" />
                                             </div>
                                         </div>
                                         <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Daily Plan Requirements</label>
-                                            <Textarea name="dailyPlanReq" value={selectedAgent.dailyPlanReq} onChange={handleInputChange} placeholder="Daily Plan Requirements" className="w-full h-20" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">日常计划要求</label>
+                                            <AutoResizeTextarea name="dailyPlanReq" value={localAgent.daily_plan_req} onChange={handleInputChange} placeholder="日常计划要求" className="w-full h-20" />
                                         </div>
                                         <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Innate Characteristics</label>
-                                            <Textarea name="innate" value={selectedAgent.innate} onChange={handleInputChange} placeholder="Innate Characteristics" className="w-full h-20" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">固有特征</label>
+                                            <AutoResizeTextarea name="innate" value={localAgent.innate} onChange={handleInputChange} placeholder="固有特征" className="w-full h-20" />
                                         </div>
                                         <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Learned Information</label>
-                                            <Textarea name="learned" value={selectedAgent.learned} onChange={handleInputChange} placeholder="Learned Information" className="w-full h-20" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">学习信息</label>
+                                            <AutoResizeTextarea name="learned" value={localAgent.learned} onChange={handleInputChange} placeholder="学习信息" className="w-full h-20" />
                                         </div>
                                         <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Living Area</label>
-                                            <Input name="livingArea" value={selectedAgent.livingArea} onChange={handleInputChange} placeholder="Living Area" className="w-full" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">居住区域</label>
+                                            <Input name="livingArea" value={localAgent.living_area} onChange={handleInputChange} placeholder="居住区域" className="w-full" />
                                         </div>
                                         <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Bibliography</label>
-                                            <Textarea name="bibliography" value={selectedAgent.bibliography} onChange={handleInputChange} placeholder="Bibliography" className="w-full h-20" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">个人简介</label>
+                                            <AutoResizeTextarea name="bibliography" value={localAgent.bibliography || ''} onChange={handleInputChange} placeholder="个人简介" className="w-full h-20" />
                                         </div>
                                         <div className="mt-6 flex justify-between items-center">
                                             <Button onClick={handleSave} className="bg-blue-500 hover:bg-blue-600 text-white">

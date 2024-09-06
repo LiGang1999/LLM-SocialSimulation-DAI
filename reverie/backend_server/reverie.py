@@ -26,25 +26,47 @@ import math
 import os
 import pickle
 import shutil
+import threading
 import time
 import traceback
 from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
 
 import numpy
-from utils import *
 from institution import *
 from maze import *
 from memorynode import *
 from persona.persona import *
 from selenium import webdriver
+from utils import *
 from utils import config
 from utils.config import *
 from vector_db import *
 
-global_rs = None  # ???
+rs = None
+rs_lock = threading.Lock()
+
+
+def get_rs():
+    with rs_lock:
+        return rs
+
+
+def set_rs(new_rs):
+    global rs
+    with rs_lock:
+        rs = new_rs
+
+
 command_queue = Queue()
 online_relation = Queue()
+
+BASE_TEMPLATES = [
+    "base_the_villie_isabella_maria_klaus",
+    "base_the_villie_isabella_maria_klaus_online",
+    "base_the_villie_n25",
+]
+
 
 ##############################################################################
 #                                  REVERIE                                   #
@@ -112,6 +134,7 @@ class ReverieConfig:
     persona_configs: dict[str, PersonaConfig] = field(default_factory=dict)  # persona config
     public_events: List[dict] = field(default_factory=list)  # public events
     direction: str | None = ""  # The instruction of what the agents should do with each other
+    initial_rounds: int | None = 0  # The number of initial rounds
 
 
 def bootstrap_persona(path: str, config: PersonaConfig):
@@ -204,26 +227,44 @@ def bootstrap_persona(path: str, config: PersonaConfig):
 
 
 class ReverieServer:
+    BASE_TEMPLATES = [
+        "base_the_villie_isabella_maria_klaus",
+        "base_the_villie_isabella_maria_klaus_online",
+        "base_the_villie_n25",
+    ]
+
     def __init__(self, template_sim_code, sim_config: ReverieConfig):
-        # FORKING FROM A PRIOR SIMULATION:
-        # <template_sim_code> indicates the simulation we are forking from.
-        # Interestingly, all simulations must be forked from some initial
-        # simulation, where the first simulation is "hand-crafted".
+        # Check if all required fields in sim_config are populated
+        missing_fields = []
+
+        self.is_running = False
+
+        for field_name, field_value in vars(sim_config).items():
+            if field_value is None or (isinstance(field_value, str) and field_value == ""):
+                missing_fields.append(field_name)
+
+        if missing_fields:
+            L.error(f"Missing required fields in sim_config: {', '.join(missing_fields)}")
+            # You can raise an exception here if necessary:
+            # raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+
         self.template_sim_code = template_sim_code
         template_folder = f"{storage_path}/{self.template_sim_code}"
 
-        # init_api(model)
-
-        # <sim_code> indicates our current simulation. The first step here is to
-        # copy everything that's in <template_sim_code>, but edit its
-        # reverie/meta/json's fork variable.
         self.sim_code = sim_config.sim_code
         sim_folder = f"{storage_path}/{self.sim_code}"
+
         if check_if_dir_exists(sim_folder):
-            L.warning(
-                f"Simulation {sim_folder} exists. It will be overwritten by the new environment."
-            )
-            removeanything(sim_folder)
+            if self.template_sim_code in BASE_TEMPLATES:
+                L.error(
+                    f"Cannot overwrite base template {self.template_sim_code}. Operation aborted."
+                )
+            else:
+                L.warning(
+                    f"Simulation {sim_folder} exists. It will be overwritten by the new environment."
+                )
+                removeanything(sim_folder)
+
         copyanything(template_folder, sim_folder)
 
         self.sim_mode = sim_config.sim_mode
@@ -376,6 +417,7 @@ class ReverieServer:
         self.maze.need_stagely_planning = True  # extend planning cycle
 
         # Load all online events
+        self.is_running = True
         if self.sim_mode == "online":
             for event in sim_config.public_events:
                 self.load_online_event(
@@ -384,6 +426,10 @@ class ReverieServer:
                     websearch=event["websearch"],
                     access_list=event["access_list"],
                 )
+        self.is_running = False
+
+    # def is_running(self):
+    # return self.is_running
 
     def save(self):
         """
@@ -528,6 +574,7 @@ class ReverieServer:
         """
         # <sim_folder> points to the current simulation folder.
         sim_folder = f"{storage_path}/{self.sim_code}"
+        self.is_running = True
 
         # When a persona arrives at a game object, we give a unique event
         # to that object.
@@ -723,7 +770,9 @@ class ReverieServer:
         while True:
             # sim_command = input("Enter option: ")
             print("Enter option: ")
+            self.is_running = False
             sim_command = command_queue.get()
+            self.is_running = True
             print(sim_command)
             sim_command = sim_command.strip()
             ret_str = ""
@@ -862,13 +911,36 @@ class ReverieServer:
                     # Starts a stateless chat session with the agent. It does not save
                     # anything to the agent's memory.
                     # Ex: call -- analysis Isabella Rodriguez
-                    persona_name = sim_command[
-                        len("call -- analysis") :
-                    ].strip()  # Do you support Isabella Rodriguez as mayor?
+                    persona_name = sim_command[len("call -- analysis") :].strip()
+                    # Do you support Isabella Rodriguez as mayor?
                     # self.personas[persona_name].open_convo_session("analysis")#Do you want to run for mayor in the local election?
                     self.personas[persona_name].open_convo_session(
                         "analysis", self.maze.vbase, command_queue
-                    )  # Do you want to run for mayor in the local election?
+                    )
+                    # Do you want to run for mayor in the local election?
+
+                elif "call -- chat to persona" in sim_command.lower():
+                    persona_name = sim_command[len("call -- chat to persona") :].strip()
+                    payload = json.loads(command_queue.get())
+                    mode = payload.get("mode", "analysis")
+                    prev_msgs = payload.get("prev_msgs", [])
+                    msg = payload.get("msg", "")
+
+                    retval = self.personas[persona_name].chat_to_persona(
+                        mode, self.maze.vbase, prev_msgs, msg
+                    )
+                    event_trigger(
+                        "chat_to_persona", {"mode": mode, "persona": persona_name, "reply": retval}
+                    )
+
+                elif "call -- whisper" in sim_command.lower():
+                    # Starts a stateless chat session with the agent. It does not save
+                    # anything to the agent's memory.
+                    # Ex: call -- whisper Isabella Rodriguez
+                    persona_name = sim_command[len("call -- whisper") :].strip()
+                    self.personas[persona_name].open_convo_session(
+                        "whisper", self.maze.vbase, command_queue
+                    )
 
                 elif "call -- load history" in sim_command.lower():
                     curr_file = (
@@ -1047,10 +1119,11 @@ class ReverieServer:
                 pass
 
 
-def start_sim(template_sim_name, sim_config):
-    global rs
-    rs = ReverieServer(template_sim_name, sim_config)
-    rs.open_server()
+def start_sim(template_sim_name: str, sim_config: ReverieConfig):
+    new_rs = ReverieServer(template_sim_name, sim_config)
+    set_rs(new_rs)
+    new_rs.start_server(sim_config.initial_rounds)
+    new_rs.open_server()
 
 
 if __name__ == "__main__":
@@ -1059,5 +1132,4 @@ if __name__ == "__main__":
     target = input("Enter the name of the new simulation: ").strip()
 
     rs = ReverieServer(origin, target)
-    global_rs = rs  #
     rs.open_server()

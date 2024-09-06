@@ -31,8 +31,8 @@ export const ConfigPage = () => {
     useEffect(() => {
         const fetchTemplates = async () => {
             try {
-                if (ctx.data.currSimCode && !ctx.data.currentTemplate) {
-                    const templateData = await apis.fetchTemplate(ctx.data.currSimCode);
+                if (ctx.data.templateCode && !ctx.data.currentTemplate) {
+                    const templateData = await apis.fetchTemplate(ctx.data.templateCode);
                     ctx.setData({
                         ...ctx.data,
                         currentTemplate: templateData
@@ -44,6 +44,7 @@ export const ConfigPage = () => {
         }
 
         fetchTemplates();
+        ctx.setData({ ...ctx.data, llmConfig: config });
     }, []);
 
     const updateConfig = (key: keyof apis.LLMConfig, value: any) => {
@@ -60,21 +61,21 @@ export const ConfigPage = () => {
                 <Card className="w-full mx-auto">
                     <CardContent className="space-y-6 my-4">
                         <div className="space-y-2">
-                            <Label htmlFor="configType">Configuration Type</Label>
+                            <Label htmlFor="configType">配置类型</Label>
                             <Select value={config.type} onValueChange={(value) => updateConfig('type', value)}>
                                 <SelectTrigger id="configType">
-                                    <SelectValue placeholder="Select configuration type" />
+                                    <SelectValue placeholder="选择配置类型" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="default">Default</SelectItem>
-                                    <SelectItem value="custom">Custom</SelectItem>
+                                    <SelectItem value="default">默认</SelectItem>
+                                    <SelectItem value="custom">自定义</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="apiBase">API Base</Label>
+                                <Label htmlFor="apiBase">API 基础地址</Label>
                                 <Input
                                     id="apiBase"
                                     value={config.baseUrl}
@@ -83,26 +84,26 @@ export const ConfigPage = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="apiKey">API Key</Label>
+                                <Label htmlFor="apiKey">API 密钥</Label>
                                 <Input
                                     id="apiKey"
                                     type="password"
                                     value={config.key}
                                     onChange={(e) => updateConfig('key', e.target.value)}
-                                    placeholder="Your API key"
+                                    placeholder="您的 API 密钥"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="engine">Engine</Label>
+                                <Label htmlFor="engine">引擎</Label>
                                 <Input
                                     id="engine"
                                     value={config.engine}
                                     onChange={(e) => updateConfig('engine', e.target.value)}
-                                    placeholder="e.g., gpt-3.5-turbo"
+                                    placeholder="例如：gpt-3.5-turbo"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="temperature">Temperature: {config.temperature.toFixed(1)}</Label>
+                                <Label htmlFor="temperature">温度：{config.temperature.toFixed(1)}</Label>
                                 <Slider
                                     id="temperature"
                                     value={[config.temperature]}
@@ -113,7 +114,7 @@ export const ConfigPage = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="maxTokens">Max Tokens</Label>
+                                <Label htmlFor="maxTokens">最大令牌数</Label>
                                 <Input
                                     id="maxTokens"
                                     type="number"
@@ -123,7 +124,7 @@ export const ConfigPage = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="topP">Top P: {config.topP.toFixed(1)}</Label>
+                                <Label htmlFor="topP">Top P：{config.topP.toFixed(1)}</Label>
                                 <Slider
                                     id="topP"
                                     value={[config.topP]}
@@ -134,7 +135,7 @@ export const ConfigPage = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="frequencyPenalty">Frequency Penalty: {config.freqPenalty.toFixed(1)}</Label>
+                                <Label htmlFor="frequencyPenalty">频率惩罚：{config.freqPenalty.toFixed(1)}</Label>
                                 <Slider
                                     id="frequencyPenalty"
                                     value={[config.freqPenalty]}
@@ -146,7 +147,7 @@ export const ConfigPage = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="presencePenalty">Presence Penalty: {config.presPenalty.toFixed(1)}</Label>
+                                <Label htmlFor="presencePenalty">存在惩罚：{config.presPenalty.toFixed(1)}</Label>
                                 <Slider
                                     id="presencePenalty"
                                     value={[config.presPenalty]}
@@ -163,7 +164,7 @@ export const ConfigPage = () => {
                                     checked={config.stream}
                                     onCheckedChange={(checked) => updateConfig('stream', checked)}
                                 />
-                                <Label htmlFor="stream">Enable streaming</Label>
+                                <Label htmlFor="stream">启用流式传输</Label>
                             </div>
                         </div>
                     </CardContent>

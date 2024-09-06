@@ -69,7 +69,7 @@ export const WelcomePage = () => {
                                 </Button>
                             </a>
                             <a href={github_link}>
-                                <Button variant="outline" className="text-2xl h-16 px-8 font-bold border-2 border-purple-400 text-white bg-transparent hover:bg-purple-400 hover:text-white rounded-lg transform transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center justify-center">
+                                <Button variant="outline" className="text-2xl h-16 px-8 font-bold border-2 border-purple-400 bg-white backdrop-filter backdrop-blur-lg bg-opacity-50 text-purple-900 hover:bg-purple-400 hover:text-white rounded-lg transform transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center justify-center">
                                     <Github className="mr-2 h-6 w-6" /> GitHub
                                 </Button>
                             </a>
@@ -147,7 +147,7 @@ export const WelcomePage = () => {
                             <ol className="list-decimal list-inside space-y-2 font-serif text-sm text-gray-800"> */}
                 <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4">
                     <h3 className="text-lg font-semibold mb-2 font-serif">References</h3>
-                    <ol className="list-decimal list-inside space-y-1 font-serif text-xs text-gray-300">
+                    <ol className="list-decimal list-inside space-y-1 font-serif text-sm text-gray-300">
                         <li>
                             Guo, T., et al. (2024). Large language model based multi-agents: A survey.
                             <span className="italic">Journal of Artificial Intelligence Research</span>, 75, 123-456.
