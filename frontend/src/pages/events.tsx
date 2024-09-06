@@ -28,6 +28,37 @@ export const EventsPage = () => {
     );
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
+    const [errors, setErrors] = useState({
+        experimentName: '',
+        replicateCount: '',
+    });
+
+    useEffect(() => {
+        const validateFields = () => {
+            let newErrors = {
+                experimentName: '',
+                replicateCount: '',
+            };
+
+            if (experimentName.trim() === '') {
+                newErrors.experimentName = '实验名称不能为空';
+            } else if (ctx.data.allTemplates?.map(t => t.template_sim_code).includes(experimentName)) {
+                newErrors.experimentName = '实验名称已存在';
+            }
+
+            const numValue = parseInt(replicateCount, 10);
+            if (replicateCount.trim() === '') {
+                newErrors.replicateCount = '初始仿真轮数不能为空';
+            } else if (isNaN(numValue) || numValue < 0) {
+                newErrors.replicateCount = '请输入有效的非负整数';
+            }
+
+            setErrors(newErrors);
+        };
+
+        validateFields();
+    }, [experimentName, replicateCount, ctx.data.allTemplates]);
+
     const updateExperimentName = (value: string) => {
         setExperimentName(value);
         ctx.setData({
@@ -54,7 +85,7 @@ export const EventsPage = () => {
 
     const isFormValid = () => {
         const numValue = parseInt(replicateCount, 10);
-        return experimentName.trim() !== '' && !isNaN(numValue) && numValue >= 0;
+        return experimentName.trim() !== '' && !isNaN(numValue) && numValue >= 0 && !ctx.data.allTemplates?.map(t => t.template_sim_code).includes(experimentName);
     };
 
     const addNewEvent = () => {
@@ -149,8 +180,9 @@ export const EventsPage = () => {
                                             value={experimentName}
                                             onChange={(e) => updateExperimentName(e.target.value)}
                                             placeholder="请输入实验名称"
-                                            className={`w-full ${experimentName.trim() === '' ? 'border-red-500' : ''}`}
+                                            className={`w-full ${errors.experimentName ? 'border-red-500' : ''}`}
                                         />
+                                        {errors.experimentName && <p className="text-red-500 text-xs mt-1">{errors.experimentName}</p>}
                                     </div>
 
                                     <div>
@@ -164,10 +196,11 @@ export const EventsPage = () => {
                                                 value={replicateCount}
                                                 onChange={(e) => updateReplicateCount(e.target.value)}
                                                 placeholder="请输入仿真轮数"
-                                                className={`mr-2 ${replicateCount.trim() === '' || isNaN(parseInt(replicateCount, 10)) || parseInt(replicateCount, 10) < 0 ? 'border-red-500' : ''}`}
+                                                className={`mr-2 ${errors.replicateCount ? 'border-red-500' : ''}`}
                                             />
                                             <span className="text-gray-600">轮</span>
                                         </div>
+                                        {errors.replicateCount && <p className="text-red-500 text-xs mt-1">{errors.replicateCount}</p>}
                                     </div>
                                 </div>
 
