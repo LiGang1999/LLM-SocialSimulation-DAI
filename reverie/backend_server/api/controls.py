@@ -310,10 +310,29 @@ def personas_info(request):
     return JsonResponse({"personas": persona_info})
 
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def chat(request):
-    sim_code = request.GET.get("sim_code")
-    persona_name = request.GET.get("agent_name")
-    content = request.GET.get("content")
+    try:
+        # Parse the JSON data from the request body
+        data = json.loads(request.body)
+
+        sim_code = data.get("sim_code")
+        persona_name = data.get("agent_name")
+        chat_type = data.get("type")
+        history = data.get("history", [])
+        content = data.get("content")
+
+        # Validate the required fields
+        if not all([sim_code, persona_name, chat_type, content]):
+            return JsonResponse({"error": "Missing required fields"}, status=400)
+
+        command_queue.add_command(f"call -- chat to persona {persona_name}")
+        command_queue.add_command(
+            json.dumps({"mode": chat_type, "prev_msgs": history, "msg": content})
+        )
+    except:
+        return JsonResponse({"error": "Invalid simulation or persona"}, status=404)
 
 
 def persona_detail(request):

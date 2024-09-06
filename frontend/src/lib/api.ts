@@ -1,3 +1,4 @@
+import { ChatMessage } from '@/SimContext';
 import axios from 'axios'
 
 export const apiBaseUrl = await import.meta.env.VITE_SERVER_IP;
@@ -37,7 +38,7 @@ export namespace apis {
         sec_per_step: number;
         maze_name: string;
         persona_names: string[];
-        sim_mode: string[],
+        sim_mode: string,
         step: number;
     }
 
@@ -307,9 +308,27 @@ export namespace apis {
         }
     };
 
-    export const privateChat = async (sim_code: string, person: string, type: 'analysis' | 'whisper', content: string): Promise<any> => {
+    export const privateChat = async (
+        sim_code: string,
+        person: string,
+        type: 'analysis' | 'whisper',
+        history: ChatMessage[],
+        content: string
+    ): Promise<any> => {
         try {
-            const response = await api.post('/chat/', { sim_code, agent_name: person, type, content });
+            // Convert ChatMessage[] to the required history format
+            const formattedHistory: [string, string][] = history.map(msg => [
+                msg.role === 'agent' ? person : 'Interviewer',
+                msg.content
+            ]);
+
+            const response = await api.post('/chat/', {
+                sim_code,
+                agent_name: person,
+                type,
+                history: formattedHistory,
+                content
+            });
             return response.data;
         } catch (error) {
             console.error("Error sending private chat:", error);

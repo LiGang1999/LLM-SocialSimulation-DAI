@@ -415,7 +415,7 @@ export const InteractPage: React.FC = () => {
             if (message.trim()) {
                 try {
                     setIsRunning(true);
-                    const response = await apis.privateChat(simCode, agentName, chatType, message);
+                    const response = await apis.privateChat(simCode, agentName, chatType, privateMessages[agentName], message);
                     // Handle the response, e.g., update the chat messages
                     console.log(response);
                     // Clear the input after sending
@@ -510,9 +510,9 @@ export const InteractPage: React.FC = () => {
                         <TabsContent value="dialog" className="flex-grow">
                             <DialogTab messages={publicMessages} />
                         </TabsContent>
-                        <TabsContent value="map" className="flex-grow">
+                        {ctx.data.currentTemplate?.meta.sim_mode == "offline" && <TabsContent value="map" className="flex-grow">
                             <MapTab />
-                        </TabsContent>
+                        </TabsContent>}
                         <TabsContent value="ai" className="flex-grow">
                             <AgentStatusTab />
                         </TabsContent>
