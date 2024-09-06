@@ -78,23 +78,11 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
 // Update DialogTab to accept messages as a prop
 const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
     return (
-<<<<<<< HEAD
-        <div className="bg-gray-50 rounded-md h-full overflow-hidden flex flex-col"> {/* Added flex flex-col */}
-            <ScrollArea className="flex-grow px-4"> {/* Changed to flex-grow */}
-                <div className="space-y-2 py-4">
-                    {messages.map((msg, index) => (
-                        <ChatMessage key={index} {...msg} />
-                    ))}
-                </div>
-            </ScrollArea>
-        </div>
-=======
         <ScrollArea className="h-[calc(100vh-200px)] border-4 bg-gray-100 rounded-md border-gray-100 rounded-md pl-2">
             {messages.map((msg, index) => (
                 <ChatMessageBox key={index} {...msg} />
             ))}
         </ScrollArea>
->>>>>>> zjy-patch-1
     );
 };
 
@@ -574,33 +562,19 @@ export const InteractPage: React.FC = () => {
             <div className="container flex w-full mx-auto mt-4 mb-4 px-4 flex-grow">
                 {/* Left panel with tabs and status bar */}
                 <div className="w-2/3 pr-4 flex flex-col">
-<<<<<<< HEAD
-                    <Tabs defaultValue="dialog" className="flex flex-col flex-grow">
-                        <TabsList className="grid w-full grid-cols-4">
-=======
                     <Tabs defaultValue="map" className="w-full flex-grow"
                     // onValueChange={(value) => value === 'ai' && fetchAgentStatus()}
                     >
                         <TabsList className={isOffline ? `grid w-full grid-cols-4` : `grid w-full grid-cols-3`}>
->>>>>>> zjy-patch-1
                             <TabsTrigger value="dialog"><MessageSquare className="mr-2 h-4 w-4" />对话</TabsTrigger>
                             {isOffline && <TabsTrigger value="map"><MapPin className="mr-2 h-4 w-4" />地图</TabsTrigger>}
                             <TabsTrigger value="ai"><Bot className="mr-2 h-4 w-4" />智能体状态</TabsTrigger>
                             <TabsTrigger value="log"><FileText className="mr-2 h-4 w-4" />日志</TabsTrigger>
                         </TabsList>
-<<<<<<< HEAD
-                        <TabsContent value="dialog" className="flex-grow overflow-hidden mt-2">
-                            <DialogTab messages={messages} />
-                        </TabsContent>
-
-
-                        <TabsContent value="map" className="flex-grow">
-=======
                         <TabsContent value="dialog" className="flex-grow">
                             <DialogTab messages={publicMessages} />
                         </TabsContent>
                         {isOffline && <TabsContent value="map" className="h-full w-full">
->>>>>>> zjy-patch-1
                             <MapTab />
                         </TabsContent>}
                         <TabsContent value="ai" className="flex-grow">
