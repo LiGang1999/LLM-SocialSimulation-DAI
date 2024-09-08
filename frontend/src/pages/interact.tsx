@@ -316,6 +316,7 @@ export const InteractPage: React.FC = () => {
     const [isRunning, setIsRunning] = useState(true);
     const [privateChatAgent, setPrivateChatAgent] = useState<string>("");
     const [simRounds, setSimRounds] = useState<number>(1);
+    const [demo, setDemo] = useState(true);
 
     // New state for messages
     const [publicMessages, setPublicMessages] = useState<ChatMessage[]>([]);
@@ -353,6 +354,45 @@ export const InteractPage: React.FC = () => {
             setIsRunning(false);
         }
     };
+
+    useEffect(() => {
+        if (demo && ctx.data.currentTemplate?.personas) {
+            const demoMessagesForAgents: Record<string, ChatMessage[]> = {};
+
+            ctx.data.currentTemplate.personas.forEach((persona: apis.Agent) => {
+                const agentName = persona.name;
+                demoMessagesForAgents[agentName] = [
+                    {
+                        sender: agentName,
+                        content: `Hello! I'm ${persona.first_name} ${persona.last_name}. How can I assist you today?`,
+                        timestamp: new Date().toLocaleTimeString(),
+                        type: 'private',
+                        role: 'agent',
+                        subject: 'Introduction'
+                    },
+                    {
+                        sender: 'user',
+                        content: `Hi ${persona.first_name}! What's your primary focus right now?`,
+                        timestamp: new Date().toLocaleTimeString(),
+                        type: 'private',
+                        role: 'user',
+                        subject: 'Current Focus'
+                    },
+                    {
+                        sender: agentName,
+                        content: `Great question! My current primary focus is ${persona.currently}. I'm really passionate about ${persona.innate} and always looking to improve my skills in ${persona.learned}.`,
+                        timestamp: new Date().toLocaleTimeString(),
+                        type: 'private',
+                        role: 'agent',
+                        subject: 'Current Focus and Interests'
+                    }
+                ];
+            });
+
+            setPrivateMessages(demoMessagesForAgents);
+            console.log(demoMessagesForAgents)
+        }
+    }, [demo, ctx.data.currentTemplate]);
 
     useEffect(() => {
         const checkStatus = async () => {
@@ -562,7 +602,7 @@ export const InteractPage: React.FC = () => {
             <div className="container flex w-full mx-auto mt-4 mb-4 px-4 flex-grow">
                 {/* Left panel with tabs and status bar */}
                 <div className="w-2/3 pr-4 flex flex-col">
-                    <Tabs defaultValue="map" className="w-full flex-grow"
+                    <Tabs defaultValue="dialog" className="w-full flex-grow"
                     // onValueChange={(value) => value === 'ai' && fetchAgentStatus()}
                     >
                         <TabsList className={isOffline ? `grid w-full grid-cols-4` : `grid w-full grid-cols-3`}>
