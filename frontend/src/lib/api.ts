@@ -43,47 +43,6 @@ export namespace apis {
     }
 
 
-    // An Agent interface contains:
-    // {
-    //     "curr_time": null,
-    //     "curr_tile": null,
-    //     "daily_plan_req": "Isabella Rodriguez opens Hobbs Cafe at 8am everyday, and works at the counter until 8pm, at which point she closes the cafe.",
-    //     "name": "Isabella Rodriguez",
-    //     "first_name": "Isabella",
-    //     "last_name": "Rodriguez",
-    //     "age": 34,
-    //     "innate": "friendly, outgoing, hospitable",
-    //     "learned": "Isabella Rodriguez is a cafe owner of Hobbs Cafe who loves to make people feel welcome. She is always looking for ways to make the cafe a place where people can come to relax and enjoy themselves. She is concerned with environmental issues and big global events, although she does not have professional knowledge in these areas.",
-    //     "currently": "Isabella Rodriguez is participating in online discussions. Although not an expert, Isabella is expressing her concerns and personal ideas as a regular citizen who cares about the environment and country and is seeking to understand the impact of these events.",
-    //     "lifestyle": "Isabella Rodriguez goes to bed around 11pm, awakes up around 6am.",
-    //     "living_area": "the Ville:Isabella Rodriguez's apartment:main room",
-    //     "daily_req": [],
-    //     "f_daily_schedule": [],
-    //     "f_daily_schedule_hourly_org": [],
-    //     "act_address": null,
-    //     "act_start_time": null,
-    //     "act_duration": null,
-    //     "act_description": null,
-    //     "act_pronunciatio": null,
-    //     "act_event": [
-    //       "Isabella Rodriguez",
-    //       null,
-    //       null
-    //     ],
-    //     "act_obj_description": null,
-    //     "act_obj_pronunciatio": null,
-    //     "act_obj_event": [
-    //       null,
-    //       null,
-    //       null
-    //     ],
-    //     "chatting_with": null,
-    //     "chat": null,
-    //     "chatting_with_buffer": {},
-    //     "chatting_end_time": null,
-    //     "act_path_set": false,
-    //     "planned_path": []
-    //   }
     export interface Agent {
         curr_time?: number;
         curr_tile?: string;
@@ -257,9 +216,9 @@ export namespace apis {
         }
     };
 
-    export const runSim = async (count: number): Promise<any> => {
+    export const runSim = async (count: number, simCode: string): Promise<any> => {
         try {
-            const response = await api.get('/run/', { params: { count } });
+            const response = await api.get(`/run/${simCode}`, { params: { count } });
             return response.data;
         } catch (error) {
             console.error("Error running simulation:", error);
@@ -267,9 +226,9 @@ export namespace apis {
         }
     };
 
-    export const updateEnv = async (updateData: any): Promise<any> => {
+    export const updateEnv = async (updateData: any, simCode: string): Promise<any> => {
         try {
-            const response = await api.post('/update_env/', updateData);
+            const response = await api.post(`/update_env/${simCode}`, updateData);
             return response.data;
         } catch (error) {
             console.error("Error updating environment:", error);
@@ -277,14 +236,9 @@ export namespace apis {
         }
     };
 
-
-
-    // get the information for all agents, briefly
-    export const agentsInfo = async (sim_code: string): Promise<Agent[]> => {
+    export const agentsInfo = async (simCode: string): Promise<Agent[]> => {
         try {
-            const response = await api.get('/personas_info/', {
-                params: { sim_code }
-            });
+            const response = await api.get(`/personas_info/${simCode}`);
             return response.data.personas;
         } catch (error) {
             console.error("Error fetching agents info:", error);
@@ -292,12 +246,9 @@ export namespace apis {
         }
     };
 
-    // get the information for a single agent, in detail
-    export const agentDetail = async (sim_code: string, agent_name: string): Promise<Agent> => {
+    export const agentDetail = async (simCode: string, agentName: string): Promise<Agent> => {
         try {
-            const response = await api.get('/persona_detail/', {
-                params: { sim_code, agent_name }
-            });
+            const response = await api.get(`/persona_detail/${simCode}/${agentName}`);
             return response.data;
         } catch (error) {
             console.error("Error fetching agent detail:", error);
@@ -305,9 +256,12 @@ export namespace apis {
         }
     };
 
-    export const sendCommand = async (command: string): Promise<any> => {
+
+
+    // get the information for a single agent, in detail
+    export const sendCommand = async (command: string, simCode: string): Promise<any> => {
         try {
-            const response = await api.get('/command/', { params: { command } });
+            const response = await api.get(`/command/${simCode}`, { params: { command } });
             return response.data;
         } catch (error) {
             console.error("Error sending command:", error);
@@ -316,21 +270,19 @@ export namespace apis {
     };
 
     export const privateChat = async (
-        sim_code: string,
+        simCode: string,
         person: string,
         type: 'analysis' | 'whisper',
         history: ChatMessage[],
         content: string
     ): Promise<any> => {
         try {
-            // Convert ChatMessage[] to the required history format
             const formattedHistory: [string, string][] = history.map(msg => [
                 msg.role === 'agent' ? person : 'Interviewer',
                 msg.content
             ]);
 
-            const response = await api.post('/chat/', {
-                sim_code,
+            const response = await api.post(`/chat/${simCode}`, {
                 agent_name: person,
                 type,
                 history: formattedHistory,
@@ -343,9 +295,9 @@ export namespace apis {
         }
     }
 
-    export const publishEvent = async (eventData: EventConfig): Promise<any> => {
+    export const publishEvent = async (eventData: EventConfig, simCode: string): Promise<any> => {
         try {
-            const response = await api.post('/publish_events/', eventData);
+            const response = await api.post(`/publish_events/${simCode}`, eventData);
             return response.data;
         } catch (error) {
             console.error("Error publishing event:", error);
@@ -353,10 +305,9 @@ export namespace apis {
         }
     };
 
-
-    export const queryStatus = async (): Promise<'running' | 'stopped' | 'started'> => {
+    export const queryStatus = async (simCode: string): Promise<'running' | 'stopped' | 'started'> => {
         try {
-            const response = await api.get('/status/');
+            const response = await api.get(`/status/${simCode}`);
             return response.data.status;
         } catch (error) {
             console.error("Error querying status:", error);
@@ -364,12 +315,8 @@ export namespace apis {
         }
     }
 
-    export const chatSocket = () => {
-        return new WebSocket(`ws://${apiBaseUrl}:${apiPort}/ws/chat`);
-    }
-
-    export const logSocket = () => {
-        return new WebSocket(`ws://${apiBaseUrl}:${apiPort}/ws/log`);
+    export const messageSocket = (simCode: string) => {
+        return new WebSocket(`ws://${apiBaseUrl}:${apiPort}/ws/${simCode}`);
     }
 
 

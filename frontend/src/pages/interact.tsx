@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
@@ -188,6 +188,7 @@ const AgentStatusTab: React.FC = () => {
         setAgents(agentsInfo);
     };
 
+
     useEffect(() => {
         fetchAgentStatus();
     }, []);
@@ -271,12 +272,13 @@ const AgentStatusTab: React.FC = () => {
 
 const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLogs: () => void, setIsRunning: (isRunning: boolean) => void }> = ({ logs, addLog, clearLogs, setIsRunning }) => {
     const [command, setCommand] = useState('');
+    const ctx = useSimContext();
 
     const handleCommand = async () => {
         setIsRunning(true);
         addLog(`> ${command}`);
         // Process command here
-        await apis.sendCommand(command);
+        await apis.sendCommand(command, ctx.data.currSimCode || "");
     };
 
     return (
@@ -346,7 +348,7 @@ export const InteractPage: React.FC = () => {
     const handleRunSimulation = async (rounds: number) => {
         try {
             setIsRunning(true);
-            await apis.runSim(rounds);
+            await apis.runSim(rounds, ctx.data.currSimCode || "");
         } catch (error) {
             console.error("Error running simulation:", error);
             // Handle the error, e.g., show an error message to the user
@@ -396,7 +398,7 @@ export const InteractPage: React.FC = () => {
 
     useEffect(() => {
         const checkStatus = async () => {
-            const status = await apis.queryStatus();
+            const status = await apis.queryStatus(ctx.data.currSimCode || '');
             setIsRunning(status === 'running');
         };
 
@@ -408,7 +410,7 @@ export const InteractPage: React.FC = () => {
 
         // Clean up interval on unmount
         return () => clearInterval(intervalId);
-    }, []);
+    }, [ctx.data.currSimCode]);
 
 
     useEffect(() => {
@@ -459,50 +461,32 @@ export const InteractPage: React.FC = () => {
         console.log(ctx.data.currentTemplate?.meta.sim_mode)
     }, [ctx.data.currentTemplate, ctx.data.agents, ctx.data.currentTemplate?.meta.sim_mode]);
 
-    const [chatSocket, setChatSocket] = useState<WebSocket | null>(null);
-    const [logSocket, setLogSocket] = useState<WebSocket | null>(null);
+    const [messageSocket, setMessageSocket] = useState<WebSocket | null>(null);
 
     useEffect(() => {
         // Create WebSocket connections when the component mounts
-        const newChatSocket = apis.chatSocket();
-        const newLogSocket = apis.logSocket();
+        const newMessageSocket = apis.messageSocket(ctx.data.currSimCode || "");
 
         // Update state with the new WebSocket instances
-        setChatSocket(newChatSocket);
-        setLogSocket(newLogSocket);
+        setMessageSocket(newMessageSocket);
 
         // Clean up WebSocket connections when the component unmounts
         return () => {
-            newChatSocket.close();
-            newLogSocket.close();
+            newMessageSocket.close();
         };
 
 
-    }, []);
+    }, [ctx.data.currSimCode]);
 
     useEffect(() => {
-        if (chatSocket) {
-            chatSocket.onmessage = (event) => {
-                const message: ChatMessage = JSON.parse(event.data);
-
-                if (message.type === 'public') {
-                    addPublicMessage(message);
-                } else if (message.type === 'private') {
-                    addPrivateMessage(message.sender, message);
-                }
-            };
-        }
-    }, [chatSocket]);
-
-    useEffect(() => {
-        if (logSocket) {
-            logSocket.onmessage = (event) => {
+        if (messageSocket) {
+            messageSocket.onmessage = (event) => {
                 console.log("Receive log data!!!")
                 console.log(event.data)
                 addLog(`• ${event.data}`);
             };
         }
-    }, [logSocket]);
+    }, [messageSocket]);
 
 
     // console.log(ctx.data)
