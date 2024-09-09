@@ -8,16 +8,11 @@ from datetime import datetime
 from queue import Queue
 from typing import Any, Dict, List, Optional
 
-from fastapi import (
-    BackgroundTasks,
-    Depends,
-    FastAPI,
-    HTTPException,
-    WebSocket,
-    WebSocketDisconnect,
-)
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from starlette_context import context, plugins
+from starlette_context.middleware import RawContextMiddleware
 from utils import config
 from utils.logs import L
 
@@ -32,6 +27,8 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+
+app.add_middleware(RawContextMiddleware)
 
 
 BASE_TEMPLATES = [
@@ -290,6 +287,10 @@ async def start(sim_data: StartReq, background_tasks: BackgroundTasks):
 @app.post("/publish_event/{sim_code}")
 async def publish_event(sim_code: str, event: EventPublishReq):
     reverie_instance = get_reverie_instance(sim_code)
+    if not reverie_instance:
+        L.warning(f"Simulation with code {sim_code} not found")
+        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
+    context["instance"] = reverie_instance
     try:
         event_access_list = [name.strip() for name in event.access_list.split(",")]
         q = reverie_instance.reverie.command_queue
@@ -312,6 +313,7 @@ async def query_status(sim_code: str):
     instance = reverie_pool.get(sim_code)
     if not instance:
         return {"status": "terminated"}
+    context["instance"] = instance
     return {"status": "running" if instance.running else "started"}
 
 
@@ -321,6 +323,10 @@ async def add_command(sim_code: str, command: str):
     if not command:
         L.warning("add_command: No command provided")
         raise HTTPException(status_code=400, detail="Missing command parameter")
+    if not reverie_instance:
+        L.warning(f"Simulation with code {sim_code} not found")
+        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
+    context["instance"] = reverie_instance
     reverie_instance.handle_command(command)
     return {"status": "success"}
 
@@ -331,6 +337,10 @@ async def run(sim_code: str, count: int):
     if not count:
         L.warning("run: No count provided")
         raise HTTPException(status_code=400, detail="Missing count parameter")
+    if not reverie_instance:
+        L.warning(f"Simulation with code {sim_code} not found")
+        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
+    context["instance"] = reverie_instance
     q = reverie_instance.reverie.command_queue
     q.put(f"run {count}")
     return {"status": "success"}
@@ -339,6 +349,10 @@ async def run(sim_code: str, count: int):
 @app.get("/get_persona/{sim_code}")
 async def get_persona(sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
+    if not reverie_instance:
+        L.warning(f"Simulation with code {sim_code} not found")
+        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
+    context["instance"] = reverie_instance
     personas_path = os.path.join(STORAGE_PATH, reverie_instance.template_sim_code, "personas")
     persona_names = set(
         name
@@ -352,6 +366,10 @@ async def get_persona(sim_code: str):
 @app.get("/personas_info/{sim_code}")
 async def personas_info(sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
+    if not reverie_instance:
+        L.warning(f"Simulation with code {sim_code} not found")
+        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
+    context["instance"] = reverie_instance
     personas_path = os.path.join(STORAGE_PATH, reverie_instance.template_sim_code, "personas")
     persona_names = set(
         name
@@ -384,6 +402,10 @@ async def personas_info(sim_code: str):
 @app.post("/chat/{sim_code}")
 async def chat(sim_code: str, chat_request: ChatReq):
     reverie_instance = get_reverie_instance(sim_code)
+    if not reverie_instance:
+        L.warning(f"Simulation with code {sim_code} not found")
+        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
+    context["instance"] = reverie_instance
     try:
         q = reverie_instance.reverie.command_queue
         q.put(f"call -- chat to persona {chat_request.agent_name}")
@@ -405,6 +427,10 @@ async def chat(sim_code: str, chat_request: ChatReq):
 @app.get("/persona_detail/{sim_code}")
 async def persona_detail(sim_code: str, agent_name: str):
     reverie_instance = get_reverie_instance(sim_code)
+    if not reverie_instance:
+        L.warning(f"Simulation with code {sim_code} not found")
+        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
+    context["instance"] = reverie_instance
     persona_path = os.path.join(
         STORAGE_PATH, reverie_instance.template_sim_code, "personas", agent_name
     )
@@ -515,6 +541,10 @@ async def fetch_template(sim_code: str):
 @app.websocket("/ws/message/{sim_code}")
 async def websocket_endpoint(websocket: WebSocket, sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
+    if not reverie_instance:
+        L.warning(f"No reverie instance found for sim_code: {sim_code}")
+        raise HTTPException(status_code=404, detail="No reverie instance found")
+    context["instance"] = reverie_instance
     await websocket.accept()
 
     websocket_id = id(websocket)

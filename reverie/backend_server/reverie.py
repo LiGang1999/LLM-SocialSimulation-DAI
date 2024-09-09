@@ -33,12 +33,11 @@ from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
 
 import numpy
-from selenium import webdriver
-
 from institution import *
 from maze import *
 from memorynode import *
 from persona.persona import *
+from selenium import webdriver
 from utils import *
 from utils import config
 from utils.config import *
@@ -239,7 +238,6 @@ class Reverie:
         self.command_queue = Queue()  # User command input queue
         self.message_queue = Queue()
 
-        self.message_handler = message_handler
 
         for field_name, field_value in vars(sim_config).items():
             if field_value is None or (isinstance(field_value, str) and field_value == ""):
@@ -429,9 +427,6 @@ class Reverie:
                     access_list=event["access_list"],
                 )
         self.is_running = False
-
-    def send_message(self, payload):
-        self.message_handler(payload)
 
     def handle_command(self, payload):
         self.command_queue.put(payload)

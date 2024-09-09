@@ -51,7 +51,6 @@ def handle_chat_to_persona(payload):
     #     "chat_to_persona", {"mode": mode, "persona": persona_name, "reply": retval}
     # )
     sock_send(
-        "chat",
         {
             "sender": payload["persona"],
             "role": "agent",
@@ -60,6 +59,7 @@ def handle_chat_to_persona(payload):
             "timestamp": "",
             "subject": payload.get("subject", ""),
         },
+        "chat",
     )
 
 
@@ -83,7 +83,6 @@ def handle_chat(payload):
         # {"role": "agent", "name": "Agent Smith", "content": "Hello, how can I help you?"}
     """
     sock_send(
-        "chat",
         {
             "sender": payload["name"],
             "role": "agent",
@@ -92,4 +91,5 @@ def handle_chat(payload):
             "timestamp": "",
             "subject": payload.get("subject", ""),
         },
+        "chat",
     )
