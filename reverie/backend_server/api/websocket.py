@@ -10,6 +10,7 @@ from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
+
 from utils.logs import L
 
 # Dictionary to store registered handlers
@@ -116,37 +117,6 @@ class LogConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         L.info(f"Websockets disconnected with code: {close_code}")
-
-
-class OnlineConsumer(AsyncWebsocketConsumer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.thread = Thread(target=self.get_online)
-        self.thread.daemon = True
-        self.thread.start()
-
-    async def connect(self):
-        print("online connecting..")
-        await self.accept()
-        print("online connected")
-
-    def get_online(self):
-        print("online - watch log and send")
-        while True:
-            if not online_relation.empty():
-                line = online_relation.get()
-                try:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    result = loop.run_until_complete(
-                        self.send(text_data=json.dumps({"message": line}))
-                    )
-                except Exception as e:
-                    print("error: ", e)
-            time.sleep(1)
-
-    async def disconnect(self, close_code):
-        pass
 
 
 def sock_send(sock_name, message):

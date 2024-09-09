@@ -3,7 +3,7 @@ Author: Joon Sung Park (joonspk@stanford.edu)
 
 File: reverie.py
 Description: This is the main program for running generative agent simulations
-that defines the ReverieServer class. This class maintains and records all  
+that defines the Reverie class. This class maintains and records all  
 states related to the simulation. The primary mode of interaction for those  
 running the simulation should be through the open_server function, which  
 enables the simulator to input command-line prompts for running and saving  
@@ -33,11 +33,12 @@ from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
 
 import numpy
+from selenium import webdriver
+
 from institution import *
 from maze import *
 from memorynode import *
 from persona.persona import *
-from selenium import webdriver
 from utils import *
 from utils import config
 from utils.config import *
@@ -57,9 +58,6 @@ def set_rs(new_rs):
     with rs_lock:
         rs = new_rs
 
-
-command_queue = Queue()
-online_relation = Queue()
 
 BASE_TEMPLATES = [
     "base_the_villie_isabella_maria_klaus",
@@ -226,7 +224,7 @@ def bootstrap_persona(path: str, config: PersonaConfig):
     update_scratch_json(path, config)
 
 
-class ReverieServer:
+class Reverie:
     BASE_TEMPLATES = [
         "base_the_villie_isabella_maria_klaus",
         "base_the_villie_isabella_maria_klaus_online",
@@ -238,6 +236,10 @@ class ReverieServer:
         missing_fields = []
 
         self.is_running = False
+        self.command_queue = Queue()  # User command input queue
+        self.message_queue = Queue()
+
+        self.message_handler = message_handler
 
         for field_name, field_value in vars(sim_config).items():
             if field_value is None or (isinstance(field_value, str) and field_value == ""):
@@ -428,8 +430,11 @@ class ReverieServer:
                 )
         self.is_running = False
 
-    # def is_running(self):
-    # return self.is_running
+    def send_message(self, payload):
+        self.message_handler(payload)
+
+    def handle_command(self, payload):
+        self.command_queue.put(payload)
 
     def save(self):
         """
@@ -758,7 +763,6 @@ class ReverieServer:
         OUTPUT
           None
         """
-        global command_queue
         print("Note: The agents in this simulation package are computational")
         print("constructs powered by generative agents architecture and LLM. We")
         print("clarify that these agents lack human-like agency, consciousness,")
@@ -771,7 +775,7 @@ class ReverieServer:
             # sim_command = input("Enter option: ")
             print("Enter option: ")
             self.is_running = False
-            sim_command = command_queue.get()
+            sim_command = self.command_queue.get()
             self.is_running = True
             print(sim_command)
             sim_command = sim_command.strip()
@@ -915,13 +919,13 @@ class ReverieServer:
                     # Do you support Isabella Rodriguez as mayor?
                     # self.personas[persona_name].open_convo_session("analysis")#Do you want to run for mayor in the local election?
                     self.personas[persona_name].open_convo_session(
-                        "analysis", self.maze.vbase, command_queue
+                        "analysis", self.maze.vbase, self.command_queue
                     )
                     # Do you want to run for mayor in the local election?
 
                 elif "call -- chat to persona" in sim_command.lower():
                     persona_name = sim_command[len("call -- chat to persona") :].strip()
-                    payload = json.loads(command_queue.get())
+                    payload = json.loads(self.command_queue.get())
                     mode = payload.get("mode", "analysis")
                     prev_msgs = payload.get("prev_msgs", [])
                     msg = payload.get("msg", "")
@@ -939,7 +943,7 @@ class ReverieServer:
                     # Ex: call -- whisper Isabella Rodriguez
                     persona_name = sim_command[len("call -- whisper") :].strip()
                     self.personas[persona_name].open_convo_session(
-                        "whisper", self.maze.vbase, command_queue
+                        "whisper", self.maze.vbase, self.command_queue
                     )
 
                 elif "call -- load history" in sim_command.lower():
@@ -976,7 +980,7 @@ class ReverieServer:
                     # print("run args:", args)
                     # Is_or_Not_Institution = input("Is_or_Not_Institution, Enter Input (yes or no): ")
                     print("Is_or_Not_Institution, Enter Input (yes or no): ")
-                    Is_or_Not_Institution = command_queue.get()
+                    Is_or_Not_Institution = self.command_queue.get()
                     print(Is_or_Not_Institution)
                     if Is_or_Not_Institution == "yes":
                         # self.maze.content = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
@@ -1009,7 +1013,7 @@ class ReverieServer:
                     clean_whispers = []
                     # Your_content = input("Input your content: ")
                     print("Input your content: ")
-                    Your_content = command_queue.get()
+                    Your_content = self.command_queue.get()
                     print(Your_content)
                     for row in rows:
                         agent_name = row[0].strip()
@@ -1059,11 +1063,11 @@ class ReverieServer:
                         "run 2",
                     ]
                     for cmd in commands:
-                        command_queue.put(cmd)
+                        self.command_queue.put(cmd)
                 elif "call -- load online event" in sim_command.lower():  # 将事件广播给每个智能体。
                     # tyn
-                    word_command = command_queue.get().strip()
-                    names = command_queue.get().strip()
+                    word_command = self.command_queue.get().strip()
+                    names = self.command_queue.get().strip()
 
                     self.load_online_event(
                         event_desc=word_command,
@@ -1076,9 +1080,9 @@ class ReverieServer:
                     # tyn
                     # truth = input("Input your content: ")
                     # truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
-                    word_command = command_queue.get().strip()
-                    names = command_queue.get().strip()
-                    policy = command_queue.get().strip()
+                    word_command = self.command_queue.get().strip()
+                    names = self.command_queue.get().strip()
+                    policy = self.command_queue.get().strip()
 
                     self.load_online_event(
                         event_desc=word_command,
@@ -1089,9 +1093,9 @@ class ReverieServer:
                 elif (
                     "call -- with websearch load online event" in sim_command.lower()
                 ):  # 将事件广播给每个智能体。
-                    word_command = command_queue.get().strip()
-                    names = command_queue.get().strip()
-                    websearch = command_queue.get().strip()
+                    word_command = self.command_queue.get().strip()
+                    names = self.command_queue.get().strip()
+                    websearch = self.command_queue.get().strip()
 
                     self.load_online_event(
                         event_desc=word_command,
@@ -1101,10 +1105,10 @@ class ReverieServer:
                 elif (
                     "call -- with policy and websearch load online event" in sim_command.lower()
                 ):  # 将事件广播给每个智能体。
-                    word_command = command_queue.get().strip()
-                    names = command_queue.get().strip()
-                    policy = command_queue.get().strip()
-                    websearch = command_queue.get().strip()
+                    word_command = self.command_queue.get().strip()
+                    names = self.command_queue.get().strip()
+                    policy = self.command_queue.get().strip()
+                    websearch = self.command_queue.get().strip()
 
                     self.load_online_event(
                         event_desc=word_command,
@@ -1120,7 +1124,7 @@ class ReverieServer:
 
 
 def start_sim(template_sim_name: str, sim_config: ReverieConfig):
-    new_rs = ReverieServer(template_sim_name, sim_config)
+    new_rs = Reverie(template_sim_name, sim_config)
     set_rs(new_rs)
     new_rs.start_server(sim_config.initial_rounds)
     new_rs.open_server()
@@ -1131,5 +1135,5 @@ if __name__ == "__main__":
     origin = input("Enter the name of the forked simulation: ").strip()
     target = input("Enter the name of the new simulation: ").strip()
 
-    rs = ReverieServer(origin, target)
+    rs = Reverie(origin, target)
     rs.open_server()
