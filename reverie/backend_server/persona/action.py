@@ -1,10 +1,11 @@
 import sys
+
+from persona.cognitive_modules.converse import *
+from persona.cognitive_modules.execute import *
 from persona.cognitive_modules.perceive import *
-from persona.cognitive_modules.retrieve import *
 from persona.cognitive_modules.plan import *
 from persona.cognitive_modules.reflect import *
-from persona.cognitive_modules.execute import *
-from persona.cognitive_modules.converse import *
+from persona.cognitive_modules.retrieve import *
 
 
 class Action:

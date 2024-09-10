@@ -6,10 +6,10 @@ from typing import Any, Dict, List
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+
+from reverie import LLMConfig, PersonaConfig, ReverieConfig, get_rs, start_sim
 from utils import config
 from utils.logs import L
-
-from reverie import LLMConfig, PersonaConfig, ReverieConfig, command_queue, get_rs, start_sim
 
 BASE_TEMPLATES = [
     "base_the_villie_isabella_maria_klaus",

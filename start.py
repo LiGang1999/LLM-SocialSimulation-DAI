@@ -55,23 +55,30 @@ def run_command(command, cwd, color, log_file=None):
             process.wait()
 
 
-def start_servers(quiet):
+def start_servers(quiet, dev_mode):
     """Start all servers with threading."""
     with open("config.yaml", "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
-
     front_port = data.get("front_port")
     back_port = data.get("back_port")
+
+    frontend_command = (
+        "pnpm run dev --host" if dev_mode else "pnpm run build && pnpm run preview --host"
+    )
+    backend_command = f"python3 server.py --host 0.0.0.0 --port {back_port}"
+    if dev_mode:
+        backend_command += " --dev"
+
     commands = [
         {
-            "command": "pnpm run dev --host",
+            "command": frontend_command,
             "directory": "frontend",
             "color": COLORS["frontend"],
             "log_file": "frontend.log" if quiet else None,
             "hint": "Starting frontend server...",
         },
         {
-            "command": f"python3 manage.py runserver --skip-checks 0.0.0.0:{back_port}",
+            "command": backend_command,
             "directory": "reverie/backend_server",
             "color": COLORS["backend"],
             "log_file": "backend.log" if quiet else None,
@@ -98,20 +105,20 @@ def start_servers(quiet):
     return threads
 
 
-def main(quiet):
+def main(quiet, dev_mode):
     # Check whether config.yaml exists. If not, copy config.template.yaml to config.yaml
     if not os.path.exists("config.yaml"):
         shutil.copy("config.template.yaml", "config.yaml")
         print(f"{COLORS['manage']} Created config.yaml from config.template.yaml")
 
-    # Check wheter backend_server/utils/config.py exists. If not, exit program
+    # Check whether backend_server/utils/config.py exists. If not, exit program
     if not os.path.exists("reverie/backend_server/utils/config.py"):
         print(
             f"{COLORS['manage']} ERROR: backend_server/utils/config.py not found. You should manually create it. Refer to config_template.py. Exiting..."
         )
         sys.exit(1)
 
-    threads = start_servers(quiet)
+    threads = start_servers(quiet, dev_mode)
 
     try:
         for thread in threads:
@@ -122,11 +129,12 @@ def main(quiet):
 
 if __name__ == "__main__":
     os.environ["PYTHONUNBUFFERED"] = "1"
-
     parser = argparse.ArgumentParser(description="Manage servers.")
     parser.add_argument(
         "--save", action="store_true", help="Log output to files instead of console."
     )
+    parser.add_argument(
+        "--dev", action="store_true", help="Run servers in development mode.", default=True
+    )
     args = parser.parse_args()
-
-    main(args.save)
+    main(args.save, args.dev)

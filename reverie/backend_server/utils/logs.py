@@ -49,6 +49,11 @@ _logger.addHandler(_color_handler)
 _logger.setLevel(get_log_level())
 _logger.propagate = False
 
+_term_logger = colorlog.getLogger("NATIVE")
+_term_logger.addHandler(_color_handler)
+_term_logger.setLevel(get_log_level())
+_term_logger.propagate = False
+
 
 def get_outer_caller(module_name) -> str:
     # Iterate over the call stack
@@ -89,34 +94,52 @@ _stats_by_func = dict()
 
 class L:
     @staticmethod
-    def info(msg, *args, enabled=False, **kwargs):
+    def info(msg, *args, enabled=False, native=False, **kwargs):
         if enabled or is_default_enabled():
-            _logger.info(msg, *args, **kwargs)
+            if native:
+                _term_logger.info(msg, *args, **kwargs)
+            else:
+                _logger.info(msg, *args, **kwargs)
 
     @staticmethod
-    def warning(msg, *args, enabled=False, **kwargs):
+    def warning(msg, *args, enabled=False, native=False, **kwargs):
         if enabled or is_default_enabled():
-            _logger.warning(msg, *args, **kwargs)
+            if native:
+                _term_logger.warning(msg, *args, **kwargs)
+            else:
+                _logger.warning(msg, *args, **kwargs)
 
     @staticmethod
-    def debug(msg, *args, enabled=False, **kwargs):
+    def debug(msg, *args, enabled=False, native=False, **kwargs):
         if enabled or is_default_enabled():
-            _logger.debug(msg, *args, **kwargs)
+            if native:
+                _term_logger.debug(msg, *args, **kwargs)
+            else:
+                _logger.debug(msg, *args, **kwargs)
 
     @staticmethod
-    def error(msg, *args, enabled=False, **kwargs):
+    def error(msg, *args, enabled=False, native=False, **kwargs):
         if enabled or is_default_enabled():
-            _logger.error(msg, *args, **kwargs)
+            if native:
+                _term_logger.error(msg, *args, **kwargs)
+            else:
+                _logger.error(msg, *args, **kwargs)
 
     @staticmethod
-    def critical(msg, *args, enabled=False, **kwargs):
+    def critical(msg, *args, enabled=False, native=False, **kwargs):
         if enabled or is_default_enabled():
-            _logger.critical(msg, *args, **kwargs)
+            if native:
+                _term_logger.critical(msg, *args, **kwargs)
+            else:
+                _logger.critical(msg, *args, **kwargs)
 
     @staticmethod
-    def exception(msg, *args, enabled=False, **kwargs):
+    def exception(msg, *args, enabled=False, native=False, **kwargs):
         if enabled or is_default_enabled():
-            _logger.exception(msg, *args, **kwargs)
+            if native:
+                _term_logger.exception(msg, *args, **kwargs)
+            else:
+                _logger.exception(msg, *args, **kwargs)
 
     @staticmethod
     def stats(function_name, model, is_chat, duration, request_tokens, response_tokens, valid):
@@ -137,15 +160,17 @@ class L:
             _all_stats.success_requests += 1
 
     @staticmethod
-    def print_stats():
-        _logger.info("Usage stats:")
-        _logger.info("Total requests: %d", _all_stats.total_requests)
-        _logger.info("Total duration: %f", _all_stats.total_duration)
-        _logger.info("Prompt tokens: %d", _all_stats.prompt_tokens)
-        _logger.info("Completion tokens: %d", _all_stats.completion_tokens)
+    def print_stats(native=False):
+        logger = _logger if not native else _term_logger
+        logger.info("Usage stats:")
+        logger.info("Total requests: %d", _all_stats.total_requests)
+        logger.info("Total duration: %f", _all_stats.total_duration)
+        logger.info("Prompt tokens: %d", _all_stats.prompt_tokens)
+        logger.info("Completion tokens: %d", _all_stats.completion_tokens)
 
     @staticmethod
     def set_level(level):
+        _term_logger.setLevel(level)
         _logger.setLevel(level)
 
     @staticmethod

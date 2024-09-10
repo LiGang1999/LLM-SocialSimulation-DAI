@@ -184,7 +184,7 @@ def execute_dai(persona, maze: OnlineMaze, retrived, plan, all_news):
             s = sub_retrived[event_name]["curr_event"].subject
             p = sub_retrived[event_name]["curr_event"].predicate
             o = sub_retrived[event_name]["curr_event"].object
-            event_trigger("agent_comment", {"name": persona.name, "content": comment, "subject" : s})
+            event_trigger("agent_comment", {"name": persona.name, "content": comment, "subject": s})
             memory_node = MemoryNode(persona.name, s, p, o, comment, True)
             maze.add_memory_to_event(event_name, memory_node)
         else:
