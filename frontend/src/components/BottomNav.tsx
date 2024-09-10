@@ -86,7 +86,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                     </Button>
                 </div>
             )}
-            <ProgressBar currentStep={currStep} className="mx-auto mt-12" />
+            {/* <ProgressBar currentStep={currStep} className="mx-auto mt-12" /> */}
         </div>
     );
 };

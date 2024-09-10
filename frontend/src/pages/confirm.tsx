@@ -76,7 +76,7 @@ export const ConfirmPage = () => {
         <div className="flex flex-col bg-gray-100 min-h-screen">
             <Navbar />
             <div className="container mx-auto">
-                <h2 className="text-5xl font-bold my-12 text-left text-black-800">确认您的方案</h2>
+                <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 5.</span>确认您的方案</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
                     <Card className="shadow-lg rounded-lg">
                         <CardHeader>

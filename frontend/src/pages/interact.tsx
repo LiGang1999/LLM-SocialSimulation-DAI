@@ -1,18 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, Paperclip, Trash2, MoreHorizontal, RefreshCw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
+import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, Paperclip, Trash2, MoreHorizontal, RefreshCw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCcw, XCircle, AlertTriangle, Info, Bug, Terminal, AlertOctagon } from 'lucide-react';
 import { apis } from '@/lib/api';
 import { ChatMessage, useSimContext } from '@/SimContext';
 import { RandomAvatar } from '@/components/Avatars';
 import mockBg from '@/assets/map.png'
+import { isFloat32Array } from 'util/types';
+import { kStringMaxLength } from 'buffer';
+import { useParams } from 'react-router-dom';
+
+interface LogEntry {
+    level: 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL' | 'COMMAND';
+    message: string;
+};
+
 
 
 const ChatMessageBox: React.FC<ChatMessage> = ({ sender, content, timestamp, subject }) => (
@@ -77,14 +86,46 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
 
 // Update DialogTab to accept messages as a prop
 const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [isAtBottom, setIsAtBottom] = useState(true);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    };
+
+    useEffect(() => {
+        console.log("scrolling to bottom")
+        scrollToBottom()
+    }, [JSON.stringify(messages)]);
+
     return (
-        <ScrollArea className="h-[calc(100vh-200px)] border-4 bg-gray-100 rounded-md border-gray-100 rounded-md pl-2">
-            {messages.map((msg, index) => (
-                <ChatMessageBox key={index} {...msg} />
-            ))}
-        </ScrollArea>
+        <div className="relative h-[calc(100vh-200px)]">
+            <ScrollArea
+                className="h-full border-4 bg-gray-100 rounded-md border-gray-100 pl-2"
+                // onScrollCapture={handleScroll}
+                ref={scrollRef}
+            >
+                <div className="p-4">
+                    {messages.map((msg, index) => (
+                        <ChatMessageBox key={index} {...msg} />
+                    ))}
+                </div>
+                <div ref={messagesEndRef} />
+            </ScrollArea>
+            {!isAtBottom && (
+                <Button
+                    className="absolute bottom-4 right-4 rounded-full"
+                    onClick={scrollToBottom}
+                >
+                    <ArrowDown className="h-4 w-4 mr-2" />
+                    Back to Bottom
+                </Button>
+            )}
+        </div>
     );
 };
+
 
 
 const MapTab: React.FC = () => {
@@ -188,6 +229,7 @@ const AgentStatusTab: React.FC = () => {
         setAgents(agentsInfo);
     };
 
+
     useEffect(() => {
         fetchAgentStatus();
     }, []);
@@ -269,24 +311,71 @@ const AgentStatusTab: React.FC = () => {
 };
 
 
-const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLogs: () => void, setIsRunning: (isRunning: boolean) => void }> = ({ logs, addLog, clearLogs, setIsRunning }) => {
+const LogTab: React.FC<{
+    logs: LogEntry[],
+    addLog: (log: LogEntry) => void,
+    clearLogs: () => void,
+    setIsRunning: (isRunning: boolean) => void
+}> = ({ logs, addLog, clearLogs, setIsRunning }) => {
     const [command, setCommand] = useState('');
+    const ctx = useSimContext();
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const handleCommand = async () => {
         setIsRunning(true);
-        addLog(`> ${command}`);
+        addLog({ level: 'COMMAND', message: command });
         // Process command here
-        await apis.sendCommand(command);
+        await apis.sendCommand(command, ctx.data.currSimCode || "");
     };
+
+    const getLogColor = (level: LogEntry['level']) => {
+        switch (level) {
+            case 'DEBUG': return 'text-gray-500';
+            case 'INFO': return 'text-blue-500';
+            case 'WARNING': return 'text-yellow-500';
+            case 'ERROR': return 'text-red-500';
+            case 'CRITICAL': return 'text-red-700 font-bold';
+            case 'COMMAND': return 'text-purple-500';
+            default: return 'text-gray-700';
+        }
+    };
+
+    const getLogIcon = (level: LogEntry['level']) => {
+        switch (level) {
+            case 'DEBUG': return <Bug className="h-4 w-4 mr-2" />;
+            case 'INFO': return <Info className="h-4 w-4 mr-2" />;
+            case 'WARNING': return <AlertTriangle className="h-4 w-4 mr-2" />;
+            case 'ERROR': return <XCircle className="h-4 w-4 mr-2" />;
+            case 'CRITICAL': return <AlertOctagon className="h-4 w-4 mr-2" />;
+            case 'COMMAND': return <Terminal className="h-4 w-4 mr-2" />;
+            default: return null;
+        }
+    };
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    };
+
+    useEffect(() => {
+        console.log("scrolling to bottom")
+        scrollToBottom()
+    }, [JSON.stringify(logs)]);
 
     return (
         <div className="flex-col rounded-lg bg-gray-100 p-4">
             <ScrollArea className="font-mono text-sm h-[calc(100vh-280px)]">
                 {logs.map((log, index) => (
-                    <div key={index}>{log}</div>
+                    <div key={index} className={`flex items-start ${getLogColor(log.level)} mb-1`}>
+                        <div className="flex items-center mr-2 flex-shrink-0">
+                            {getLogIcon(log.level)}
+                            <span className="font-bold">{log.level}</span>
+                        </div>
+                        <p className="m-0 break-words">{log.message}</p>
+                    </div>
                 ))}
+                <div ref={messagesEndRef} />
             </ScrollArea>
-            <div className="flex mt-4 ">
+            <div className="flex mt-4">
                 <Input
                     value={command}
                     onChange={(e) => setCommand(e.target.value)}
@@ -309,9 +398,13 @@ const LogTab: React.FC<{ logs: string[], addLog: (log: string) => void, clearLog
 
 
 
+
+
 export const InteractPage: React.FC = () => {
     const ctx = useSimContext();
-    const [logs, setLogs] = useState<string[]>([]);
+    const [logs, setLogs] = useState<LogEntry[]>([]);
+
+
 
     const [isRunning, setIsRunning] = useState(true);
     const [privateChatAgent, setPrivateChatAgent] = useState<string>("");
@@ -335,10 +428,9 @@ export const InteractPage: React.FC = () => {
     };
 
 
-    const addLog = (log: string) => {
+    const addLog = (log: LogEntry) => {
         setLogs(prevLogs => [...prevLogs, log]);
     };
-
     const clearLogs = () => {
         setLogs([]);
     };
@@ -346,7 +438,7 @@ export const InteractPage: React.FC = () => {
     const handleRunSimulation = async (rounds: number) => {
         try {
             setIsRunning(true);
-            await apis.runSim(rounds);
+            await apis.runSim(rounds, ctx.data.currSimCode || "");
         } catch (error) {
             console.error("Error running simulation:", error);
             // Handle the error, e.g., show an error message to the user
@@ -396,7 +488,7 @@ export const InteractPage: React.FC = () => {
 
     useEffect(() => {
         const checkStatus = async () => {
-            const status = await apis.queryStatus();
+            const status = await apis.queryStatus(ctx.data.currSimCode || '');
             setIsRunning(status === 'running');
         };
 
@@ -404,11 +496,11 @@ export const InteractPage: React.FC = () => {
         // checkStatus();
 
         // Set up interval to check status
-        const intervalId = setInterval(checkStatus, 100); // Check every 5 seconds
+        const intervalId = setInterval(checkStatus, 500); // Check every 5 seconds
 
         // Clean up interval on unmount
         return () => clearInterval(intervalId);
-    }, []);
+    }, [ctx.data.currSimCode]);
 
 
     useEffect(() => {
@@ -459,50 +551,45 @@ export const InteractPage: React.FC = () => {
         console.log(ctx.data.currentTemplate?.meta.sim_mode)
     }, [ctx.data.currentTemplate, ctx.data.agents, ctx.data.currentTemplate?.meta.sim_mode]);
 
-    const [chatSocket, setChatSocket] = useState<WebSocket | null>(null);
-    const [logSocket, setLogSocket] = useState<WebSocket | null>(null);
+    const [messageSocket, setMessageSocket] = useState<WebSocket | null>(null);
 
     useEffect(() => {
         // Create WebSocket connections when the component mounts
-        const newChatSocket = apis.chatSocket();
-        const newLogSocket = apis.logSocket();
+        const newMessageSocket = apis.messageSocket(ctx.data.currSimCode || "");
 
         // Update state with the new WebSocket instances
-        setChatSocket(newChatSocket);
-        setLogSocket(newLogSocket);
+        setMessageSocket(newMessageSocket);
 
         // Clean up WebSocket connections when the component unmounts
         return () => {
-            newChatSocket.close();
-            newLogSocket.close();
+            newMessageSocket.close();
         };
 
 
-    }, []);
+    }, [ctx.data.currSimCode]);
 
     useEffect(() => {
-        if (chatSocket) {
-            chatSocket.onmessage = (event) => {
-                const message: ChatMessage = JSON.parse(event.data);
-
-                if (message.type === 'public') {
-                    addPublicMessage(message);
-                } else if (message.type === 'private') {
-                    addPrivateMessage(message.sender, message);
+        if (messageSocket) {
+            messageSocket.onmessage = (event) => {
+                console.log("Receive log data!!!")
+                // addLog(`• ${event.data}`);
+                const d = JSON.parse(event.data);
+                if (d.type == "log") {
+                    const e: LogEntry = d.message;
+                    const level = e.level;
+                    const message = e.message;
+                    addLog({ level, message });
+                } else if (d.type == "chat") {
+                    const e: ChatMessage = d.message;
+                    if (e.type == "public") {
+                        addPublicMessage(e);
+                    } else if (e.type == "private") {
+                        addPrivateMessage(e.sender, e);
+                    }
                 }
             };
         }
-    }, [chatSocket]);
-
-    useEffect(() => {
-        if (logSocket) {
-            logSocket.onmessage = (event) => {
-                console.log("Receive log data!!!")
-                console.log(event.data)
-                addLog(`• ${event.data}`);
-            };
-        }
-    }, [logSocket]);
+    }, [messageSocket]);
 
 
     // console.log(ctx.data)

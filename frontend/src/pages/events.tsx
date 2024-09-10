@@ -167,7 +167,7 @@ export const EventsPage = () => {
         <div className="flex flex-col min-h-screen bg-gray-100">
             <Navbar />
             <div className="container mx-auto">
-                <h2 className="text-5xl font-bold my-12 text-left text-black-800">方案设计</h2>
+                <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 2.</span>方案设计</h2>
                 <Card className="shadow-lg">
                     <CardContent className='pt-8'>
                         <div className="grid md:grid-cols-2 gap-8">

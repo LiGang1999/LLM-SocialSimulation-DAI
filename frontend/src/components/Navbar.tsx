@@ -101,7 +101,7 @@ export const Navbar = () => {
                                     <a
                                         rel="noreferrer noopener"
                                         href={github_link}
-                                        className="w-[110px] border-[1px] border-white border-opacity-40"
+                                        className="w-[110px] border-[1px] bg-gray-50 border-white border-opacity-40"
                                     >
                                         <GitHubLogoIcon className="mr-2 w-5 h-5" />
                                         Github
@@ -132,7 +132,7 @@ export const Navbar = () => {
                             rel="noreferrer noopener"
                             href={github_link}
                             target="_blank"
-                            className={`border ${buttonVariants({ variant: "ghost" })} border-opacity-40 border-white`}
+                            className={`border ${buttonVariants({ variant: "ghost" })} bg-white bg-opacity-20 border-opacity-40 border-white`}
                         >
                             <GitHubLogoIcon className="mr-2 w-5 h-5" />
                             Github

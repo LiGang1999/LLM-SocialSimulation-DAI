@@ -244,7 +244,7 @@ export const AgentsPage = () => {
         <div className="flex flex-col min-h-screen bg-gray-100">
             <Navbar />
             <div className="container mx-auto">
-                <h2 className="text-5xl font-bold my-12 text-left text-black-800">自定义智能体</h2>
+                <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 3.</span>自定义智能体</h2>
                 <Card className="shadow-lg overflow-hidden">
                     <CardContent className='px-0'>
                         <div className="flex">

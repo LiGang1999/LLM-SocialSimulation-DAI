@@ -57,7 +57,7 @@ export const ConfigPage = () => {
         <div className="flex flex-col min-h-screen bg-gray-50">
             <Navbar />
             <main className="flex-grow w-full container mx-auto">
-                <h1 className="text-5xl font-bold my-12 text-gray-900">仿真参数配置</h1>
+                <h1 className="text-5xl font-bold my-12 text-gray-900"><span className="font-mono">Step 4.</span>仿真参数配置</h1>
                 <Card className="w-full mx-auto">
                     <CardContent className="space-y-6 my-4">
                         <div className="space-y-2">
