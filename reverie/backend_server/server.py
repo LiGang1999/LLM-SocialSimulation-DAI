@@ -13,10 +13,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette_context import context, plugins
 from starlette_context.middleware import RawContextMiddleware
-from utils import config
-from utils.logs import L
 
 from reverie import LLMConfig, PersonaConfig, Reverie, ReverieConfig, start_sim
+from utils import *
+from utils import config
+from utils.logs import L
 
 app = FastAPI()
 
@@ -146,17 +147,16 @@ class ReverieInstance:
             return bool(self.active_websockets)
 
     def message_sender_loop(self):
-        with self.ws_lock:
-            while True:
-                if not self.reverie.message_queue.empty() and self.active_websockets:
-                    message = self.reverie.message_queue.get()
-                    success = asyncio.run(self.send_message_to_websockets(message))
-                    if not success:
-                        # If no active WebSockets, put the message back in the queue
-                        self.reverie.message_queue.put(message)
-                else:
-                    # Sleep briefly to avoid busy-waiting
-                    time.sleep(0.1)
+        while True:
+            if not self.reverie.message_queue.empty() and self.active_websockets:
+                message = self.reverie.message_queue.get()
+                success = asyncio.run(self.send_message_to_websockets(message))
+                if not success:
+                    # If no active WebSockets, put the message back in the queue
+                    self.reverie.message_queue.put(message)
+            else:
+                # Sleep briefly to avoid busy-waiting
+                time.sleep(0.1)
 
     def shutdown(self):
         with self.ws_lock:
@@ -241,23 +241,30 @@ def get_reverie_instance(sim_code: str):
     return instance
 
 
+import threading
+from typing import Dict
+
+from fastapi import HTTPException
+
+
 @app.post("/start")
-async def start(sim_data: StartReq, background_tasks: BackgroundTasks):
+async def start(sim_data: StartReq):
     try:
         sim_code = sim_data.simCode
         template = sim_data.template
         llm_config = sim_data.llmConfig
         initial_rounds = sim_data.initialRounds
-
-        if template.get("simCode") in BASE_TEMPLATES:
+        if sim_code in BASE_TEMPLATES:
             raise HTTPException(status_code=400, detail="Cannot overwrite base template")
-
+        # Forbid overwriting existing template for now
+        sim_folder = f"{STORAGE_PATH}/{sim_code}"
+        if check_if_dir_exists(sim_folder):
+            raise HTTPException(status_code=400, detail="Simulation already exists")
         parsed_llm_config = parse_llm_config(llm_config)
         persona_configs = parse_persona_configs(template.get("personas", []))
         public_events = parse_public_events(
             template.get("events", []), [persona.name for persona in persona_configs.values()]
         )
-
         reverie_config = ReverieConfig(
             sim_code=sim_code,
             sim_mode=template.get("meta", {}).get("sim_mode", ""),
@@ -271,14 +278,18 @@ async def start(sim_data: StartReq, background_tasks: BackgroundTasks):
             direction=template.get("meta", {}).get("direction", ""),
             initial_rounds=initial_rounds or 0,
         )
-
         reverie_instance = reverie_pool.get_or_create(
             sim_code, template.get("simCode"), reverie_config
         )
-        background_tasks.add_task(start_sim, template.get("simCode"), reverie_config)
+        # context["instance"] = reverie_instance
+
+        # Start a new thread to run the open_server method
+        thread = threading.Thread(
+            target=reverie_instance.reverie.open_server, args=(reverie_instance,)
+        )
+        thread.start()
 
         return {"status": "success", "message": "Simulation started"}
-
     except Exception as e:
         L.error(f"Error in start endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -308,13 +319,16 @@ async def publish_event(sim_code: str, event: EventPublishReq):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/query_status/{sim_code}")
+@app.get("/status/{sim_code}")
 async def query_status(sim_code: str):
     instance = reverie_pool.get(sim_code)
     if not instance:
         return {"status": "terminated"}
     context["instance"] = instance
-    return {"status": "running" if instance.running else "started"}
+    return {
+        "status": "running" if instance.running else "started",
+        "connections": [ws for ws in instance.active_websockets],
+    }
 
 
 @app.get("/add_command/{sim_code}")
@@ -343,6 +357,7 @@ async def run(sim_code: str, count: int):
     context["instance"] = reverie_instance
     q = reverie_instance.reverie.command_queue
     q.put(f"run {count}")
+    L.debug(list(q.queue))
     return {"status": "success"}
 
 
@@ -538,7 +553,7 @@ async def fetch_template(sim_code: str):
     return {"meta": env_meta, "personas": persona_info, "events": events}
 
 
-@app.websocket("/ws/message/{sim_code}")
+@app.websocket("/ws/{sim_code}")
 async def websocket_endpoint(websocket: WebSocket, sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
     if not reverie_instance:

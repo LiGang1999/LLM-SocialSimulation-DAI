@@ -10,6 +10,8 @@ from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
+
+from utils import thread_local
 from utils.logs import L
 
 # Dictionary to store registered handlers
@@ -84,24 +86,15 @@ class SocketConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=message)
 
 
-def sock_send(sock_name, message, message_type):
+def sock_send(message, message_type):
     """
     Send a message to a specific socket group.
     """
     # sock_name is deprecated.
-
-    from starlette_context import context
-
-    reverie_instance = context.get("reverie_instance")
-    if not reverie_instance:
-        L.error("No reverie instance found in context")
-        raise Exception("No reverie instance found in context")
-
-    # channel_layer = get_channel_layer()
-    if not isinstance(message, str):
-        message = json.dumps(message)
-    message = json.dumps({"type": message_type, "message": message})
-    reverie_instance.reverie.message_queue.put(message)
+    if hasattr(thread_local, "reverie_instance"):
+        reverie_instance = thread_local.reverie_instance
+        message = json.dumps({"type": message_type, "message": message})
+        reverie_instance.reverie.message_queue.put(message)
 
 
 # Example usage of the socket_handler decorator
@@ -142,9 +135,10 @@ class WebSocketHandler(logging.Handler):
     def emit(self, record):
         log_entry = self.format(record)
         try:
-            sock_send(log_entry, self.sock_name)
-        except Exception:
-            # Do nothing if socket send is not successful
+            sock_send({"level": record.levelname, "message": log_entry}, "log")
+        except Exception as e:
+            # Do nothing if socket send is not successfu
+            L.warning(f"Failed to send log message to socket: {e}", native=True)
             pass
 
 

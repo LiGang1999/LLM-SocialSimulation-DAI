@@ -33,29 +33,18 @@ from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
 
 import numpy
+from selenium import webdriver
+
 from institution import *
 from maze import *
 from memorynode import *
 from persona.persona import *
-from selenium import webdriver
 from utils import *
 from utils import config
 from utils.config import *
 from vector_db import *
 
-rs = None
 rs_lock = threading.Lock()
-
-
-def get_rs():
-    with rs_lock:
-        return rs
-
-
-def set_rs(new_rs):
-    global rs
-    with rs_lock:
-        rs = new_rs
 
 
 BASE_TEMPLATES = [
@@ -238,6 +227,7 @@ class Reverie:
         self.command_queue = Queue()  # User command input queue
         self.message_queue = Queue()
 
+        self.sim_config = sim_config
 
         for field_name, field_value in vars(sim_config).items():
             if field_value is None or (isinstance(field_value, str) and field_value == ""):
@@ -416,17 +406,7 @@ class Reverie:
         )  # extend planning cycle
         self.maze.need_stagely_planning = True  # extend planning cycle
 
-        # Load all online events
-        self.is_running = True
-        if self.sim_mode == "online":
-            for event in sim_config.public_events:
-                self.load_online_event(
-                    event_desc=event["description"],
-                    policy=event["policy"],
-                    websearch=event["websearch"],
-                    access_list=event["access_list"],
-                )
-        self.is_running = False
+        self.command_queue.put(f"run {sim_config.initial_rounds}")
 
     def handle_command(self, payload):
         self.command_queue.put(payload)
@@ -748,7 +728,7 @@ class Reverie:
         if websearch:
             self.maze.add_events_websearch(event_id, websearch)
 
-    def open_server(self):
+    def open_server(self, reverie_instance):
         """
         Open up an interactive terminal prompt that lets you run the simulation
         step by step and probe agent state.
@@ -765,6 +745,20 @@ class Reverie:
 
         # <sim_folder> points to the current simulation folder.
         sim_folder = f"{storage_path}/{self.sim_code}"
+
+        # set instance to thread local storage
+        thread_local.reverie_instance = reverie_instance
+        # Load all online events
+        self.is_running = True
+        if self.sim_mode == "online":
+            for event in self.sim_config.public_events:
+                self.load_online_event(
+                    event_desc=event["description"],
+                    policy=event["policy"],
+                    websearch=event["websearch"],
+                    access_list=event["access_list"],
+                )
+        self.is_running = False
 
         while True:
             # sim_command = input("Enter option: ")
@@ -806,7 +800,7 @@ class Reverie:
                     # Runs the number of steps specified in the prompt.
                     # Example: run 1000
                     int_count = int(sim_command.split()[-1])
-                    rs.start_server(int_count)
+                    self.start_server(int_count)
 
                 elif "print persona schedule" in sim_command[:22].lower():
                     # Print the decomposed schedule of the persona specified in the
@@ -1111,6 +1105,15 @@ class Reverie:
                         policy=policy,
                         websearch=websearch,
                     )
+                elif "call -- new load online event" in sim_command.lower():
+                    word_command = self.command_queue.get().strip()
+                    json_data = json.loads(word_command)
+                    self.load_online_event(
+                        event_desc=json_data.get("event_desc", ""),
+                        access_list=json_data.get("access_list", []),
+                        policy=json_data.get("policy", ""),
+                        websearch=json_data.get("websearch", ""),
+                    )
 
             except Exception as e:
                 traceback.print_exc()
@@ -1120,9 +1123,12 @@ class Reverie:
 
 def start_sim(template_sim_name: str, sim_config: ReverieConfig):
     new_rs = Reverie(template_sim_name, sim_config)
-    set_rs(new_rs)
-    new_rs.start_server(sim_config.initial_rounds)
-    new_rs.open_server()
+    # set_rs(new_rs)
+    # new_rs.start_server(sim_config.initial_rounds)
+    new_rs.command_queue.put(f"run {sim_config.initial_rounds}")
+    return new_rs
+    # new_rs.open_server()
+    # return new_rs
 
 
 if __name__ == "__main__":

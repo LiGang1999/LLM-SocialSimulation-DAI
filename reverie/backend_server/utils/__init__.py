@@ -11,9 +11,19 @@ import errno
 import json
 import os
 import shutil
+import threading
 from os import listdir
 
 import numpy
+
+thread_local = threading.local()
+
+
+def create_thread_local():
+    """
+    Creates a thread-local storage object.
+    """
+    return threading.local()
 
 
 def create_folder_if_not_there(curr_path):
