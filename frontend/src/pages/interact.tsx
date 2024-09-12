@@ -92,7 +92,6 @@ const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
     };
 
     useEffect(() => {
-        console.log("scrolling to bottom")
         scrollToBottom()
     }, [JSON.stringify(messages)]);
 
@@ -227,6 +226,7 @@ const AgentStatusTab: React.FC = () => {
     };
 
 
+
     useEffect(() => {
         fetchAgentStatus();
     }, []);
@@ -317,6 +317,8 @@ const LogTab: React.FC<{
     const [command, setCommand] = useState('');
     const ctx = useSimContext();
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [autoScroll, setAutoScroll] = useState(true);
 
     const handleCommand = async () => {
         setIsRunning(true);
@@ -350,17 +352,50 @@ const LogTab: React.FC<{
     };
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+        // if (autoScroll) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        // }
     };
 
+    const handleScroll = () => {
+        if (scrollRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+            const atBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 1;
+            console.log(scrollHeight, clientHeight, scrollTop, atBottom)
+            setAutoScroll(atBottom);
+        }
+    };
+
+    // const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    //     if (scrollRef.current) {
+    //         const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    //         const atBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 20;
+
+    //         if (event.deltaY < 0) { // Scrolling up
+    //             setAutoScroll(false);
+    //             console.log("User scrolled up using mouse wheel");
+    //         } else if (event.deltaY > 0 && atBottom) { // Scrolling down and at bottom
+    //             setAutoScroll(true);
+    //             console.log("User scrolled to bottom using mouse wheel");
+    //         }
+    //     }
+    // };
+
+
+
     useEffect(() => {
-        console.log("scrolling to bottom")
         scrollToBottom()
     }, [JSON.stringify(logs)]);
 
     return (
         <div className="flex-col rounded-lg bg-gray-100 p-4">
-            <ScrollArea className="font-mono text-sm h-[calc(100vh-280px)]">
+            <ScrollArea
+                className="font-mono text-sm h-[calc(100vh-280px)]"
+                // onScrollCapture={handleScroll}
+                // onWheel={handleWheel}
+                // ref={scrollRef}
+                viewportRef={scrollRef}
+            >
                 {logs.map((log, index) => (
                     <div key={index} className={`flex items-start ${getLogColor(log.level)} mb-1`}>
                         <div className="flex items-center mr-2 flex-shrink-0">

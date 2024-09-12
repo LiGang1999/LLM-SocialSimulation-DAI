@@ -106,5 +106,5 @@ vite.config.js.*
 
 curr_sim_code.json
 
-# config.yaml
+config.yaml
 node_modules

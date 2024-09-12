@@ -23,11 +23,27 @@ export const RandomAvatar: React.FC<RandomAvatarProps> = ({ name, ...props }) =>
             return options[seed % options.length];
         };
 
-        const faceColors = ['#F7C3A7', '#F4B2B2', '#F0B287', '#FFCEA6', '#E6A17A', '#F3D1C0']; // Expanded skin tones
-        const hairColors = ['#3F2E1A', '#7A3F1A', '#9E593C', '#B5815E', '#C09774', '#6A503D', '#5E3923', '#8B6B4F']; // More brown and auburn options
-        const hatColors = ['#333333', '#D4C568', '#D45F54', '#6C89B5', '#F2F2F2', '#B4A07D', '#8F7161', '#476078']; // Muted but vivid hat colors
-        const shirtColors = ['#9B5C3A', '#F7A3AA', '#BCE6EB', '#6881D1', '#E38D5C', '#7F9C6E', '#F4BA7B', '#8C70B1']; // Wider range of earthy, vivid colors for shirts
-        const bgColors = ['#D7E5F1', '#F3D9BF', '#CBCDE6', '#D8ECD8', '#F4D3D8', '#ECE7C8', '#F1E1DF', '#CFE1F1']; // Expanded background colors for variety
+
+        const faceColors = ['#F7C3A7', '#F4B2B2', '#F0B287', '#FFCEA6', '#E6A17A', '#F3D1C0', '#FFD1DC', '#FFDAB9'];
+        const hairColors = ['#090806', '#2C222B', '#71635A', '#B7A69E', '#D6C4C2', '#DEBA9D', '#85776E', '#A7856A', '#E5C8A8', '#DEBC99'];
+        const hatColors = ['#333333', '#D4C568', '#D45F54', '#6C89B5', '#F2F2F2', '#B4A07D', '#8F7161', '#476078', '#7CB9E8', '#C04000'];
+        const shirtColors = ['#9B5C3A', '#F7A3AA', '#BCE6EB', '#6881D1', '#E38D5C', '#7F9C6E', '#F4BA7B', '#8C70B1', '#50C878', '#FF6B6B'];
+        const bgColors = [
+            '#FFD1DC', // Light pink
+            '#AFEEEE', // Pale turquoise
+            '#98FB98', // Pale green
+            '#FFA07A', // Light salmon
+            '#87CEFA', // Light sky blue
+            '#DDA0DD', // Plum
+            '#FAFAD2', // Light goldenrod yellow
+            '#B0E0E6', // Powder blue
+            '#FFDAB9', // Peach puff
+            '#E6E6FA', // Lavender
+            '#F0FFF0', // Honeydew
+            '#FFF0F5', // Lavender blush
+            '#F0FFFF', // Azure
+            '#F5DEB3', // Wheat
+        ];
 
 
 
@@ -36,7 +52,7 @@ export const RandomAvatar: React.FC<RandomAvatarProps> = ({ name, ...props }) =>
             faceColor: getOption(faceColors),
             earSize: getOption(['small', 'big']),
             hairColor: getOption(hairColors),
-            hairStyle: getOption(['normal', 'thick', 'mohawk', 'womanLong', 'womanShort']),
+            hairStyle: getOption(['normal', 'thick', 'womanLong', 'womanShort']),
             hatColor: getOption(hatColors),
             hatStyle: getOption(['beanie', 'turban', 'none']),
             eyeStyle: getOption(['circle', 'oval', 'smile']),

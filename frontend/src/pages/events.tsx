@@ -23,10 +23,22 @@ export const EventsPage = () => {
 
     const [experimentName, setExperimentName] = useState(ctx.data.currSimCode || '');
     const [replicateCount, setReplicateCount] = useState(ctx.data.initialRounds?.toString() || '');
-    const [events, setEvents] = useState<Event[] | undefined>(
-        ctx.data.currentTemplate?.events
+    const [events, setEvents] = useState<(Event & { id: number })[] | undefined>(
+        ctx.data.currentTemplate?.events.map((event, index) => ({ ...event, id: index + 1 }))
     );
-    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+
+    const [selectedEvent, setSelectedEvent] = useState<(Event & { id: number }) | null>(null);
+    const [nextEventId, setNextEventId] = useState(1);
+    const [eventDescriptionError, setEventDescriptionError] = useState('');
+
+    useEffect(() => {
+        if (events && events.length > 0) {
+            setNextEventId(Math.max(...events.map(e => e.id)) + 1);
+        } else {
+            setNextEventId(1);
+        }
+    }, [events]);
+
 
     const [errors, setErrors] = useState({
         experimentName: '',
@@ -85,38 +97,45 @@ export const EventsPage = () => {
 
     const isFormValid = () => {
         const numValue = parseInt(replicateCount, 10);
-        return experimentName.trim() !== '' && !isNaN(numValue) && numValue >= 0 && !ctx.data.allTemplates?.map(t => t.template_sim_code).includes(experimentName);
+        const allEventDescriptionsFilled = events?.every(event => event.description.trim() !== '');
+        return experimentName.trim() !== '' &&
+            !isNaN(numValue) &&
+            numValue >= 0 &&
+            !ctx.data.allTemplates?.map(t => t.template_sim_code).includes(experimentName) &&
+            allEventDescriptionsFilled;
     };
 
     const addNewEvent = () => {
-        const newEvent: Event = {
-            name: `事件 ${events?.length || "" + 1}`,
+        const newEvent: Event & { id: number } = {
+            id: nextEventId,
+            name: `事件 ${nextEventId}`,
             policy: '',
             websearch: '',
             description: '',
         };
         setEvents([...events || [], newEvent]);
-        ctx.setData(
-            {
-                ...ctx.data,
-                currentTemplate: ctx.data.currentTemplate ? {
-                    ...ctx.data.currentTemplate,
-                    events: [...events || [], newEvent]
-                } : undefined
-            }
-        )
-    };
-
-    const removeEvent = (name: string) => {
-        setEvents(events?.filter(event => event.name !== name));
+        setNextEventId(nextEventId + 1);
+        setSelectedEvent(newEvent);
+        setEventDescriptionError('事件描述不能为空');
         ctx.setData({
             ...ctx.data,
             currentTemplate: ctx.data.currentTemplate ? {
                 ...ctx.data.currentTemplate,
-                events: ctx.data.currentTemplate?.events.filter(event => event.name !== name) || []
+                events: [...events || [], newEvent]
             } : undefined
-        })
-        if (selectedEvent && selectedEvent.name === name) {
+        });
+    };
+
+    const removeEvent = (id: number) => {
+        setEvents(events?.filter(event => event.id !== id));
+        ctx.setData({
+            ...ctx.data,
+            currentTemplate: ctx.data.currentTemplate ? {
+                ...ctx.data.currentTemplate,
+                events: ctx.data.currentTemplate?.events.filter((event, index) => index + 1 !== id) || []
+            } : undefined
+        });
+        if (selectedEvent && selectedEvent.id === id) {
             setSelectedEvent(null);
         }
     };
@@ -125,15 +144,23 @@ export const EventsPage = () => {
         if (selectedEvent) {
             const updatedEvent = { ...selectedEvent, [field]: value };
             setSelectedEvent(updatedEvent);
-            setEvents(events?.map(e => e.name === selectedEvent.name ? updatedEvent : e));
+            setEvents(events?.map(e => e.id === selectedEvent.id ? updatedEvent : e));
+
+            if (field === 'description') {
+                if (value.trim() === '') {
+                    setEventDescriptionError('事件描述不能为空');
+                } else {
+                    setEventDescriptionError('');
+                }
+            }
 
             ctx.setData({
                 ...ctx.data,
                 currentTemplate: ctx.data.currentTemplate ? {
                     ...ctx.data.currentTemplate,
-                    events: events?.map(e => e.name === selectedEvent.name ? updatedEvent : e) || []
+                    events: events?.map((e, index) => index + 1 === selectedEvent.id ? updatedEvent : e) || []
                 } : undefined
-            })
+            });
         }
     };
 
@@ -144,15 +171,16 @@ export const EventsPage = () => {
                     const templateData = await apis.fetchTemplate(ctx.data.templateCode);
                     const events = templateData.events.map((value, index) => ({
                         ...value,
+                        id: index + 1,
                         name: value.name || `事件 ${index + 1}`
-                    }))
+                    }));
                     ctx.setData({
                         ...ctx.data,
                         currentTemplate: {
                             ...templateData,
                             events: events
                         }
-                    })
+                    });
                     setEvents(events);
                 }
             } catch (err) {
@@ -161,7 +189,7 @@ export const EventsPage = () => {
         }
 
         fetchTemplates();
-    }, [])
+    }, []);
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-100">
@@ -207,19 +235,29 @@ export const EventsPage = () => {
                                 <div>
                                     <h3 className="text-lg font-semibold text-gray-700 mb-3">事件列表</h3>
                                     <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
-                                        {events?.map((event) => (
-                                            <div key={event.name} className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg transition-shadow">
-                                                <span className="text-gray-700 font-medium">{event.name}</span>
-                                                <div>
-                                                    <Button variant="ghost" size="sm" onClick={() => setSelectedEvent(event)} className="text-blue-500 hover:text-blue-700">
-                                                        <Edit className="h-4 w-4 mr-1" /> 编辑
-                                                    </Button>
-                                                    <Button variant="ghost" size="sm" onClick={() => removeEvent(event.name)} className="text-red-500 hover:text-red-700">
-                                                        <X className="h-4 w-4 mr-1" /> 删除
-                                                    </Button>
+                                        <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                                            {events?.map((event) => (
+                                                <div
+                                                    key={event.id}
+                                                    className={`flex items-center justify-between p-3 rounded-lg transition-shadow ${selectedEvent && selectedEvent.id === event.id
+                                                        ? 'bg-blue-200'
+                                                        : event.description.trim() === ''
+                                                            ? 'bg-red-100'
+                                                            : 'bg-indigo-50'
+                                                        }`}
+                                                >
+                                                    <span className="text-gray-700 font-medium">{event.name}</span>
+                                                    <div>
+                                                        <Button variant="ghost" size="sm" onClick={() => setSelectedEvent(event)} className="text-blue-500 hover:text-blue-700">
+                                                            <Edit className="h-4 w-4 mr-1" /> 编辑
+                                                        </Button>
+                                                        <Button variant="ghost" size="sm" onClick={() => removeEvent(event.id)} className="text-red-500 hover:text-red-700">
+                                                            <X className="h-4 w-4 mr-1" /> 删除
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
                                     <Button
                                         variant="outline"
@@ -243,7 +281,9 @@ export const EventsPage = () => {
                                                 onChange={(e) => updateEvent('description', e.target.value)}
                                                 placeholder="请输入事件描述"
                                                 rows={3}
+                                                className={selectedEvent.description == '' ? 'border-red-500' : ''}
                                             />
+                                            {selectedEvent.description == '' && <p className="text-red-500 text-xs mt-1">{eventDescriptionError}</p>}
                                         </div>
                                         <div>
                                             <label htmlFor="eventName" className="block text-sm font-medium text-gray-700 mb-1">事件名称</label>

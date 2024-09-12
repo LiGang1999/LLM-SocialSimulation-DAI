@@ -30,7 +30,7 @@ DEBUG = True
 # read config
 with open("../../config.yaml", "r", encoding="utf-8") as f:
     data = yaml.safe_load(f)
-    server_ip = data.get("server_ip")
+    server_ip = data.get("server_ip", "0.0.0.0")
 
 ALLOWED_HOSTS = [server_ip, "127.0.0.1", "localhost"]
 

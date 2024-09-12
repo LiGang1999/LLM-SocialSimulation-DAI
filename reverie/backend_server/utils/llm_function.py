@@ -13,8 +13,8 @@ default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
 
 default_llm_config = override_gpt_param
 
-print_raw_log = True
-print_short_log = False
+print_raw_log = False
+print_short_log = True
 
 
 def llm_logging_repr(object):

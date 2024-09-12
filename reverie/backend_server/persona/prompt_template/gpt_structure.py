@@ -107,7 +107,7 @@ def generate_gpt_response(
         gpt_parameters.update(override_gpt_param)
     while tries < max_retries:
         try:
-            model = gpt_parameters["engine"]
+            model = gpt_parameters["engine"] + ("" if is_chat else "-instruct")
             start_time = time.time()
 
             if is_chat:
@@ -145,6 +145,7 @@ Requirements:
                     stream=gpt_parameters["stream"],
                     stop=gpt_parameters["stop"],
                 )
+                L.debug(response)
                 curr_gpt_response = str(
                     extract_first_json_dict(response.choices[0].message.content.strip())["output"]
                 )
@@ -190,7 +191,7 @@ Requirements:
 
         tries += 1
         time.sleep(0.1)  # Optional: Wait before retrying
-        L.debug(f"Attempt {tries+1}/{max_retries} failed.")
+        L.debug(f"Attempt {tries}/{max_retries} failed.")
 
     L.error("GPT Request failed after all attempts", exc_info=True)
     return fail_safe_response
