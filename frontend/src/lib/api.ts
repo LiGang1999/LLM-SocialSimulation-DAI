@@ -203,7 +203,7 @@ export namespace apis {
         initialRounds: number
     ): Promise<any> => {
         try {
-            const response = await api.post('/start/', {
+            const response = await api.post('/start', {
                 simCode,
                 template,
                 llmConfig,
@@ -218,7 +218,7 @@ export namespace apis {
 
     export const runSim = async (count: number, simCode: string): Promise<any> => {
         try {
-            const response = await api.get(`/run/${simCode}`, { params: { count } });
+            const response = await api.get(`/run`, { params: { count, sim_code: simCode } });
             return response.data;
         } catch (error) {
             console.error("Error running simulation:", error);
@@ -228,7 +228,7 @@ export namespace apis {
 
     export const updateEnv = async (updateData: any, simCode: string): Promise<any> => {
         try {
-            const response = await api.post(`/update_env/${simCode}`, updateData);
+            const response = await api.post(`/update_env`, updateData, { params: { sim_code: simCode } });
             return response.data;
         } catch (error) {
             console.error("Error updating environment:", error);
@@ -238,7 +238,7 @@ export namespace apis {
 
     export const agentsInfo = async (simCode: string): Promise<Agent[]> => {
         try {
-            const response = await api.get(`/personas_info/${simCode}`);
+            const response = await api.get(`/personas_info`, { params: { sim_code: simCode } });
             return response.data.personas;
         } catch (error) {
             console.error("Error fetching agents info:", error);
@@ -248,7 +248,7 @@ export namespace apis {
 
     export const agentDetail = async (simCode: string, agentName: string): Promise<Agent> => {
         try {
-            const response = await api.get(`/persona_detail/${simCode}/${agentName}`);
+            const response = await api.get(`/persona_detail`, { params: { sim_code: simCode, agent_name: agentName } });
             return response.data;
         } catch (error) {
             console.error("Error fetching agent detail:", error);
@@ -256,12 +256,9 @@ export namespace apis {
         }
     };
 
-
-
-    // get the information for a single agent, in detail
     export const sendCommand = async (command: string, simCode: string): Promise<any> => {
         try {
-            const response = await api.get(`/command/${simCode}`, { params: { command } });
+            const response = await api.get(`/command`, { params: { command, sim_code: simCode } });
             return response.data;
         } catch (error) {
             console.error("Error sending command:", error);
@@ -282,12 +279,12 @@ export namespace apis {
                 msg.content
             ]);
 
-            const response = await api.post(`/chat/${simCode}`, {
+            const response = await api.post(`/chat`, {
                 agent_name: person,
                 type,
                 history: formattedHistory,
                 content
-            });
+            }, { params: { sim_code: simCode } });
             return response.data;
         } catch (error) {
             console.error("Error sending private chat:", error);
@@ -297,7 +294,7 @@ export namespace apis {
 
     export const publishEvent = async (eventData: EventConfig, simCode: string): Promise<any> => {
         try {
-            const response = await api.post(`/publish_events/${simCode}`, eventData);
+            const response = await api.post(`/publish_events`, eventData, { params: { sim_code: simCode } });
             return response.data;
         } catch (error) {
             console.error("Error publishing event:", error);
@@ -307,7 +304,7 @@ export namespace apis {
 
     export const queryStatus = async (simCode: string): Promise<'running' | 'stopped' | 'started'> => {
         try {
-            const response = await api.get(`/status/${simCode}`);
+            const response = await api.get(`/status`, { params: { sim_code: simCode } });
             return response.data.status;
         } catch (error) {
             console.error("Error querying status:", error);
@@ -316,7 +313,7 @@ export namespace apis {
     }
 
     export const messageSocket = (simCode: string) => {
-        return new WebSocket(`ws://${apiBaseUrl}:${apiPort}/ws/${simCode}`);
+        return new WebSocket(`ws://${apiBaseUrl}:${apiPort}/ws?sim_code=${simCode}`);
     }
 
 

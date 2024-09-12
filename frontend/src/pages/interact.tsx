@@ -13,9 +13,6 @@ import { apis } from '@/lib/api';
 import { ChatMessage, useSimContext } from '@/SimContext';
 import { RandomAvatar } from '@/components/Avatars';
 import mockBg from '@/assets/map.png'
-import { isFloat32Array } from 'util/types';
-import { kStringMaxLength } from 'buffer';
-import { useParams } from 'react-router-dom';
 
 interface LogEntry {
     level: 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL' | 'COMMAND';
@@ -415,6 +412,35 @@ export const InteractPage: React.FC = () => {
     const [publicMessages, setPublicMessages] = useState<ChatMessage[]>([]);
     const [privateMessages, setPrivateMessages] = useState<Record<string, ChatMessage[]>>({});
     const [isOffline, setIsOffline] = useState<boolean>(false);
+    const [agents, setAgents] = useState<apis.Agent[]>([]);
+
+    useEffect(() => {
+        console.log('Entering interact page');
+        const fetchAgents = async () => {
+            try {
+                const fetchedAgents = await apis.agentsInfo(ctx.data.currSimCode || "");
+                setAgents(fetchedAgents);
+                console.log('fetched agents', fetchedAgents)
+
+                // Set the privateChatAgent to the first agent's name
+                if (fetchedAgents.length > 0) {
+                    setPrivateChatAgent(fetchedAgents[0].name);
+                }
+
+                // Initialize privateMessages with empty arrays for each agent
+                const initialPrivateMessages = fetchedAgents.reduce((acc, agent) => {
+                    acc[agent.name] = [];
+                    return acc;
+                }, {} as Record<string, ChatMessage[]>);
+                setPrivateMessages(initialPrivateMessages);
+            } catch (error) {
+                console.error("Error fetching agents:", error);
+            }
+        };
+
+        fetchAgents();
+        setIsOffline(ctx.data.currentTemplate?.meta.sim_mode != "online");
+    }, [ctx.data.currSimCode, ctx.data.currentTemplate?.meta.sim_mode]);
 
     const addPublicMessage = (message: ChatMessage) => {
         setPublicMessages(prevMessages => [...prevMessages, message]);
@@ -501,55 +527,6 @@ export const InteractPage: React.FC = () => {
         // Clean up interval on unmount
         return () => clearInterval(intervalId);
     }, [ctx.data.currSimCode]);
-
-
-    useEffect(() => {
-        console.log('Entering interact page')
-        // console.log(Object.keys(ctx.data.agents).length)
-        if (!ctx.data.agents || Object.keys(ctx.data.agents).length === 0) {
-            const personasObject = (ctx.data.currentTemplate?.personas || []).reduce((acc, persona) => {
-                if (persona.name) {
-                    acc[persona.name] = persona;
-                }
-                return acc;
-            }, {} as Record<string, any>);
-
-            const updatedData = {
-                ...ctx.data,
-                agents: personasObject
-            };
-
-            ctx.setData(updatedData);
-
-            // console.log(ctx.data.agents)
-            // console.log(personasObject)
-
-            // Set the privateChatAgent to the first agent's name
-            if (Object.keys(personasObject).length > 0) {
-                setPrivateChatAgent(Object.keys(personasObject)[0]);
-            }
-
-            // Initialize privateMessages with empty arrays for each agent
-            const initialPrivateMessages = Object.keys(personasObject).reduce((acc, agentName) => {
-                acc[agentName] = [];
-                return acc;
-            }, {} as Record<string, ChatMessage[]>);
-            setPrivateMessages(initialPrivateMessages);
-        } else if (privateChatAgent === "" && Object.keys(ctx.data.agents).length > 0) {
-            // If agents already exist but privateChatAgent is not set, set it to the first agent
-            setPrivateChatAgent(Object.keys(ctx.data.agents)[0]);
-
-            // Initialize privateMessages with empty arrays for each agent
-            const initialPrivateMessages = Object.keys(ctx.data.agents).reduce((acc, agentName) => {
-                acc[agentName] = [];
-                return acc;
-            }, {} as Record<string, ChatMessage[]>);
-            setPrivateMessages(initialPrivateMessages);
-        }
-
-        setIsOffline(ctx.data.currentTemplate?.meta.sim_mode != "online");
-        console.log(ctx.data.currentTemplate?.meta.sim_mode)
-    }, [ctx.data.currentTemplate, ctx.data.agents, ctx.data.currentTemplate?.meta.sim_mode]);
 
     const [messageSocket, setMessageSocket] = useState<WebSocket | null>(null);
 
@@ -723,25 +700,24 @@ export const InteractPage: React.FC = () => {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="p-0 hover:bg-transparent">
                                         <Avatar>
-                                            {privateChatAgent && ctx.data.agents && <RandomAvatar className='w-12 h-12' name={`${ctx.data.agents[privateChatAgent].first_name} ${ctx.data.agents[privateChatAgent].last_name}`} />}
+                                            {privateChatAgent && agents && <RandomAvatar className='w-12 h-12' name={`${agents.find(a => a.name === privateChatAgent)?.first_name} ${agents.find(a => a.name === privateChatAgent)?.last_name}`} />}
                                         </Avatar>
                                         <div className="ml-2 text-left">
-                                            {privateChatAgent && ctx.data.agents && <h2 className="text-xl font-bold">{ctx.data.agents[privateChatAgent].name}</h2>}
+                                            {privateChatAgent && agents && <h2 className="text-xl font-bold">{agents.find(a => a.name === privateChatAgent)?.name}</h2>}
                                         </div>
                                         <ChevronDown className="ml-2" />
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align='start'>
-                                    {ctx.data.currentTemplate && ctx.data.currentTemplate.personas.map((persona: apis.Agent) => (
-                                        <DropdownMenuItem key={persona.name} onSelect={() => setPrivateChatAgent(persona.name)} className='flex flex-row items-center align-center'>
+                                    {agents.map((agent) => (
+                                        <DropdownMenuItem key={agent.name} onSelect={() => setPrivateChatAgent(agent.name)} className='flex flex-row items-center align-center'>
                                             <Avatar className="mr-2">
-                                                <RandomAvatar className='w-8 h-8 mt-1' name={`${persona.first_name} ${persona.last_name}`} />
+                                                <RandomAvatar className='w-8 h-8 mt-1' name={`${agent.first_name} ${agent.last_name}`} />
                                             </Avatar>
-                                            <span>{`${persona.first_name} ${persona.last_name}`}</span>
+                                            <span>{`${agent.first_name} ${agent.last_name}`}</span>
                                         </DropdownMenuItem>
                                     ))}
                                 </DropdownMenuContent>
-
                             </DropdownMenu>
                         </CardHeader>
                         <CardContent className="flex-grow overflow-hidden">

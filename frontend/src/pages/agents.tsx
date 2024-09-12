@@ -142,10 +142,21 @@ export const AgentsPage = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (localAgent) {
-            setLocalAgent({
-                ...localAgent,
-                [e.target.name]: e.target.value
-            });
+            const { name, value } = e.target;
+            if (name === 'name') {
+                const [firstName, ...lastNameParts] = value.split(' ');
+                setLocalAgent({
+                    ...localAgent,
+                    name: value,
+                    first_name: firstName,
+                    last_name: lastNameParts.join(' ')
+                });
+            } else {
+                setLocalAgent({
+                    ...localAgent,
+                    [name]: value
+                });
+            }
         }
     };
 
@@ -280,17 +291,23 @@ export const AgentsPage = () => {
                                                     className="h-[80px] w-[80px]"
                                                     name={`${agents.find(a => a.id === localAgent.id)?.first_name} ${agents.find(a => a.id === localAgent.id)?.last_name}`}
                                                 />
-                                                <h2 className="text-2xl font-bold">{agents.find(a => a.id === localAgent.id)?.name}</h2>
+                                                <Input
+                                                    name="name"
+                                                    value={localAgent.name}
+                                                    onChange={handleInputChange}
+                                                    placeholder="Full Name"
+                                                    className="text-2xl font-bold w-64"
+                                                />
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">名字</label>
-                                                <Input name="firstName" value={localAgent.first_name} onChange={handleInputChange} placeholder="名字" className="w-full" />
+                                                <div className="p-2 bg-gray-100 rounded">{localAgent.first_name}</div>
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">姓氏</label>
-                                                <Input name="lastName" value={localAgent.last_name} onChange={handleInputChange} placeholder="姓氏" className="w-full" />
+                                                <div className="p-2 bg-gray-100 rounded">{localAgent.last_name}</div>
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">年龄</label>

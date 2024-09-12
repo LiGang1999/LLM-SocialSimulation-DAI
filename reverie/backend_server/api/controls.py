@@ -7,7 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from reverie import LLMConfig, PersonaConfig, ReverieConfig, get_rs, start_sim
+from reverie import LLMConfig, ReverieConfig, ScratchData, get_rs, start_sim
 from utils import config
 from utils.logs import L
 
@@ -52,9 +52,9 @@ def parse_llm_config(llm_config_data: Dict[str, Any]) -> LLMConfig:
     )
 
 
-def parse_persona_configs(personas_data: List[Dict[str, Any]]) -> Dict[str, PersonaConfig]:
+def parse_persona_configs(personas_data: List[Dict[str, Any]]) -> Dict[str, ScratchData]:
     return {
-        persona.get("name", ""): PersonaConfig(
+        persona.get("name", ""): ScratchData(
             name=persona.get("name", ""),
             daily_plan_req=persona.get("daily_plan_req", ""),
             first_name=persona.get("first_name", ""),

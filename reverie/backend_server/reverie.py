@@ -31,8 +31,10 @@ import time
 import traceback
 from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
+from typing import List, Optional, Tuple
 
 import numpy
+from pydantic import BaseModel, Field
 from selenium import webdriver
 
 from institution import *
@@ -90,19 +92,60 @@ class LLMConfig:
     stream: bool = False
 
 
-@dataclass
-class PersonaConfig:
-    name: str = ""
-    daily_plan_req: str = ""
-    first_name: str = ""
-    last_name: str = ""
-    age: int = 0
-    innate: str = ""
-    learned: str = ""
+class ScratchData(BaseModel):
+    # Necessary fields
+    name: str
+    first_name: str
+    last_name: str
+    age: int
+    lifestyle: str
+    daily_plan_req: str
+    innate: str
+    learned: str
+    living_area: str
+
+    # Optional fields with default values
+    vision_r: int = 0
+    att_bandwidth: int = 0
+    retention: int = 0
+    curr_time: Optional[str] = None
+    curr_tile: Optional[str] = None
     currently: str = ""
-    lifestyle: str = ""
-    living_area: str = ""
-    bibliography: str = ""  # This one is additional field
+    concept_forget: int = 0
+    daily_reflection_time: int = 0
+    daily_reflection_size: int = 0
+    overlap_reflect_th: int = 0
+    kw_strg_event_reflect_th: int = 0
+    kw_strg_thought_reflect_th: int = 0
+    recency_w: int = 0
+    relevance_w: int = 0
+    importance_w: int = 0
+    recency_decay: float = 0.0
+    importance_trigger_max: int = 0
+    importance_trigger_curr: int = 0
+    importance_ele_n: int = 0
+    thought_count: int = 0
+    daily_req: List[str] = Field(default_factory=list)
+    f_daily_schedule: List[str] = Field(default_factory=list)
+    f_daily_schedule_hourly_org: List[str] = Field(default_factory=list)
+    act_address: Optional[str] = None
+    act_start_time: Optional[str] = None
+    act_duration: Optional[str] = None
+    act_description: Optional[str] = None
+    act_pronunciatio: Optional[str] = None
+    act_event: Tuple[str, Optional[str], Optional[str]] = ("", None, None)
+    act_obj_description: Optional[str] = None
+    act_obj_pronunciatio: Optional[str] = None
+    act_obj_event: Tuple[Optional[str], Optional[str], Optional[str]] = (None, None, None)
+    chatting_with: Optional[str] = None
+    chat: Optional[str] = None
+    chatting_with_buffer: dict = Field(default_factory=dict)
+    chatting_end_time: Optional[str] = None
+    act_path_set: bool = False
+    planned_path: List[str] = Field(default_factory=list)
+
+    class Config:
+        extra = "ignore"
 
 
 # The data class representing the meta information of a simulation.
@@ -117,31 +160,24 @@ class ReverieConfig:
     maze_name: str | None = ""  # map name
     step: int | None = 0  # current steps
     llm_config: LLMConfig | None = field(default_factory=LLMConfig)  # llm config
-    persona_configs: dict[str, PersonaConfig] = field(default_factory=dict)  # persona config
+    persona_configs: dict[str, ScratchData] = field(default_factory=dict)  # persona config
     public_events: List[dict] = field(default_factory=list)  # public events
     direction: str | None = ""  # The instruction of what the agents should do with each other
     initial_rounds: int | None = 0  # The number of initial rounds
 
 
-def bootstrap_persona(path: str, config: PersonaConfig):
+def bootstrap_persona(path: str, config: ScratchData):
 
-    def update_scratch_json(path: str, config: PersonaConfig):
+    def update_scratch_json(path: str, config: ScratchData):
         scratch_file_path = os.path.join(path, "bootstrap_memory/scratch.json")
-
         # Load the existing scratch.json
         with open(scratch_file_path, "r") as f:
             scratch_data = json.load(f)
 
-        # Update the fields with the values from PersonaConfig
-        scratch_data["daily_plan_req"] = config.daily_plan_req
-        scratch_data["name"] = config.name
-        scratch_data["first_name"] = config.first_name
-        scratch_data["last_name"] = config.last_name
-        scratch_data["age"] = config.age
-        scratch_data["learned"] = config.learned
-        scratch_data["currently"] = config.currently
-        scratch_data["lifestyle"] = config.lifestyle
-        scratch_data["living_area"] = config.living_area
+        # Update all fields from the Person model
+        for field, value in config.dict().items():
+            if field in scratch_data:
+                scratch_data[field] = value
 
         # Save the updated scratch.json
         with open(scratch_file_path, "w") as f:
@@ -153,7 +189,10 @@ def bootstrap_persona(path: str, config: PersonaConfig):
     # Define the required files with their default content
     files = {
         "bootstrap_memory/associative_memory/embeddings.json": {},
-        "bootstrap_memory/associative_memory/kw_strength.json": {},
+        "bootstrap_memory/associative_memory/kw_strength.json": {
+            "kw_strength_event": {},
+            "kw_strength_thought": {},
+        },
         "bootstrap_memory/associative_memory/nodes.json": {},
         "bootstrap_memory/scratch.json": {
             "vision_r": 8,
@@ -257,156 +296,167 @@ class Reverie:
 
         copyanything(template_folder, sim_folder)
 
-        self.sim_mode = sim_config.sim_mode
+        try:
+            self.sim_mode = sim_config.sim_mode
 
-        reverie_meta = {}
-        # reverie_meta is loaded from the meta.json file in the simulation folder. This is only for backward compatibility
+            reverie_meta = {}
+            # reverie_meta is loaded from the meta.json file in the simulation folder. This is only for backward compatibility
 
-        with open(f"{sim_folder}/reverie/meta.json", "r") as infile:
-            reverie_meta = json.load(infile)
-        reverie_meta["curr_time"] = sim_config.curr_time
-        reverie_meta["step"] = sim_config.step
-        reverie_meta["persona_names"] = [
-            persona.name for persona in sim_config.persona_configs.values()
-        ]
-        reverie_meta["maze_name"] = sim_config.maze_name
-        reverie_meta["sim_mode"] = sim_config.sim_mode
-        reverie_meta["start_date"] = sim_config.start_date
-        reverie_meta["llm_config"] = asdict(sim_config.llm_config)
+            with open(f"{sim_folder}/reverie/meta.json", "r") as infile:
+                reverie_meta = json.load(infile)
+            reverie_meta["curr_time"] = sim_config.curr_time
+            reverie_meta["step"] = sim_config.step
+            reverie_meta["persona_names"] = [
+                persona.name for persona in sim_config.persona_configs.values()
+            ]
+            reverie_meta["maze_name"] = sim_config.maze_name
+            reverie_meta["sim_mode"] = sim_config.sim_mode
+            reverie_meta["start_date"] = sim_config.start_date
+            reverie_meta["llm_config"] = asdict(sim_config.llm_config)
 
-        # This one should be called sim_code, but call it template_sim_code to maintain backward compatability
-        reverie_meta["template_sim_code"] = sim_config.sim_code
-        self.storage_home = f"{storage_path}/{self.sim_code}"
+            # This one should be called sim_code, but call it template_sim_code to maintain backward compatability
+            reverie_meta["template_sim_code"] = sim_config.sim_code
+            self.storage_home = f"{storage_path}/{self.sim_code}"
 
-        # check fields for reverie_meta
+            # check fields for reverie_meta
 
-        if "sim_mode" not in reverie_meta:
-            reverie_meta["sim_mode"] = "offline"
+            if "sim_mode" not in reverie_meta:
+                reverie_meta["sim_mode"] = "offline"
 
-        with open(f"{sim_folder}/reverie/meta.json", "w") as outfile:
-            outfile.write(json.dumps(reverie_meta, indent=2))
+            with open(f"{sim_folder}/reverie/meta.json", "w") as outfile:
+                outfile.write(json.dumps(reverie_meta, indent=2))
 
-        # LOADING REVERIE'S GLOBAL VARIABLES
-        # Whether the reverie runs in offline mode or online mode
+            # SAVING EVENTS INTO STORAGE
+            events = sim_config.public_events
+            with open(f"{sim_folder}/reverie/events.json", "w") as outfile:
+                outfile.write(json.dumps(events, indent=2))
 
-        # The start datetime of the Reverie:
-        # <start_datetime> is the datetime instance for the start datetime of
-        # the Reverie instance. Once it is set, this is not really meant to
-        # change. It takes a string date in the following example form:
-        # "June 25, 2022"
-        # e.g., ...strptime(June 25, 2022, "%B %d, %Y")
-        self.start_time = datetime.datetime.strptime(
-            f"{reverie_meta['start_date']}, 00:00:00", "%B %d, %Y, %H:%M:%S"
-        )
-        # <curr_time> is the datetime instance that indicates the game's current
-        # time. This gets incremented by <sec_per_step> amount everytime the world
-        # progresses (that is, everytime curr_env_file is recieved).
-        self.curr_time = datetime.datetime.strptime(
-            reverie_meta["curr_time"], "%B %d, %Y, %H:%M:%S"
-        )
-        # <sec_per_step> denotes the number of seconds in game time that each
-        # step moves foward.
-        self.sec_per_step = reverie_meta["sec_per_step"]  # 不能大于最大计划周期！！！
-        self.sec_per_step = 60  # lg#x6#报错
-        self.sec_per_step = 600  # lg#x10#？？？
-        self.sec_per_step = 3600  # lg#x6
-        # self.sec_per_step = 86400#lg#x24
-        # self.sec_per_step = 172800#lg#x2
+            # LOADING REVERIE'S GLOBAL VARIABLES
+            # Whether the reverie runs in offline mode or online mode
 
-        # <maze> is the main Maze instance. Note that we pass in the maze_name
-        # (e.g., "double_studio") to instantiate Maze.
-        # e.g., Maze("double_studio")
-        self.is_offline_mode = reverie_meta["sim_mode"] == "offline"
-        if self.is_offline_mode:
-            self.maze = OfflineMaze(reverie_meta["maze_name"])
-        else:
-            self.maze = OnlineMaze(reverie_meta["maze_name"])
+            # The start datetime of the Reverie:
+            # <start_datetime> is the datetime instance for the start datetime of
+            # the Reverie instance. Once it is set, this is not really meant to
+            # change. It takes a string date in the following example form:
+            # "June 25, 2022"
+            # e.g., ...strptime(June 25, 2022, "%B %d, %Y")
+            self.start_time = datetime.datetime.strptime(
+                f"{reverie_meta['start_date']}, 00:00:00", "%B %d, %Y, %H:%M:%S"
+            )
+            # <curr_time> is the datetime instance that indicates the game's current
+            # time. This gets incremented by <sec_per_step> amount everytime the world
+            # progresses (that is, everytime curr_env_file is recieved).
+            self.curr_time = datetime.datetime.strptime(
+                reverie_meta["curr_time"], "%B %d, %Y, %H:%M:%S"
+            )
+            # <sec_per_step> denotes the number of seconds in game time that each
+            # step moves foward.
+            self.sec_per_step = reverie_meta["sec_per_step"]  # 不能大于最大计划周期！！！
+            self.sec_per_step = 60  # lg#x6#报错
+            self.sec_per_step = 600  # lg#x10#？？？
+            self.sec_per_step = 3600  # lg#x6
+            # self.sec_per_step = 86400#lg#x24
+            # self.sec_per_step = 172800#lg#x2
 
-        # <step> denotes the number of steps that our game has taken. A step here
-        # literally translates to the number of moves our personas made in terms
-        # of the number of tiles.
-        self.step = reverie_meta["step"]
-
-        # SETTING UP PERSONAS IN REVERIE
-        # <personas> is a dictionary that takes the persona's full name as its
-        # keys, and the actual persona instance as its values.
-        # This dictionary is meant to keep track of all personas who are part of
-        # the Reverie instance.
-        # e.g., ["Isabella Rodriguez"] = Persona("Isabella Rodriguezs")
-        self.personas = dict()
-        # <personas_tile> is a dictionary that contains the tile location of
-        # the personas (!-> NOT px tile, but the actual tile coordinate).
-        # The tile take the form of a set, (row, col).
-        # e.g., ["Isabella Rodriguez"] = (58, 39)
-        if self.is_offline_mode:
-            self.personas_tile = dict()
-
-        # # <persona_convo_match> is a dictionary that describes which of the two
-        # # personas are talking to each other. It takes a key of a persona's full
-        # # name, and value of another persona's full name who is talking to the
-        # # original persona.
-        # # e.g., dict["Isabella Rodriguez"] = ["Maria Lopez"]
-        # self.persona_convo_match = dict()
-        # # <persona_convo> contains the actual content of the conversations. It
-        # # takes as keys, a pair of persona names, and val of a string convo.
-        # # Note that the key pairs are *ordered alphabetically*.
-        # # e.g., dict[("Adam Abraham", "Zane Xu")] = "Adam: baba \n Zane:..."
-        # self.persona_convo = dict()
-
-        # Loading in all personas. Either from the simulation config or from files.
-        # For each persona in the PersonaConfig:
-        # 1. If it is a newly created persona, create the folder and files for it.
-        # 2. If it is an existing persona, we should update the persona information accordingly.
-        for name, persona in sim_config.persona_configs.items():
-            bootstrap_persona(f"{self.storage_home}/{name}", persona)
-
-        init_env_file = f"{sim_folder}/environment/{str(self.step)}.json"
-        init_env = json.load(open(init_env_file))
-        for persona_name in reverie_meta["persona_names"]:
-            persona_folder = f"{sim_folder}/personas/{persona_name}"
+            # <maze> is the main Maze instance. Note that we pass in the maze_name
+            # (e.g., "double_studio") to instantiate Maze.
+            # e.g., Maze("double_studio")
+            self.is_offline_mode = reverie_meta["sim_mode"] == "offline"
             if self.is_offline_mode:
-                p_x = init_env[persona_name]["x"]
-                p_y = init_env[persona_name]["y"]
-                curr_persona = GaPersona(persona_name, persona_folder)
-
-                self.personas[persona_name] = curr_persona
-                self.personas_tile[persona_name] = (p_x, p_y)
-                self.maze.tiles[p_y][p_x]["events"].add(
-                    curr_persona.scratch.get_curr_event_and_desc()
-                )
+                self.maze = OfflineMaze(reverie_meta["maze_name"])
             else:
-                curr_persona = DaiPersona(persona_name, persona_folder)
-                self.personas[persona_name] = curr_persona
+                self.maze = OnlineMaze(reverie_meta["maze_name"])
 
-        # REVERIE SETTINGS PARAMETERS:
-        # <server_sleep> denotes the amount of time that our while loop rests each
-        # cycle; this is to not kill our machine.
-        self.server_sleep = 0.1
+            # <step> denotes the number of steps that our game has taken. A step here
+            # literally translates to the number of moves our personas made in terms
+            # of the number of tiles.
+            self.step = reverie_meta["step"]
 
-        # SIGNALING THE FRONTEND SERVER:
-        # curr_sim_code.json contains the current simulation code, and
-        # curr_step.json contains the current step of the simulation. These are
-        # used to communicate the code and step information to the frontend.
-        # Note that step file is removed as soon as the frontend opens up the
-        # simulation.
-        curr_sim_code = dict()
-        curr_sim_code["sim_code"] = self.sim_code
-        with open(f"{temp_storage_path}/curr_sim_code.json", "w") as outfile:
-            outfile.write(json.dumps(curr_sim_code, indent=2))
+            # SETTING UP PERSONAS IN REVERIE
+            # <personas> is a dictionary that takes the persona's full name as its
+            # keys, and the actual persona instance as its values.
+            # This dictionary is meant to keep track of all personas who are part of
+            # the Reverie instance.
+            # e.g., ["Isabella Rodriguez"] = Persona("Isabella Rodriguezs")
+            self.personas = dict()
+            # <personas_tile> is a dictionary that contains the tile location of
+            # the personas (!-> NOT px tile, but the actual tile coordinate).
+            # The tile take the form of a set, (row, col).
+            # e.g., ["Isabella Rodriguez"] = (58, 39)
+            if self.is_offline_mode:
+                self.personas_tile = dict()
 
-        curr_step = dict()
-        curr_step["step"] = self.step
-        with open(f"{temp_storage_path}/curr_step.json", "w") as outfile:
-            outfile.write(json.dumps(curr_step, indent=2))
+            # # <persona_convo_match> is a dictionary that describes which of the two
+            # # personas are talking to each other. It takes a key of a persona's full
+            # # name, and value of another persona's full name who is talking to the
+            # # original persona.
+            # # e.g., dict["Isabella Rodriguez"] = ["Maria Lopez"]
+            # self.persona_convo_match = dict()
+            # # <persona_convo> contains the actual content of the conversations. It
+            # # takes as keys, a pair of persona names, and val of a string convo.
+            # # Note that the key pairs are *ordered alphabetically*.
+            # # e.g., dict[("Adam Abraham", "Zane Xu")] = "Adam: baba \n Zane:..."
+            # self.persona_convo = dict()
 
-        self.tag = False  # case
-        self.maze.planning_cycle = 1  # extend planning cycle
-        self.maze.last_planning_day = self.curr_time + datetime.timedelta(
-            days=-1
-        )  # extend planning cycle
-        self.maze.need_stagely_planning = True  # extend planning cycle
+            # Loading in all personas. Either from the simulation config or from files.
+            # For each persona in the ScratchData:
+            # 1. If it is a newly created persona, create the folder and files for it.
+            # 2. If it is an existing persona, we should update the persona information accordingly.
+            for name, persona in sim_config.persona_configs.items():
+                bootstrap_persona(f"{self.storage_home}/personas/{name}", persona)
 
-        self.command_queue.put(f"run {sim_config.initial_rounds}")
+            init_env_file = f"{sim_folder}/environment/{str(self.step)}.json"
+            init_env = json.load(open(init_env_file))
+            for persona_name in reverie_meta["persona_names"]:
+                persona_folder = f"{sim_folder}/personas/{persona_name}"
+                if self.is_offline_mode:
+                    p_x = init_env[persona_name]["x"]
+                    p_y = init_env[persona_name]["y"]
+                    curr_persona = GaPersona(persona_name, persona_folder)
+
+                    self.personas[persona_name] = curr_persona
+                    self.personas_tile[persona_name] = (p_x, p_y)
+                    self.maze.tiles[p_y][p_x]["events"].add(
+                        curr_persona.scratch.get_curr_event_and_desc()
+                    )
+                else:
+                    curr_persona = DaiPersona(persona_name, persona_folder)
+                    self.personas[persona_name] = curr_persona
+
+            # REVERIE SETTINGS PARAMETERS:
+            # <server_sleep> denotes the amount of time that our while loop rests each
+            # cycle; this is to not kill our machine.
+            self.server_sleep = 0.1
+
+            # SIGNALING THE FRONTEND SERVER:
+            # curr_sim_code.json contains the current simulation code, and
+            # curr_step.json contains the current step of the simulation. These are
+            # used to communicate the code and step information to the frontend.
+            # Note that step file is removed as soon as the frontend opens up the
+            # simulation.
+            curr_sim_code = dict()
+            curr_sim_code["sim_code"] = self.sim_code
+            with open(f"{temp_storage_path}/curr_sim_code.json", "w") as outfile:
+                outfile.write(json.dumps(curr_sim_code, indent=2))
+
+            curr_step = dict()
+            curr_step["step"] = self.step
+            with open(f"{temp_storage_path}/curr_step.json", "w") as outfile:
+                outfile.write(json.dumps(curr_step, indent=2))
+
+            self.tag = False  # case
+            self.maze.planning_cycle = 1  # extend planning cycle
+            self.maze.last_planning_day = self.curr_time + datetime.timedelta(
+                days=-1
+            )  # extend planning cycle
+            self.maze.need_stagely_planning = True  # extend planning cycle
+
+            self.command_queue.put(f"run {sim_config.initial_rounds}")
+        except Exception as e:
+            L.error(f"Error during reverie initialization: {e}")
+            if self.sim_code not in BASE_TEMPLATES:
+                removeanything(f"{storage_path}/{self.sim_code}")
+            raise e
 
     def handle_command(self, payload):
         self.command_queue.put(payload)

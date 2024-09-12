@@ -10,14 +10,14 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from starlette_context import context, plugins
 from starlette_context.middleware import RawContextMiddleware
-
-from reverie import LLMConfig, PersonaConfig, Reverie, ReverieConfig, start_sim
 from utils import *
 from utils import config
 from utils.logs import L
+
+from reverie import LLMConfig, Reverie, ReverieConfig, ScratchData
 
 app = FastAPI()
 
@@ -75,23 +75,8 @@ def parse_llm_config(llm_config_data: Dict[str, Any]) -> LLMConfig:
     )
 
 
-def parse_persona_configs(personas_data: List[Dict[str, Any]]) -> Dict[str, PersonaConfig]:
-    return {
-        persona.get("name", ""): PersonaConfig(
-            name=persona.get("name", ""),
-            daily_plan_req=persona.get("daily_plan_req", ""),
-            first_name=persona.get("first_name", ""),
-            last_name=persona.get("last_name", ""),
-            age=int(persona.get("age", 0)),
-            innate=persona.get("innate", ""),
-            learned=persona.get("learned", ""),
-            currently=persona.get("currently", ""),
-            lifestyle=persona.get("lifestyle", ""),
-            living_area=persona.get("living_area", ""),
-            bibliography=persona.get("bibliography", ""),
-        )
-        for persona in personas_data
-    }
+def parse_persona_configs(personas_data: List[Dict[str, Any]]) -> Dict[str, ScratchData]:
+    return {persona["name"]: ScratchData(**persona) for persona in personas_data}
 
 
 def parse_public_events(
@@ -117,7 +102,6 @@ class ReverieInstance:
     def __init__(self, template_sim_code, sim_config: ReverieConfig):
         self.initialized = False
         self.last_accessed = datetime.now()
-        self.running = False
         self.active_websockets = {}
         self.ws_lock = threading.Lock()
         self.reverie = Reverie(template_sim_code=template_sim_code, sim_config=sim_config)
@@ -160,7 +144,6 @@ class ReverieInstance:
 
     def shutdown(self):
         with self.ws_lock:
-            self.running = False
             self.message_sender_thread.join(timeout=5)  # Wait for the thread to finish
             # Close all active WebSockets
             for websocket in self.active_websockets.values():
@@ -295,8 +278,8 @@ async def start(sim_data: StartReq):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/publish_event/{sim_code}")
-async def publish_event(sim_code: str, event: EventPublishReq):
+@app.post("/publish_events")
+async def publish_event(event: EventPublishReq, sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
     if not reverie_instance:
         L.warning(f"Simulation with code {sim_code} not found")
@@ -319,19 +302,18 @@ async def publish_event(sim_code: str, event: EventPublishReq):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/status/{sim_code}")
+@app.get("/status")
 async def query_status(sim_code: str):
     instance = reverie_pool.get(sim_code)
     if not instance:
         return {"status": "terminated"}
-    context["instance"] = instance
     return {
-        "status": "running" if instance.running else "started",
+        "status": "running" if instance.reverie.is_running else "started",
         "connections": [ws for ws in instance.active_websockets],
     }
 
 
-@app.get("/add_command/{sim_code}")
+@app.get("/command")
 async def add_command(sim_code: str, command: str):
     reverie_instance = get_reverie_instance(sim_code)
     if not command:
@@ -345,7 +327,7 @@ async def add_command(sim_code: str, command: str):
     return {"status": "success"}
 
 
-@app.get("/run/{sim_code}")
+@app.get("/run")
 async def run(sim_code: str, count: int):
     reverie_instance = get_reverie_instance(sim_code)
     if not count:
@@ -361,6 +343,7 @@ async def run(sim_code: str, count: int):
     return {"status": "success"}
 
 
+# This is a legacy endpoint from the original project
 @app.get("/get_persona/{sim_code}")
 async def get_persona(sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
@@ -378,44 +361,58 @@ async def get_persona(sim_code: str):
     return {"personas": list(persona_names)}
 
 
-@app.get("/personas_info/{sim_code}")
+@app.get("/personas_info")
 async def personas_info(sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
+    r = reverie_instance.reverie
     if not reverie_instance:
         L.warning(f"Simulation with code {sim_code} not found")
         raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
-    context["instance"] = reverie_instance
-    personas_path = os.path.join(STORAGE_PATH, reverie_instance.template_sim_code, "personas")
-    persona_names = set(
-        name
-        for name in os.listdir(personas_path)
-        if os.path.isdir(os.path.join(personas_path, name)) and not name.startswith(".")
-    )
 
     persona_info = []
-    for persona in persona_names:
-        scratch_file = os.path.join(personas_path, persona, "bootstrap_memory", "scratch.json")
-        scratch_data = load_json_file(scratch_file)
-        persona_info.append(
-            {
-                "name": scratch_data.get("name", ""),
-                "first_name": scratch_data.get("first_name", ""),
-                "last_name": scratch_data.get("last_name", ""),
-                "age": scratch_data.get("age", ""),
-                "innate": scratch_data.get("innate", ""),
-                "learned": scratch_data.get("learned", ""),
-                "currently": scratch_data.get("currently", ""),
-                "lifestyle": scratch_data.get("lifestyle", ""),
-                "living_area": scratch_data.get("living_area", ""),
-                "act_event": scratch_data.get("act_event", ""),
-            }
-        )
+
+    try:
+        for persona_name, persona in r.personas.items():
+            scratch = persona.scratch
+            persona_info.append(
+                {
+                    "name": persona_name,
+                    "first_name": scratch.first_name,
+                    "last_name": scratch.last_name,
+                    "age": scratch.age,
+                    "innate": scratch.innate,
+                    "learned": scratch.learned,
+                    "currently": scratch.currently,
+                    "lifestyle": scratch.lifestyle,
+                    "living_area": scratch.living_area,
+                    "act_event": scratch.act_event,
+                }
+            )
+    # scratch_data = load_json_file(scratch_file)
+    # try:
+    # person = ScratchData(**scratch_data)
+    # persona_info.append(
+    #     {
+    #         "name": person.name,
+    #         "first_name": person.first_name,
+    #         "last_name": person.last_name,
+    #         "age": person.age,
+    #         "innate": person.innate,
+    #         "learned": person.learned,
+    #         "currently": person.currently,
+    #         "lifestyle": person.lifestyle,
+    #         "living_area": person.living_area,
+    #         "act_event": person.act_event,
+    #     }
+    # )
+    except ValidationError as e:
+        L.warning(f"Error parsing persona {persona}: {e}")
 
     return {"personas": persona_info}
 
 
-@app.post("/chat/{sim_code}")
-async def chat(sim_code: str, chat_request: ChatReq):
+@app.post("/chat")
+async def chat(chat_request: ChatReq, sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
     if not reverie_instance:
         L.warning(f"Simulation with code {sim_code} not found")
@@ -439,13 +436,13 @@ async def chat(sim_code: str, chat_request: ChatReq):
         raise HTTPException(status_code=404, detail="Invalid simulation or persona")
 
 
-@app.get("/persona_detail/{sim_code}")
+@app.get("/persona_detail")
 async def persona_detail(sim_code: str, agent_name: str):
     reverie_instance = get_reverie_instance(sim_code)
     if not reverie_instance:
         L.warning(f"Simulation with code {sim_code} not found")
         raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
-    context["instance"] = reverie_instance
+
     persona_path = os.path.join(
         STORAGE_PATH, reverie_instance.template_sim_code, "personas", agent_name
     )
@@ -453,42 +450,12 @@ async def persona_detail(sim_code: str, agent_name: str):
     # Actually the scratch data should be loaded from ReverieInstance
     scratch_data = load_json_file(scratch_file)
 
-    persona_detail = {
-        "curr_time": scratch_data.get("curr_time"),
-        "curr_tile": scratch_data.get("curr_tile"),
-        "daily_plan_req": scratch_data.get("daily_plan_req", ""),
-        "name": scratch_data.get("name", ""),
-        "first_name": scratch_data.get("first_name", ""),
-        "last_name": scratch_data.get("last_name", ""),
-        "age": scratch_data.get("age"),
-        "innate": scratch_data.get("innate", ""),
-        "learned": scratch_data.get("learned", ""),
-        "currently": scratch_data.get("currently", ""),
-        "lifestyle": scratch_data.get("lifestyle", ""),
-        "living_area": scratch_data.get("living_area", ""),
-        "daily_req": scratch_data.get("daily_req", []),
-        "f_daily_schedule": scratch_data.get("f_daily_schedule", []),
-        "f_daily_schedule_hourly_org": scratch_data.get("f_daily_schedule_hourly_org", []),
-        "act_address": scratch_data.get("act_address"),
-        "act_start_time": scratch_data.get("act_start_time"),
-        "act_duration": scratch_data.get("act_duration"),
-        "act_description": scratch_data.get("act_description"),
-        "act_pronunciatio": scratch_data.get("act_pronunciatio"),
-        "act_event": scratch_data.get("act_event", [None, None, None]),
-        "act_obj_description": scratch_data.get("act_obj_description"),
-        "act_obj_pronunciatio": scratch_data.get("act_obj_pronunciatio"),
-        "act_obj_event": scratch_data.get("act_obj_event", [None, None, None]),
-        "chatting_with": scratch_data.get("chatting_with"),
-        "chat": scratch_data.get("chat"),
-        "chatting_with_buffer": scratch_data.get("chatting_with_buffer", {}),
-        "chatting_end_time": scratch_data.get("chatting_end_time"),
-        "act_path_set": scratch_data.get("act_path_set", False),
-        "planned_path": scratch_data.get("planned_path", []),
-        "avatar": scratch_data.get("avatar"),
-        "plan": scratch_data.get("plan", []),
-        "memory": scratch_data.get("memory", []),
-        "bibliography": scratch_data.get("bibliography", ""),
-    }
+    try:
+        person = ScratchData(**scratch_data)
+        persona_detail = person.dict()
+    except ValidationError as e:
+        L.warning(f"Error parsing persona {agent_name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error parsing persona data for {agent_name}")
 
     return persona_detail
 
@@ -553,7 +520,7 @@ async def fetch_template(sim_code: str):
     return {"meta": env_meta, "personas": persona_info, "events": events}
 
 
-@app.websocket("/ws/{sim_code}")
+@app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
     if not reverie_instance:
