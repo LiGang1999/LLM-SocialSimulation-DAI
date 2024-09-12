@@ -172,7 +172,7 @@ export const EventsPage = () => {
                     const events = templateData.events.map((value, index) => ({
                         ...value,
                         id: index + 1,
-                        name: value.name || `事件 ${index + 1}`
+                        name: value.description ? value.description.split(' ').slice(0, 6).join(' ') : `事件 ${index + 1}`
                     }));
                     ctx.setData({
                         ...ctx.data,

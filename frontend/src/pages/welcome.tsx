@@ -46,6 +46,12 @@ export const WelcomePage = () => {
         emblaApi.on('select', onSelect)
     }, [emblaApi, onSelect])
 
+    useEffect(() => {
+        localStorage.clear();
+        // You can remove the following line if you don't want to show an alert
+        // alert('Local storage has been cleared.');
+    }, []);
+
     return (
         <div
             className="min-h-screen flex flex-col items-center justify-between bg-cover bg-center bg-no-repeat relative"
