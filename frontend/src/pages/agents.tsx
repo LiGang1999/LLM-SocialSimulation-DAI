@@ -12,6 +12,7 @@ import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 import { RandomAvatar } from '@/components/Avatars';
 import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
+import { InfoIcon } from 'lucide-react';
 
 const mockAgents: (apis.Agent & { id: number })[] = [
     {
@@ -253,6 +254,19 @@ export const AgentsPage = () => {
             <Navbar />
             <div className="container mx-auto">
                 <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 3.</span>自定义智能体</h2>
+
+                <div className="  mb-8">
+                    <div className="flex items-center mb-4">
+                        <InfoIcon className="w-6 h-6 text-blue-500 mr-2" />
+                        <h3 className="text-xl font-semibold text-gray-800">什么是仿真模板？</h3>
+                    </div>
+                    <p className="text-gray-700 leading-relaxed">
+                        仿真模板是预先配置好的社会情境和参数集合，集成了大型语言模型（LLM）技术。每个模板都代表一个独特的社交场景，如公共事件讨论、市长竞选或社区互动。这些模板预设了智能体数量、环境特征和互动规则，让您可以快速开始探索复杂的社会动态。选择一个模板，即可启动一个由AI驱动的、高度逼真的社会仿真实验。
+                    </p>
+
+                </div>
+
+
                 <Card className="shadow-lg overflow-hidden">
                     <CardContent className='px-0'>
                         <div className="flex">
