@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PlusCircle, Save, Trash2 } from 'lucide-react'
 import { useSimContext } from '@/SimContext';
@@ -143,32 +144,20 @@ export const AgentsPage = () => {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (localAgent) {
             const { name, value } = e.target;
-            if (name === 'name') {
-                const [firstName, ...lastNameParts] = value.split(' ');
-                setLocalAgent({
-                    ...localAgent,
-                    name: value,
-                    first_name: firstName,
-                    last_name: lastNameParts.join(' ')
-                });
-            } else {
-                setLocalAgent({
-                    ...localAgent,
-                    [name]: value
-                });
-            }
+            const updatedAgent = { ...localAgent, [name]: value };
+            setLocalAgent(updatedAgent);
+
+            setAgents(prevAgents =>
+                prevAgents.map(agent =>
+                    agent.id === updatedAgent.id ? updatedAgent : agent
+                )
+            );
+            updateContextPersonas(agents.map(agent =>
+                agent.id === updatedAgent.id ? updatedAgent : agent
+            ));
         }
     };
 
-    const handleSave = () => {
-        if (localAgent) {
-            const updatedAgents = agents.map(agent =>
-                agent.id === localAgent.id ? localAgent : agent
-            );
-            setAgents(updatedAgents);
-            updateContextPersonas(updatedAgents);
-        }
-    };
 
     const handleAddAgent = () => {
         const newId = Math.max(...agents.map(a => a.id), 0) + 1;
@@ -222,22 +211,20 @@ export const AgentsPage = () => {
         updateContextPersonas(updatedAgents);
     };
 
-    const handleRemoveAgent = () => {
-        if (selectedAgentId !== null) {
-            const updatedAgents = agents.filter(agent => agent.id !== selectedAgentId);
-            setAgents(updatedAgents);
-            setSelectedAgentId(updatedAgents.length > 0 ? updatedAgents[0].id : null);
-            updateContextPersonas(updatedAgents);
+    const handleRemoveAgent = (agentId: number) => {
+        const updatedAgents = agents.filter(agent => agent.id !== agentId);
+        setAgents(updatedAgents);
+        setSelectedAgentId(updatedAgents.length > 0 ? updatedAgents[0].id : null);
+        updateContextPersonas(updatedAgents);
 
-            if (updatedAgents.length === 0) {
-                ctx.setData({
-                    ...ctx.data,
-                    currentTemplate: ctx.data.currentTemplate ? {
-                        ...ctx.data.currentTemplate,
-                        personas: []
-                    } : undefined
-                });
-            }
+        if (updatedAgents.length === 0) {
+            ctx.setData({
+                ...ctx.data,
+                currentTemplate: ctx.data.currentTemplate ? {
+                    ...ctx.data.currentTemplate,
+                    personas: []
+                } : undefined
+            });
         }
     };
 
@@ -263,17 +250,51 @@ export const AgentsPage = () => {
                                 <div className="p-4">
                                     <div className="space-y-2">
                                         {agents.map(agent => (
-                                            <Button
-                                                key={agent.id}
-                                                variant={selectedAgentId === agent.id ? "secondary" : "ghost"}
-                                                className="w-full justify-start py-3 h-12 px-4 rounded-lg transition-colors duration-200"
-                                                onClick={() => handleAgentSelect(agent.id)}
-                                            >
-                                                <div className="flex items-center space-x-4">
-                                                    <RandomAvatar className="h-10 w-10" name={`${agent.first_name} ${agent.last_name}`} />
-                                                    <span className="font-medium">{`${agent.first_name} ${agent.last_name}`}</span>
-                                                </div>
-                                            </Button>
+                                            <div key={agent.id} className="flex items-center justify-between">
+                                                <Button
+                                                    variant={selectedAgentId === agent.id ? "secondary" : "ghost"}
+                                                    className="w-full justify-between py-3 h-12 px-4 rounded-lg transition-colors duration-200 group"
+                                                    onClick={() => handleAgentSelect(agent.id)}
+                                                >
+                                                    <div className="flex items-center space-x-4">
+                                                        <RandomAvatar className="h-10 w-10" name={`${agent.first_name} ${agent.last_name}`} />
+                                                        <span className="font-medium">{`${agent.first_name} ${agent.last_name}`}</span>
+                                                    </div>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Are you sure you want to delete this agent?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    This action cannot be undone. This will permanently delete the agent
+                                                                    and remove their data from our servers.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleRemoveAgent(agent.id);
+                                                                    }}
+                                                                    className="bg-red-600 hover:bg-red-700"
+                                                                >
+                                                                    Delete
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </Button>
+                                            </div>
                                         ))}
                                     </div>
                                     <Button onClick={handleAddAgent} className="w-full mt-6 bg-indigo-500 hover:bg-indigo-600 text-white">
@@ -283,69 +304,65 @@ export const AgentsPage = () => {
                             </div>
 
                             {localAgent && (
-                                <div className="w-2/3 bg-white">
-                                    <div className="p-6">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <div className="flex items-center space-x-4">
-                                                <RandomAvatar
-                                                    className="h-[80px] w-[80px]"
-                                                    name={`${agents.find(a => a.id === localAgent.id)?.first_name} ${agents.find(a => a.id === localAgent.id)?.last_name}`}
-                                                />
-                                                <Input
-                                                    name="name"
-                                                    value={localAgent.name}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Full Name"
-                                                    className="text-2xl font-bold w-64"
-                                                />
-                                            </div>
+                                <div className="w-2/3 bg-white p-6">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div className="flex items-center space-x-4">
+                                            <RandomAvatar
+                                                className="h-20 w-20"
+                                                name={`${localAgent.first_name} ${localAgent.last_name}`}
+                                            />
+                                            <Input
+                                                name="name"
+                                                value={localAgent.name}
+                                                onChange={handleInputChange}
+                                                placeholder="Full Name"
+                                                className="text-2xl font-bold w-64"
+                                            />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">名字</label>
-                                                <div className="p-2 bg-gray-100 rounded">{localAgent.first_name}</div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">姓氏</label>
-                                                <div className="p-2 bg-gray-100 rounded">{localAgent.last_name}</div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">年龄</label>
-                                                <Input name="age" type="number" value={localAgent.age} onChange={handleInputChange} placeholder="年龄" className="w-full" />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">生活方式</label>
-                                                <Input name="lifestyle" value={localAgent.lifestyle} onChange={handleInputChange} placeholder="生活方式" className="w-full" />
-                                            </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">名字</label>
+                                            <div className="p-2 bg-gray-100 rounded">{localAgent.first_name}</div>
                                         </div>
-                                        <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">日常计划要求</label>
-                                            <AutoResizeTextarea name="dailyPlanReq" value={localAgent.daily_plan_req} onChange={handleInputChange} placeholder="日常计划要求" className="w-full h-20" />
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">姓氏</label>
+                                            <div className="p-2 bg-gray-100 rounded">{localAgent.last_name}</div>
                                         </div>
-                                        <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">固有特征</label>
-                                            <AutoResizeTextarea name="innate" value={localAgent.innate} onChange={handleInputChange} placeholder="固有特征" className="w-full h-20" />
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">年龄</label>
+                                            <Input name="age" type="number" value={localAgent.age} onChange={handleInputChange} placeholder="年龄" className="w-full" />
                                         </div>
-                                        <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">学习信息</label>
-                                            <AutoResizeTextarea name="learned" value={localAgent.learned} onChange={handleInputChange} placeholder="学习信息" className="w-full h-20" />
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">生活方式</label>
+                                            <Input name="lifestyle" value={localAgent.lifestyle} onChange={handleInputChange} placeholder="生活方式" className="w-full" />
                                         </div>
-                                        <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">居住区域</label>
-                                            <Input name="livingArea" value={localAgent.living_area} onChange={handleInputChange} placeholder="居住区域" className="w-full" />
-                                        </div>
-                                        <div className="mt-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">个人简介</label>
-                                            <AutoResizeTextarea name="bibliography" value={localAgent.bibliography || ''} onChange={handleInputChange} placeholder="个人简介" className="w-full h-20" />
-                                        </div>
-                                        <div className="mt-6 flex justify-between items-center">
-                                            <Button onClick={handleSave} className="bg-blue-500 hover:bg-blue-600 text-white">
-                                                <Save className="mr-2 h-4 w-4" /> 保存更改
-                                            </Button>
-                                            <Button onClick={handleRemoveAgent} variant="destructive" className="bg-red-500 hover:bg-red-600 text-white">
-                                                <Trash2 className="mr-2 h-4 w-4" /> 删除
-                                            </Button>
-                                        </div>
+                                    </div>
+                                    <div className="mt-6">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">日常计划要求</label>
+                                        <AutoResizeTextarea
+                                            name="daily_plan_req"
+                                            value={localAgent.daily_plan_req}
+                                            onChange={handleInputChange}
+                                            placeholder="日常计划要求"
+                                            className="w-full min-h-[80px]"
+                                        />
+                                    </div>
+                                    <div className="mt-6">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">固有特征</label>
+                                        <AutoResizeTextarea name="innate" value={localAgent.innate} onChange={handleInputChange} placeholder="固有特征" className="w-full min-h-[80px]" />
+                                    </div>
+                                    <div className="mt-6">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">学习信息</label>
+                                        <AutoResizeTextarea name="learned" value={localAgent.learned} onChange={handleInputChange} placeholder="学习信息" className="w-full min-h-[80px]" />
+                                    </div>
+                                    <div className="mt-6">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">居住区域</label>
+                                        <Input name="living_area" value={localAgent.living_area} onChange={handleInputChange} placeholder="居住区域" className="w-full" />
+                                    </div>
+                                    <div className="mt-6">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">个人简介</label>
+                                        <AutoResizeTextarea name="bibliography" value={localAgent.bibliography || ''} onChange={handleInputChange} placeholder="个人简介" className="w-full min-h-[80px]" />
                                     </div>
                                 </div>
                             )}
