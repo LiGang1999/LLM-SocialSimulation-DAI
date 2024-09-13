@@ -13,6 +13,7 @@ import { apis } from '@/lib/api';
 import { RandomAvatar } from '@/components/Avatars';
 import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
 
+
 const mockAgents: (apis.Agent & { id: number })[] = [
     {
         id: 1,
@@ -94,6 +95,42 @@ export const AgentsPage = () => {
     const [agents, setAgents] = useState<(apis.Agent & { id: number })[]>([]);
     const [selectedAgentId, setSelectedAgentId] = useState<number | null>(null);
     const [localAgent, setLocalAgent] = useState<(apis.Agent & { id: number }) | null>(null);
+    const [errors, setErrors] = useState<{ [agentId: number]: { [field: string]: string } }>({});
+    const [nextAgentNumber, setNextAgentNumber] = useState<number>(1);
+
+    const validateAgent = (agent: apis.Agent) => {
+        const agentErrors: { [field: string]: string } = {};
+        if (!agent.first_name || agent.first_name.trim() === '') {
+            agentErrors['first_name'] = 'First name is required.';
+        }
+        if (!agent.last_name || agent.last_name.trim() === '') {
+            agentErrors['last_name'] = 'Last name is required.';
+        }
+        if (!agent.innate || agent.innate.trim() === '') {
+            agentErrors['innate'] = 'Innate characteristics are required.';
+        }
+        if (!agent.daily_plan_req || agent.daily_plan_req.trim() === '') {
+            agentErrors['daily_plan_req'] = 'Daily plan requirements are required.';
+        }
+        if (!agent.learned || agent.learned.trim() === '') {
+            agentErrors['learned'] = 'Learned information is required.';
+        }
+        return agentErrors;
+    };
+
+
+    useEffect(() => {
+        // Validate all agents whenever agents change
+        const newErrors: { [agentId: number]: { [field: string]: string } } = {};
+        for (const agent of agents) {
+            const agentErrors = validateAgent(agent);
+            if (Object.keys(agentErrors).length > 0) {
+                newErrors[agent.id] = agentErrors;
+            }
+        }
+        setErrors(newErrors);
+    }, [agents]);
+
 
     useEffect(() => {
         const fetchTemplates = async () => {
@@ -120,20 +157,18 @@ export const AgentsPage = () => {
                 id: index + 1,
             }));
             setAgents(agentsWithId);
-            setSelectedAgentId(agentsWithId[0].id);
+            setNextAgentNumber(agentsWithId.length + 1);
             // If current selected Agent id is within all ids:
-            // if (agentsWithId.map(a => a.id).includes(selectedAgentId)) {
+            if (!(selectedAgentId && agentsWithId.map(a => a.id).includes(selectedAgentId))) {
+                setSelectedAgentId(agentsWithId[0].id);
 
-            // }
-            console.log(agentsWithId[0].id, "a")
+            }
         } else if (!ctx.data.currentTemplate && agents.length === 0) {
             setAgents(mockAgents);
             setSelectedAgentId(mockAgents[0].id);
-            console.log(mockAgents[0].id, "b")
         } else if (ctx.data.currentTemplate && ctx.data.currentTemplate.personas.length === 0) {
             setAgents([]);
             setSelectedAgentId(null);
-            console.log(null, "c")
         }
     }, [ctx.data.currentTemplate]);
 
@@ -146,13 +181,17 @@ export const AgentsPage = () => {
 
     const handleAgentSelect = (id: number) => {
         setSelectedAgentId(id);
-        console.log(id, "d")
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (localAgent) {
             const { name, value } = e.target;
-            const updatedAgent = { ...localAgent, [name]: value };
+            let updatedAgent = { ...localAgent, [name]: value };
+
+            if (name === 'first_name' || name === 'last_name') {
+                updatedAgent.name = `${updatedAgent.first_name} ${updatedAgent.last_name}`.trim();
+            }
+
             setLocalAgent(updatedAgent);
 
             setAgents(prevAgents =>
@@ -160,72 +199,97 @@ export const AgentsPage = () => {
                     agent.id === updatedAgent.id ? updatedAgent : agent
                 )
             );
+
             updateContextPersonas(agents.map(agent =>
                 agent.id === updatedAgent.id ? updatedAgent : agent
             ));
+
+            // Validate agent and update errors
+            const agentErrors = validateAgent(updatedAgent);
+            setErrors(prevErrors => {
+                const newErrors = { ...prevErrors };
+                if (Object.keys(agentErrors).length > 0) {
+                    newErrors[updatedAgent.id] = agentErrors;
+                } else {
+                    delete newErrors[updatedAgent.id];
+                }
+                return newErrors;
+            });
         }
     };
 
 
+
     const handleAddAgent = () => {
-        const newId = Math.max(...agents.map(a => a.id), 0) + 1;
-
-        const existingNumbers = agents
-            .map(a => a.name.match(/智能体 (\d+)/))
-            .filter(Boolean)
-            .map(match => parseInt((match || "")[1], 10));
-        const highestNumber = Math.max(...existingNumbers, 0);
-        const newNumber = highestNumber + 1;
-
-        const newName = `智能体 ${newNumber}`;
+        const newId = nextAgentNumber;
+        const newName = `Agent ${newId}`;
 
         const newAgent: apis.Agent & { id: number } = {
             id: newId,
-            name: newName,
-            first_name: newName.split(' ')[0],  // Assuming newName might include a last name
-            last_name: newName.split(' ').slice(1).join(' ') || '',  // Get last name if exists
-            age: 0,
+            curr_time: undefined,
+            curr_tile: undefined,
             daily_plan_req: '',
-            daily_req: [],
-            f_daily_schedule: [],
-            f_daily_schedule_hourly_org: [],
+            name: newName,
+            first_name: 'Agent',
+            last_name: `${newId}`,
+            age: 0,
             innate: '',
             learned: '',
             currently: '',
             lifestyle: '',
             living_area: '',
+            daily_req: [],
+            f_daily_schedule: [],
+            f_daily_schedule_hourly_org: [],
+            act_address: undefined,
+            act_start_time: undefined,
+            act_duration: undefined,
+            act_description: undefined,
+            act_pronunciatio: undefined,
+            act_event: [newName, undefined, undefined],
+            act_obj_description: undefined,
+            act_obj_pronunciatio: undefined,
+            act_obj_event: [undefined, undefined, undefined],
+            chatting_with: undefined,
+            chat: undefined,
+            chatting_with_buffer: {},
+            chatting_end_time: undefined,
+            act_path_set: false,
+            planned_path: [],
+            // Additional fields from your original mapping
             plan: [],
             memory: [],
             bibliography: '',
-            act_event: ['', '', ''],
-            act_obj_event: ['', '', ''],
-            act_path_set: false,
-            act_address: '',
-            act_description: '',
-            act_duration: '',
-            act_start_time: '',
-            act_obj_description: '',
-            act_obj_pronunciatio: '',
-            act_pronunciatio: '',
-            chatting_with_buffer: {},
-            planned_path: [],  // This was missing in the original object
-            curr_time: 0,  // Added with a default value
-            curr_tile: '',  // Added with a default value
         };
 
         const updatedAgents = [...agents, newAgent];
         setAgents(updatedAgents);
         setSelectedAgentId(newId);
-        console.log(newId, "e")
+        setNextAgentNumber(nextAgentNumber + 1);
         updateContextPersonas(updatedAgents);
+
+        // Validate new agent and update errors
+        const agentErrors = validateAgent(newAgent);
+        setErrors(prevErrors => {
+            if (Object.keys(agentErrors).length > 0) {
+                return { ...prevErrors, [newAgent.id]: agentErrors };
+            } else {
+                return prevErrors;
+            }
+        });
     };
 
     const handleRemoveAgent = (agentId: number) => {
         const updatedAgents = agents.filter(agent => agent.id !== agentId);
         setAgents(updatedAgents);
         setSelectedAgentId(updatedAgents.length > 0 ? updatedAgents[0].id : null);
-        console.log(updatedAgents.length > 0 ? updatedAgents[0].id : null, "f")
         updateContextPersonas(updatedAgents);
+
+        // Remove errors related to the deleted agent
+        setErrors(prevErrors => {
+            const { [agentId]: _, ...rest } = prevErrors;
+            return rest;
+        });
 
         if (updatedAgents.length === 0) {
             ctx.setData({
@@ -248,11 +312,13 @@ export const AgentsPage = () => {
         });
     };
 
+    const isNextDisabled = Object.keys(errors).length > 0 || agents.length === 0;
+
     return (
         <div className="flex flex-col min-h-screen bg-gray-100">
             <Navbar />
             <div className="container mx-auto">
-                <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 3.</span>自定义智能体</h2>
+                <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 3.</span> Customize Agents</h2>
                 <Card className="shadow-lg overflow-hidden">
                     <CardContent className='px-0'>
                         <div className="flex">
@@ -283,13 +349,13 @@ export const AgentsPage = () => {
                                                     </AlertDialogTrigger>
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
-                                                            <AlertDialogTitle>确定要删除这个智能体吗？</AlertDialogTitle>
+                                                            <AlertDialogTitle>Are you sure you want to delete this agent?</AlertDialogTitle>
                                                             <AlertDialogDescription>
-                                                                此操作无法撤销。这将永久删除该智能体并从我们的服务器中移除其数据。
+                                                                This action cannot be undone. This will permanently delete this agent and remove their data from our servers.
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
-                                                            <AlertDialogCancel>取消</AlertDialogCancel>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
                                                             <AlertDialogAction
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
@@ -297,7 +363,7 @@ export const AgentsPage = () => {
                                                                 }}
                                                                 className="bg-red-600 hover:bg-red-700"
                                                             >
-                                                                删除
+                                                                Delete
                                                             </AlertDialogAction>
                                                         </AlertDialogFooter>
                                                     </AlertDialogContent>
@@ -306,7 +372,7 @@ export const AgentsPage = () => {
                                         ))}
                                     </div>
                                     <Button onClick={handleAddAgent} className="w-full mt-6 bg-indigo-500 hover:bg-indigo-600 text-white">
-                                        <PlusCircle className="mr-2 h-4 w-4" /> 添加新智能体
+                                        <PlusCircle className="mr-2 h-4 w-4" /> Add New Agent
                                     </Button>
                                 </div>
                             </div>
@@ -314,70 +380,93 @@ export const AgentsPage = () => {
                             {localAgent && (
                                 <div className="w-2/3 bg-white p-6">
                                     <div className="flex items-center justify-between mb-6">
-                                        <div className="flex items-center space-x-4">
+                                        <div className="flex items-center space-x-6">
                                             <RandomAvatar
-                                                className="h-20 w-20"
+                                                className="h-24 w-24 rounded-full"
                                                 name={`${localAgent.first_name} ${localAgent.last_name}`}
                                             />
-                                            <Input
-                                                name="name"
-                                                value={localAgent.name}
-                                                onChange={handleInputChange}
-                                                placeholder="Full Name"
-                                                className="text-2xl font-bold w-64"
-                                            />
+                                            <h1 className="text-3xl font-bold">{`${localAgent.first_name} ${localAgent.last_name}`}</h1>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">名字</label>
-                                            <div className="p-2 bg-gray-100 rounded">{localAgent.first_name}</div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                            <Input
+                                                name="first_name"
+                                                value={localAgent.first_name}
+                                                onChange={handleInputChange}
+                                                placeholder="First Name"
+                                                className={`w-full ${errors[localAgent.id]?.first_name ? 'border-red-500' : ''}`}
+                                            />
+                                            {errors[localAgent.id]?.first_name && <p className="text-red-500 text-sm mt-1">{errors[localAgent.id]?.first_name}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">姓氏</label>
-                                            <div className="p-2 bg-gray-100 rounded">{localAgent.last_name}</div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                            <Input
+                                                name="last_name"
+                                                value={localAgent.last_name}
+                                                onChange={handleInputChange}
+                                                placeholder="Last Name"
+                                                className={`w-full ${errors[localAgent.id]?.last_name ? 'border-red-500' : ''}`}
+                                            />
+                                            {errors[localAgent.id]?.last_name && <p className="text-red-500 text-sm mt-1">{errors[localAgent.id]?.last_name}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">年龄</label>
-                                            <Input name="age" type="number" value={localAgent.age} onChange={handleInputChange} placeholder="年龄" className="w-full" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                                            <Input name="age" type="number" value={localAgent.age} onChange={handleInputChange} placeholder="Age" className="w-full" />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">生活方式</label>
-                                            <Input name="lifestyle" value={localAgent.lifestyle} onChange={handleInputChange} placeholder="生活方式" className="w-full" />
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Lifestyle</label>
+                                            <Input name="lifestyle" value={localAgent.lifestyle} onChange={handleInputChange} placeholder="Lifestyle" className="w-full" />
                                         </div>
                                     </div>
                                     <div className="mt-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">日常计划要求</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Daily Plan Requirements</label>
                                         <AutoResizeTextarea
                                             name="daily_plan_req"
                                             value={localAgent.daily_plan_req}
                                             onChange={handleInputChange}
-                                            placeholder="日常计划要求"
-                                            className="w-full min-h-[80px]"
+                                            placeholder="Daily Plan Requirements"
+                                            className={`w-full min-h-[80px] ${errors[localAgent.id]?.daily_plan_req ? 'border-red-500' : ''}`}
                                         />
+                                        {errors[localAgent.id]?.daily_plan_req && <p className="text-red-500 text-sm mt-1">{errors[localAgent.id]?.daily_plan_req}</p>}
                                     </div>
                                     <div className="mt-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">固有特征</label>
-                                        <AutoResizeTextarea name="innate" value={localAgent.innate} onChange={handleInputChange} placeholder="固有特征" className="w-full min-h-[80px]" />
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Innate Characteristics</label>
+                                        <AutoResizeTextarea
+                                            name="innate"
+                                            value={localAgent.innate}
+                                            onChange={handleInputChange}
+                                            placeholder="Innate Characteristics"
+                                            className={`w-full min-h-[80px] ${errors[localAgent.id]?.innate ? 'border-red-500' : ''}`}
+                                        />
+                                        {errors[localAgent.id]?.innate && <p className="text-red-500 text-sm mt-1">{errors[localAgent.id]?.innate}</p>}
                                     </div>
                                     <div className="mt-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">学习信息</label>
-                                        <AutoResizeTextarea name="learned" value={localAgent.learned} onChange={handleInputChange} placeholder="学习信息" className="w-full min-h-[80px]" />
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Learned Information</label>
+                                        <AutoResizeTextarea
+                                            name="learned"
+                                            value={localAgent.learned}
+                                            onChange={handleInputChange}
+                                            placeholder="Learned Information"
+                                            className={`w-full min-h-[80px] ${errors[localAgent.id]?.learned ? 'border-red-500' : ''}`}
+                                        />
+                                        {errors[localAgent.id]?.learned && <p className="text-red-500 text-sm mt-1">{errors[localAgent.id]?.learned}</p>}
                                     </div>
                                     <div className="mt-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">居住区域</label>
-                                        <Input name="living_area" value={localAgent.living_area} onChange={handleInputChange} placeholder="居住区域" className="w-full" />
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Living Area</label>
+                                        <Input name="living_area" value={localAgent.living_area} onChange={handleInputChange} placeholder="Living Area" className="w-full" />
                                     </div>
                                     <div className="mt-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">个人简介</label>
-                                        <AutoResizeTextarea name="bibliography" value={localAgent.bibliography || ''} onChange={handleInputChange} placeholder="个人简介" className="w-full min-h-[80px]" />
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Bibliography</label>
+                                        <AutoResizeTextarea name="bibliography" value={localAgent.bibliography || ''} onChange={handleInputChange} placeholder="Bibliography" className="w-full min-h-[80px]" />
                                     </div>
                                 </div>
                             )}
                         </div>
                     </CardContent>
                 </Card>
-                <BottomNav prevLink='/events' nextLink='/llmconfig' currStep={2} disabled={false} className='my-8' />
+                <BottomNav prevLink='/events' nextLink='/llmconfig' currStep={2} disabled={isNextDisabled} className='my-8' />
             </div>
         </div>
     )
