@@ -6,6 +6,7 @@ import start1 from '@/assets/template2.png';
 import chat from '@/assets/chat.png';
 import stf from '@/assets/start2.jpg'
 
+import { ProgressBar } from '@/components/ProgressBar';
 import { BottomNav } from '@/components/BottomNav';
 
 
@@ -120,6 +121,7 @@ export const TemplatePage = () => {
         <div className="flex flex-col bg-gray-100 min-h-screen">
             <Navbar />
             <main className="container flex-grow mx-auto">
+
                 <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 1.</span>选择仿真模板</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {templates.map((template) => (
@@ -165,8 +167,9 @@ export const TemplatePage = () => {
                     nextLink='/events'
                     currStep={0}
                     disabled={!selectedTemplate}
-                    className='mt-16'
+                    className='my-8'
                 />
+                <ProgressBar currentStep={0} className="mx-auto mt-12" />
             </main>
         </div>
     );

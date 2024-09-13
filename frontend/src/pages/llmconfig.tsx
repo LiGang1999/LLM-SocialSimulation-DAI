@@ -169,7 +169,7 @@ export const ConfigPage = () => {
                         </div>
                     </CardContent>
                 </Card>
-                <BottomNav prevLink='/agents' nextLink='/confirm' currStep={3} disabled={false} className='mt-8 mb-4' />
+                <BottomNav prevLink='/agents' nextLink='/confirm' currStep={3} disabled={false} className='my-8' />
             </main>
         </div>
     );

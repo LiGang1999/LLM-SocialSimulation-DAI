@@ -1,5 +1,5 @@
 # Copy and paste your OpenAI API Key
-openai_api_base = "http://10.72.74.126:11434/v1"
+openai_api_base = "http://api.openai.com/v1"
 openai_api_key = "<Your OpenAI API>"
 
 override_model = "llama3.1:70b"
