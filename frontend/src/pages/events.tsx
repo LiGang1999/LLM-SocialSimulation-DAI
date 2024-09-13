@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { X, Plus, Edit, ChevronRight } from "lucide-react";
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
+import { X, Plus, Edit, ChevronRight, InfoIcon } from "lucide-react";
 
 export interface Event {
     name: string;
@@ -196,6 +196,20 @@ export const EventsPage = () => {
             <Navbar />
             <div className="container mx-auto">
                 <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 2.</span>方案设计</h2>
+                <div className="  mb-8">
+                    <div className="flex items-center mb-4">
+                        <InfoIcon className="w-6 h-6 text-blue-500 mr-2" />
+                        <h3 className="text-xl font-semibold text-gray-800">什么是仿真模板？</h3>
+                    </div>
+                    <p className="text-gray-700 leading-relaxed">
+                        仿真模板是预先配置好的社会情境和参数集合，集成了大型语言模型（LLM）技术。每个模板都代表一个独特的社交场景，如公共事件讨论、市长竞选或社区互动。这些模板预设了智能体数量、环境特征和互动规则，让您可以快速开始探索复杂的社会动态。选择一个模板，即可启动一个由AI驱动的、高度逼真的社会仿真实验。
+                    </p>
+
+                </div>
+
+
+
+
                 <Card className="shadow-lg">
                     <CardContent className='pt-8'>
                         <div className="grid md:grid-cols-2 gap-8">
@@ -234,6 +248,22 @@ export const EventsPage = () => {
 
                                 <div>
                                     <h3 className="text-lg font-semibold text-gray-700 mb-3">事件列表</h3>
+
+                                    <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded-r-lg">
+                                        <div className="flex">
+                                            <div className="flex-shrink-0">
+                                                <InfoIcon className="h-5 w-5 text-blue-400" aria-hidden="true" />
+                                            </div>
+                                            <div className="ml-3">
+                                                <p className="text-sm text-blue-700">
+                                                    事件是仿真中的讨论话题。每个事件代表一个特定的社会情境或议题，智能体将围绕这些事件展开互动和讨论。
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
                                     <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
                                         <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
                                             {events?.map((event) => (
