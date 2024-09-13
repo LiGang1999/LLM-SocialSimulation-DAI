@@ -121,12 +121,19 @@ export const AgentsPage = () => {
             }));
             setAgents(agentsWithId);
             setSelectedAgentId(agentsWithId[0].id);
+            // If current selected Agent id is within all ids:
+            // if (agentsWithId.map(a => a.id).includes(selectedAgentId)) {
+
+            // }
+            console.log(agentsWithId[0].id, "a")
         } else if (!ctx.data.currentTemplate && agents.length === 0) {
             setAgents(mockAgents);
             setSelectedAgentId(mockAgents[0].id);
+            console.log(mockAgents[0].id, "b")
         } else if (ctx.data.currentTemplate && ctx.data.currentTemplate.personas.length === 0) {
             setAgents([]);
             setSelectedAgentId(null);
+            console.log(null, "c")
         }
     }, [ctx.data.currentTemplate]);
 
@@ -139,6 +146,7 @@ export const AgentsPage = () => {
 
     const handleAgentSelect = (id: number) => {
         setSelectedAgentId(id);
+        console.log(id, "d")
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -208,6 +216,7 @@ export const AgentsPage = () => {
         const updatedAgents = [...agents, newAgent];
         setAgents(updatedAgents);
         setSelectedAgentId(newId);
+        console.log(newId, "e")
         updateContextPersonas(updatedAgents);
     };
 
@@ -215,6 +224,7 @@ export const AgentsPage = () => {
         const updatedAgents = agents.filter(agent => agent.id !== agentId);
         setAgents(updatedAgents);
         setSelectedAgentId(updatedAgents.length > 0 ? updatedAgents[0].id : null);
+        console.log(updatedAgents.length > 0 ? updatedAgents[0].id : null, "f")
         updateContextPersonas(updatedAgents);
 
         if (updatedAgents.length === 0) {
@@ -250,50 +260,48 @@ export const AgentsPage = () => {
                                 <div className="p-4">
                                     <div className="space-y-2">
                                         {agents.map(agent => (
-                                            <div key={agent.id} className="flex items-center justify-between">
-                                                <Button
-                                                    variant={selectedAgentId === agent.id ? "secondary" : "ghost"}
-                                                    className="w-full justify-between py-3 h-12 px-4 rounded-lg transition-colors duration-200 group"
-                                                    onClick={() => handleAgentSelect(agent.id)}
-                                                >
-                                                    <div className="flex items-center space-x-4">
-                                                        <RandomAvatar className="h-10 w-10" name={`${agent.first_name} ${agent.last_name}`} />
-                                                        <span className="font-medium">{`${agent.first_name} ${agent.last_name}`}</span>
-                                                    </div>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
-                                                                onClick={(e) => e.stopPropagation()}
+                                            <div
+                                                key={agent.id}
+                                                className={`flex items-center justify-between p-2 rounded-lg transition-colors duration-200 cursor-pointer ${selectedAgentId === agent.id ? 'bg-secondary' : 'hover:bg-secondary/50'
+                                                    }`}
+                                                onClick={() => handleAgentSelect(agent.id)}
+                                            >
+                                                <div className="flex items-center space-x-4 flex-grow">
+                                                    <RandomAvatar className="h-10 w-10" name={`${agent.first_name} ${agent.last_name}`} />
+                                                    <span className="font-medium">{`${agent.first_name} ${agent.last_name}`}</span>
+                                                </div>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ml-2"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>确定要删除这个智能体吗？</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                此操作无法撤销。这将永久删除该智能体并从我们的服务器中移除其数据。
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>取消</AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleRemoveAgent(agent.id);
+                                                                }}
+                                                                className="bg-red-600 hover:bg-red-700"
                                                             >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Are you sure you want to delete this agent?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    This action cannot be undone. This will permanently delete the agent
-                                                                    and remove their data from our servers.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleRemoveAgent(agent.id);
-                                                                    }}
-                                                                    className="bg-red-600 hover:bg-red-700"
-                                                                >
-                                                                    Delete
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </Button>
+                                                                删除
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </div>
                                         ))}
                                     </div>
