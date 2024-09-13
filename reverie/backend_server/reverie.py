@@ -970,7 +970,7 @@ class Reverie:
                     msg = payload.get("msg", "")
 
                     retval = self.personas[persona_name].chat_to_persona(
-                        mode, self.maze.vbase, prev_msgs, msg
+                        mode, None if self.sim_mode == "online" else self.maze.vbase, prev_msgs, msg
                     )
                     event_trigger(
                         "chat_to_persona", {"mode": mode, "persona": persona_name, "reply": retval}

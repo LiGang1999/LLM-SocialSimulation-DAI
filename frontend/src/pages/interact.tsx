@@ -557,7 +557,7 @@ export const InteractPage: React.FC = () => {
         // checkStatus();
 
         // Set up interval to check status
-        const intervalId = setInterval(checkStatus, 500); // Check every 5 seconds
+        const intervalId = setInterval(checkStatus, 1000); // Check every 5 seconds
 
         // Clean up interval on unmount
         return () => clearInterval(intervalId);
@@ -670,7 +670,7 @@ export const InteractPage: React.FC = () => {
                     </Button>
                     <Select
                         value={chatType}
-                        onValueChange={(value: 'whisper' | 'analysis') => setChatType(value)}
+                        onValueChange={(value: 'whisper' | 'interview') => setChatType(value)}
                     >
                         <SelectTrigger className="w-[100px]">
                             <SelectValue placeholder="Chat type" />

@@ -182,7 +182,6 @@ export const TemplatePage = () => {
                     disabled={!selectedTemplate}
                     className='my-8'
                 />
-                <ProgressBar currentStep={0} className="mx-auto mt-12" />
             </main>
         </div>
     );

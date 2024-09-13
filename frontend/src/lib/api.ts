@@ -269,7 +269,7 @@ export namespace apis {
     export const privateChat = async (
         simCode: string,
         person: string,
-        type: 'analysis' | 'whisper',
+        type: 'interview' | 'whisper',
         history: ChatMessage[],
         content: string
     ): Promise<any> => {

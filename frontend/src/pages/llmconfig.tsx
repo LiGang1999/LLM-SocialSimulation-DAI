@@ -12,50 +12,7 @@ import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 import { InfoIcon } from 'lucide-react';
 import { useRef } from 'react';
-
-const Tooltip = ({ message, isVisible, anchorRef }) => {
-    const [position, setPosition] = useState({ top: 0, left: 0 });
-
-    useEffect(() => {
-        if (anchorRef.current && isVisible) {
-            const rect = anchorRef.current.getBoundingClientRect();
-            setPosition({
-                top: rect.top + window.scrollY + (rect.height / 2),  // Centered vertically
-                left: rect.right + 10,  // 10px to the right of the InfoIcon
-            });
-        }
-    }, [isVisible, anchorRef]);
-
-    if (!isVisible) return null;
-
-    return (
-        <div
-            className="fixed z-50 max-w-xs"
-            style={{
-                top: `${position.top}px`,
-                left: `${position.left}px`,
-                transform: 'translateY(-50%)',  // Center vertically
-            }}
-        >
-            <div className="relative bg-gray-700 bg-opacity-75 text-white text-sm p-2 rounded-lg">
-                <div
-                    className="absolute w-0 h-0"
-                    style={{
-                        top: '50%',
-                        left: '-10px',
-                        transform: 'translateY(-50%)',
-                        borderTop: '6px solid transparent',
-                        borderBottom: '6px solid transparent',
-                        borderRight: '10px solid rgba(55, 65, 81, 0.75)',  // Matches bg-gray-700 with 75% opacity
-                    }}
-                ></div>
-                {message}
-            </div>
-        </div>
-    );
-};
-
-export default Tooltip;
+import { Tooltip } from '@/components/Tooltip';
 
 const defaultConfig: apis.LLMConfig = {
     type: 'default',
@@ -474,7 +431,7 @@ export const ConfigPage = () => {
                         </div>
                     </CardContent>
                 </Card>
-                <BottomNav prevLink='/agents' nextLink='/confirm' currStep={3} disabled={false} className='my-8' />
+                <BottomNav prevLink='/agents' nextLink='/confirm' currStep={3} disabled={false} className='mt-8 mb-4' />
             </main>
         </div >
     );
