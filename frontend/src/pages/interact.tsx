@@ -12,14 +12,25 @@ import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, 
 import { apis } from '@/lib/api';
 import { ChatMessage, useSimContext } from '@/SimContext';
 import { RandomAvatar } from '@/components/Avatars';
-import mockBg from '@/assets/map.png'
+import mockBg from '@/assets/map.png';
+import SimulationGuide from '@/components/SimulationGuide';
+
 
 interface LogEntry {
     level: 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL' | 'COMMAND';
     message: string;
 };
 
-
+interface ChatFooterProps {
+    simCode: string;
+    agentName: string;
+    showGuide: boolean;
+    setShowGuide: (show: boolean) => void;
+    isRunning: boolean;
+    handleRunSimulation: (rounds: number) => void;
+    simRounds: number;
+    setSimRounds: (rounds: number) => void;
+}
 
 const ChatMessageBox: React.FC<ChatMessage> = ({ sender, content, timestamp, subject }) => (
     <div className={`flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4 items-start`}>
@@ -436,12 +447,15 @@ export const InteractPage: React.FC = () => {
     const ctx = useSimContext();
     const [logs, setLogs] = useState<LogEntry[]>([]);
 
+    const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0, width: 0, height: 0 });
 
+    const runButtonRef = useRef<HTMLButtonElement>(null);
 
     const [isRunning, setIsRunning] = useState(true);
     const [privateChatAgent, setPrivateChatAgent] = useState<string>("");
     const [simRounds, setSimRounds] = useState<number>(1);
     const [demo, setDemo] = useState(true);
+    const [showGuide, setShowGuide] = useState(false);
 
     // New state for messages
     const [publicMessages, setPublicMessages] = useState<ChatMessage[]>([]);
@@ -476,6 +490,21 @@ export const InteractPage: React.FC = () => {
         fetchAgents();
         setIsOffline(ctx.data.currentTemplate?.meta.sim_mode != "online");
     }, [ctx.data.currSimCode, ctx.data.currentTemplate?.meta.sim_mode]);
+
+    useEffect(() => {
+        if (runButtonRef.current && showGuide) {
+            const rect = runButtonRef.current.getBoundingClientRect();
+            setButtonPosition({
+                top: rect.top,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height
+            });
+        }
+    }, [showGuide]);
+
+
+
 
     const addPublicMessage = (message: ChatMessage) => {
         setPublicMessages(prevMessages => [...prevMessages, message]);
@@ -547,21 +576,24 @@ export const InteractPage: React.FC = () => {
         }
     }, [demo, ctx.data.currentTemplate]);
 
+    const initialCheckRef = useRef(true);
+
     useEffect(() => {
         const checkStatus = async () => {
             const status = await apis.queryStatus(ctx.data.currSimCode || '');
             setIsRunning(status === 'running');
+            if (status !== 'running' && initialCheckRef.current) {
+                setShowGuide(true);
+                initialCheckRef.current = false;  // 标记为已检查
+            }
         };
 
-        // Check status immediately on mount
-        // checkStatus();
+        checkStatus();  // 初始检查
+        const intervalId = setInterval(checkStatus, 500);  // 定期检查
 
-        // Set up interval to check status
-        const intervalId = setInterval(checkStatus, 500); // Check every 5 seconds
-
-        // Clean up interval on unmount
-        return () => clearInterval(intervalId);
+        return () => clearInterval(intervalId);  // 清理 interval
     }, [ctx.data.currSimCode]);
+
 
     const [messageSocket, setMessageSocket] = useState<WebSocket | null>(null);
 
@@ -604,14 +636,25 @@ export const InteractPage: React.FC = () => {
     }, [messageSocket]);
 
 
+
     // console.log(ctx.data)
     // const currentAgent = ctx.data.agents[privateChatAgent];
 
 
-    const ChatFooter: React.FC<{ simCode: string, agentName: string }> = ({ simCode, agentName }) => {
+    const ChatFooter: React.FC<ChatFooterProps> = ({
+        simCode,
+        agentName,
+        showGuide,
+        setShowGuide,
+        isRunning,
+        handleRunSimulation,
+        simRounds,
+        setSimRounds
+    }) => {
+
         const [message, setMessage] = useState('');
         const [chatType, setChatType] = useState<'whisper' | 'analysis'>('whisper');
-
+        const runButtonRef = useRef<HTMLButtonElement>(null);
         const handleSendMessage = async () => {
             console.log("Sending message:", simCode, agentName, chatType, privateMessages[agentName], message);
             if (message.trim()) {
@@ -630,6 +673,18 @@ export const InteractPage: React.FC = () => {
             }
         };
 
+        useEffect(() => {
+            if (runButtonRef.current && showGuide) {
+                const rect = runButtonRef.current.getBoundingClientRect();
+                setButtonPosition({
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,
+                    height: rect.height
+                });
+            }
+        }, [showGuide]);
+
         return (
             <CardFooter className="p-4 flex-col">
                 <div className="flex w-full justify-start space-x-2 mb-2">
@@ -637,6 +692,7 @@ export const InteractPage: React.FC = () => {
                         <Image className="h-4 w-4 mr-1" />
                         发布事件
                     </Button>
+
                     <Button
                         size="sm"
                         variant="outline"
@@ -645,16 +701,26 @@ export const InteractPage: React.FC = () => {
                     >
                         {isRunning ? '模拟中...' : '模拟1轮'}
                     </Button>
+
                     <div className="flex items-center space-x-1">
 
                         <Button
+                            ref={runButtonRef}
                             size="sm"
-                            variant="outline"
-                            onClick={() => { if (!isRunning) handleRunSimulation(simRounds) }}
+                            variant={showGuide ? "default" : "outline"}
+                            onClick={() => {
+                                handleRunSimulation(simRounds);
+                                setShowGuide(false);
+                            }}
                             disabled={isRunning}
+                            className={`
+        ${showGuide ? "animate-pulse bg-primary text-primary-foreground" : ""}
+        ${showGuide ? "z-50 relative shadow-lg" : ""}
+    `}
                         >
                             {isRunning ? '模拟中...' : `模拟${simRounds}轮`}
                         </Button>
+
                         <Input
                             type="number"
                             value={simRounds}
@@ -764,10 +830,26 @@ export const InteractPage: React.FC = () => {
                                     )}
                             </ScrollArea>
                         </CardContent>
-                        <ChatFooter simCode={ctx.data.currSimCode || ""} agentName={privateChatAgent} />
+                        <ChatFooter
+                            simCode={ctx.data.currSimCode || ""}
+                            agentName={privateChatAgent}
+                            showGuide={showGuide}
+                            setShowGuide={setShowGuide}
+                            isRunning={isRunning}
+                            handleRunSimulation={handleRunSimulation}
+                            simRounds={simRounds}
+                            setSimRounds={setSimRounds}
+                        />
                     </Card>
                 </div>
             </div>
+            {showGuide && (
+                <SimulationGuide
+                    onClose={() => setShowGuide(false)}
+                    simRounds={simRounds}
+                    buttonPosition={buttonPosition}
+                />
+            )}
         </div>
     );
 };
