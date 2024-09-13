@@ -610,7 +610,7 @@ export const InteractPage: React.FC = () => {
 
     const ChatFooter: React.FC<{ simCode: string, agentName: string }> = ({ simCode, agentName }) => {
         const [message, setMessage] = useState('');
-        const [chatType, setChatType] = useState<'whisper' | 'analysis'>('whisper');
+        const [chatType, setChatType] = useState<'whisper' | 'interview'>('interview');
 
         const handleSendMessage = async () => {
             console.log("Sending message:", simCode, agentName, chatType, privateMessages[agentName], message);
@@ -677,7 +677,7 @@ export const InteractPage: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="whisper">Whisper</SelectItem>
-                            <SelectItem value="analysis">Analysis</SelectItem>
+                            <SelectItem value="interview">Analysis</SelectItem>
                         </SelectContent>
                     </Select>
                     <Input

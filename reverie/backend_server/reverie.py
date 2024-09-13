@@ -956,16 +956,16 @@ class Reverie:
                     # Ex: call -- analysis Isabella Rodriguez
                     persona_name = sim_command[len("call -- analysis") :].strip()
                     # Do you support Isabella Rodriguez as mayor?
-                    # self.personas[persona_name].open_convo_session("analysis")#Do you want to run for mayor in the local election?
+                    # self.personas[persona_name].open_convo_session("interview")#Do you want to run for mayor in the local election?
                     self.personas[persona_name].open_convo_session(
-                        "analysis", self.maze.vbase, self.command_queue
+                        "interview", self.maze.vbase, self.command_queue
                     )
                     # Do you want to run for mayor in the local election?
 
                 elif "call -- chat to persona" in sim_command.lower():
                     persona_name = sim_command[len("call -- chat to persona") :].strip()
                     payload = json.loads(self.command_queue.get())
-                    mode = payload.get("mode", "analysis")
+                    mode = payload.get("mode", "interview")
                     prev_msgs = payload.get("prev_msgs", [])
                     msg = payload.get("msg", "")
 

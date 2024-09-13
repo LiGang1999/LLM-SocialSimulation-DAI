@@ -279,6 +279,7 @@ def new_retrieve(persona, focal_points, n_count=30):
 
 
 # tyn
+# We should improve this function further and further - zjy.
 def retrieve_dai(persona, perceived):
     """
     This function takes the events that are perceived by the persona as input
@@ -319,6 +320,7 @@ def retrieve_dai(persona, perceived):
 
 
 # tyn
+# We should improve this function further and further - zjy.
 def new_retrieve_dai(persona, retrieved, n_count=30):
     """
     Given the current persona and focal points (focal points are events or
@@ -404,5 +406,6 @@ for i in ... if "idle" not in i.embedding_key：在遍历这个混合列表时�
             n.last_accessed = persona.scratch.curr_time
 
         retrieved[keys]["events"] = list(master_nodes)
+        # TODO there is no retrieved thoughts here.
 
     return retrieved

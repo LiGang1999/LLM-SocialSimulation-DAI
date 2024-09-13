@@ -305,7 +305,10 @@ def load_history_via_whisper(personas, whispers):
 
 
 def chat_to_persona(persona, convo_mode, vbase, prev_messages, message):
-    if convo_mode == "analysis":
+    # The prev_messages is a list of tuples of (speaker, message)
+    # vbase is currently not necessary
+    if convo_mode == "interview":
+        # analysis means start an interview with the persona, without any side effects
         interlocutor_desc = "Interviewer"
 
         retrieved = new_retrieve(persona, [message], 50)[message]
@@ -315,6 +318,7 @@ def chat_to_persona(persona, convo_mode, vbase, prev_messages, message):
         )
         return next_line
     elif convo_mode == "whisper":
+        # Whisper means adding the knowledge directly into the agent's brain
         thought = generate_inner_thought(persona, message)
         whisper = message
         created = persona.scratch.curr_time
@@ -340,7 +344,7 @@ def chat_to_persona(persona, convo_mode, vbase, prev_messages, message):
 
 def open_convo_session(persona, convo_mode, vbase, input_queue):
     # def open_convo_session(persona, convo_mode):
-    if convo_mode == "analysis":
+    if convo_mode == "interview":
         curr_convo = []
         interlocutor_desc = "Interviewer"
 
@@ -348,12 +352,6 @@ def open_convo_session(persona, convo_mode, vbase, input_queue):
             line = input_queue.get()
             if line == "end_convo":
                 break
-
-            # if int(run_gpt_generate_safety_score(persona, line)[0]) >= 8:
-            if False:  #
-                print(
-                    f"{persona.scratch.name} is a computational agent, and as such, it may be inappropriate to attribute human agency to the agent in your communication."
-                )
 
             else:
                 retrieved = new_retrieve(persona, [line], 50)[line]
