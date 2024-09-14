@@ -13,8 +13,8 @@ default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
 
 default_llm_config = override_gpt_param
 
-print_raw_log = False
-print_short_log = True
+print_raw_log = True
+print_short_log = False
 
 
 def llm_logging_repr(object):
@@ -123,12 +123,12 @@ def llm_request(
 
     attempt = 0
     L.debug(
-        f"LLM REQUEST: {func_name}; KIND: {'chat' if llm_config['chat'] else 'completion'}; USER_PROMPT:{llm_logging_repr(usr_prompt)}; SYSTEM_PROMPT:{llm_logging_repr(sys_prompt)}"
+        f"[{func_name}] LLM REQUEST; KIND: {'chat' if llm_config['chat'] else 'completion'}; USER_PROMPT:{llm_logging_repr(usr_prompt)}; SYSTEM_PROMPT:{llm_logging_repr(sys_prompt)}"
     )
     while attempt < max_retries:
         try:
             L.debug(
-                f"Attempt {attempt + 1}: Sending LLM request. Model: {llm_config['engine']}, Chat: {llm_config['chat']}"
+                f"[{func_name}] Attempt {attempt + 1}: Sending LLM request. Model: {llm_config['engine']}, Chat: {llm_config['chat']}"
             )
             start_time = time.time()
             if llm_config["chat"]:
@@ -178,26 +178,26 @@ def llm_request(
                 valid=valid,
             )
             result = unescape_markdown(result)
-            L.debug(f"LLM RESPONSE: {llm_logging_repr(result)}")
+            L.debug(f"[{func_name}] LLM RESPONSE: {llm_logging_repr(result)}")
             if valid:
-                L.debug(f"LLM Request succeeded.")
+                L.debug(f"[{func_name}] LLM Request succeeded.")
                 return cleanup_fn(result, kwargs)
             else:
-                L.warning("LLM Response validation failed, retry scheduled")
-                continue
+                L.warning(f"[{func_name}] LLM Response validation failed, retry scheduled")
+                # continue
 
         except Exception as e:
             # Log the error
-            L.error(f"Error on attempt {attempt + 1}: {str(e)}")
+            L.error(f"[{func_name}] Error on attempt {attempt + 1}: {str(e)}")
 
-            attempt += 1
-            if attempt < max_retries:
-                L.warning(f"Retrying in {retry_delay} seconds...")
+            if attempt <= max_retries:
+                L.warning(f"[{func_name}] Retrying in {retry_delay} seconds...")
                 time.sleep(retry_delay)
             else:
-                L.error("Max retries exceeded. Request failed.")
+                L.error(f"[{func_name}] Max retries exceeded. Request failed.")
                 result = ""
                 # raise e
+        attempt += 1
 
     return failsafe_fn(result, kwargs)
 
@@ -226,18 +226,30 @@ You MUST not reply anything else. Just reply the json answer.
     return prompt
 
 
-def types_match(actual, example):
+def types_match(actual, example, path=""):
     """Helper function to check if the types of two objects match (including nested types)."""
+
+    def print_warning(expected, got):
+        L.warning(f"Warning: Type mismatch at {path}. Expected {expected}, got {got}")
+
     if isinstance(example, dict):
         if not isinstance(actual, dict):
+            print_warning("dict", type(actual).__name__)
             return False
-        return all(k in actual and types_match(actual[k], v) for k, v in example.items())
+        return all(
+            k in actual and types_match(actual[k], v, f"{path}.{k}" if path else k)
+            for k, v in example.items()
+        )
     elif isinstance(example, list):
         if not isinstance(actual, list):
+            print_warning("list", type(actual).__name__)
             return False
-        return all(types_match(a, example[0]) for a in actual)
+        return all(types_match(a, example[0], f"{path}[{i}]") for i, a in enumerate(actual))
     else:
-        return isinstance(actual, type(example))
+        if not isinstance(actual, type(example)):
+            print_warning(type(example).__name__, type(actual).__name__)
+            return False
+        return True
 
 
 def has_json_content(unstructured_string):
@@ -258,27 +270,34 @@ def has_json_content(unstructured_string):
 
 
 def extract_largest_json(unstructured_string):
-    # Regular expression to find JSON objects or arrays in the string
-    json_pattern = re.compile(r"(\{.*?\}|\[.*?\])", flags=re.DOTALL)
-    json_strings = json_pattern.findall(unstructured_string)
+    import json
 
-    largest_json_str = None
-    largest_json_length = 0
+    decoder = json.JSONDecoder()
 
-    for json_str in json_strings:
-        try:
-            # Try to load the JSON to ensure it's valid
-            json_obj = json.loads(json_str)
-            json_length = len(json_str)
+    max_len = 0
+    result = ""
+    n = len(unstructured_string)
 
-            if json_length > largest_json_length:
-                largest_json_length = json_length
-                largest_json_str = json_str
-
-        except json.JSONDecodeError:
+    i = 0
+    while i < n:
+        # Skip any whitespace or characters that cannot start a JSON value
+        if unstructured_string[i] not in "{[":
+            i += 1
             continue
 
-    return largest_json_str
+        try:
+            # Attempt to decode a JSON object starting at index i
+            obj, end = decoder.raw_decode(unstructured_string, idx=i)
+            length = end - i
+            if length > max_len:
+                max_len = length
+                result = unstructured_string[i:end]
+            # Move i to the end of the current JSON object to avoid overlapping parsing
+            i = end
+        except json.JSONDecodeError:
+            # If parsing fails, move to the next character
+            i += 1
+    return result
 
 
 def llm_function(

@@ -96,6 +96,22 @@ def generate_action_event_triple(act_desp, persona):
     return run_gpt_prompt_event_triple(act_desp, persona)[0]
 
 
+def generate_action_event_triple_new(act_desp):
+    """TODO
+
+    INPUT:
+      act_desp: the description of the action (e.g., "sleeping")
+      persona: The Persona class instance
+    OUTPUT:
+      a string of emoji that translates action description.
+    EXAMPLE OUTPUT:
+      "🧈🍞"
+    """
+    if debug:
+        print("GNS FUNCTION: <generate_action_event_triple>")
+    return run_gpt_prompt_event_triple_new(act_desp)[0]
+
+
 def generate_poig_score(persona, event_type, description):
     if debug:
         print("GNS FUNCTION: <generate_poig_score>")
@@ -195,7 +211,7 @@ def run_reflect_new(persona):
         for thought, evidence in thoughts.items():
             created = persona.scratch.curr_time
             expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
-            s, p, o = generate_action_event_triple(thought, persona)
+            s, p, o = generate_action_event_triple_new(thought)
             keywords = set([s, p, o])
             thought_poignancy = generate_poig_score(persona, "thought", thought)
             thought_embedding_pair = (thought, get_embedding(thought))

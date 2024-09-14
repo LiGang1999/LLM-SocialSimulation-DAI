@@ -206,19 +206,19 @@ def generate_next_line(persona, interlocutor_desc, curr_convo, summarized_idea, 
         prev_convo += f"{row[0]}: {row[1]}\n"
 
     ###lg###
-    sentiment = Sentiment()
-    print("lg:sentiment analysis.")
-    res_sentiment = ""  # sentiment.return_sentiment(prev_convo)
-    print("################################")
-    print(res_sentiment)
-    print("################################")
-    domain_knowledge = ""  # vbase.get_texts(prev_convo,2)#
-    print("################################")  #
-    print(domain_knowledge)  #
-    print("################################")  #
-    insert_content = "\nThe above is an sentiment analysis of the following content.\n\n"
+    # sentiment = Sentiment()
+    # print("lg:sentiment analysis.")
+    # res_sentiment = ""  # sentiment.return_sentiment(prev_convo)
+    # print("################################")
+    # print(res_sentiment)
+    # print("################################")
+    # domain_knowledge = ""  # vbase.get_texts(prev_convo,2)#
+    # print("################################")  #
+    # print(domain_knowledge)  #
+    # print("################################")  #
+    # insert_content = "\nThe above is an sentiment analysis of the following content.\n\n"
     # prev_convo = res_sentiment + insert_content + prev_convo
-    transitional_content = "\nThe above is some domain knowledge of the following content.\n\n"
+    # transitional_content = "\nThe above is some domain knowledge of the following content.\n\n"
     # prev_convo = domain_knowledge + transitional_content + prev_convo#
     ###lg###
     next_line = run_gpt_prompt_generate_next_convo_line(
@@ -323,7 +323,7 @@ def chat_to_persona(persona, convo_mode, vbase, prev_messages, message):
         whisper = message
         created = persona.scratch.curr_time
         expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
-        s, p, o = generate_action_event_triple(thought, persona)
+        s, p, o = generate_action_event_triple_new(thought)
         keywords = set([s, p, o])
         thought_poignancy = generate_poig_score(persona, "event", whisper)
         thought_embedding_pair = (thought, get_embedding(thought))

@@ -35,24 +35,24 @@ interface ChatFooterProps {
     setSimRounds: (rounds: number) => void;
 }
 
-const ChatMessageBox: React.FC<ChatMessage> = ({ sender, content, timestamp, subject }) => (
-    <div className={`flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4 items-start`}>
-        {sender !== 'user' && (
+const ChatMessageBox: React.FC<ChatMessage & { variant?: 'public' | 'private' }> = ({ sender, content, timestamp, subject, variant = 'public' }) => (
+    <div className={`flex ${sender === 'Interviewer' ? 'justify-end' : 'justify-start'} mb-4 items-start`}>
+        {sender !== 'Interviewer' && (
             <Avatar className="mr-2 mt-1">
                 <RandomAvatar name={sender} className='h-8 w-8' />
             </Avatar>
         )}
-        <div className={`max-w-[70%] ${sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'} rounded-lg p-3`}>
-            {sender !== 'user' && (
+        <div className={`max-w-[70%] ${sender === 'Interviewer' ? 'bg-primary text-primary-foreground' : 'bg-secondary'} rounded-lg p-3`}>
+            {sender !== 'Interviewer' && (
                 <p className="text-xs font-semibold mb-1">
                     {sender}
-                    {subject && <span className="text-muted-foreground"> about <span className="font-normal italic">{subject}</span></span>}
+                    {variant === 'public' && subject && <span className="text-muted-foreground"> about <span className="font-normal italic">{subject}</span></span>}
                 </p>
             )}
             <p className="text-sm">{content}</p>
             <span className="text-xs text-muted-foreground block mt-1">{timestamp}</span>
         </div>
-        {sender === 'user' && (
+        {sender === 'Interviewer' && (
             <Avatar className="ml-2 mt-1">
                 <RandomAvatar name="Administrator" className='h-8 w-8' />
             </Avatar>
@@ -368,6 +368,7 @@ const LogTab: React.FC<{
         addLog({ level: 'COMMAND', message: command });
         // Process command here
         await apis.sendCommand(command, ctx.data.currSimCode || "");
+        setCommand("")
     };
 
     const getLogColor = (level: LogEntry['level']) => {
@@ -489,6 +490,7 @@ export const InteractPage: React.FC = () => {
     const [logs, setLogs] = useState<LogEntry[]>([]);
 
     const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0, width: 0, height: 0 });
+    const [chatTypes, setChatTypes] = useState<Record<string, 'whisper' | 'interview'>>({});
 
     const runButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -505,7 +507,6 @@ export const InteractPage: React.FC = () => {
     const [agents, setAgents] = useState<apis.Agent[]>([]);
 
     useEffect(() => {
-        console.log('Entering interact page');
         const fetchAgents = async () => {
             try {
                 const fetchedAgents = await apis.agentsInfo(ctx.data.currSimCode || "");
@@ -517,12 +518,18 @@ export const InteractPage: React.FC = () => {
                     setPrivateChatAgent(fetchedAgents[0].name);
                 }
 
-                // Initialize privateMessages with empty arrays for each agent
+                // Initialize privateMessages and chatTypes with empty arrays and 'interview' for each agent
                 const initialPrivateMessages = fetchedAgents.reduce((acc, agent) => {
                     acc[agent.name] = [];
                     return acc;
                 }, {} as Record<string, ChatMessage[]>);
                 setPrivateMessages(initialPrivateMessages);
+
+                const initialChatTypes = fetchedAgents.reduce((acc, agent) => {
+                    acc[agent.name] = 'interview';
+                    return acc;
+                }, {} as Record<string, 'whisper' | 'interview'>);
+                setChatTypes(initialChatTypes);
             } catch (error) {
                 console.error("Error fetching agents:", error);
             }
@@ -659,8 +666,6 @@ export const InteractPage: React.FC = () => {
     useEffect(() => {
         if (messageSocket) {
             messageSocket.onmessage = (event) => {
-                console.log("Receive log data!!!")
-                // addLog(`• ${event.data}`);
                 const d = JSON.parse(event.data);
                 if (d.type == "log") {
                     const e: LogEntry = d.message;
@@ -697,22 +702,32 @@ export const InteractPage: React.FC = () => {
     }) => {
 
         const [message, setMessage] = useState('');
-        const [chatType, setChatType] = useState<'whisper' | 'interview'>('whisper');
         const runButtonRef = useRef<HTMLButtonElement>(null);
+
         const handleSendMessage = async () => {
-            console.log("Sending message:", simCode, agentName, chatType, privateMessages[agentName], message);
             if (message.trim()) {
                 try {
-                    console.log("Sending message:", simCode, agentName, chatType, privateMessages[agentName], message);
                     setIsRunning(true);
-                    const response = await apis.privateChat(simCode, agentName, chatType, privateMessages[agentName], message);
-                    // Handle the response, e.g., update the chat messages
+
+                    const userMessage: ChatMessage = {
+                        sender: 'Interviewer',
+                        content: message,
+                        timestamp: new Date().toLocaleTimeString(),
+                        type: 'private',
+                        role: 'user',
+                        subject: chatTypes[agentName]
+                    };
+
+                    const response = await apis.privateChat(simCode, agentName, chatTypes[agentName], privateMessages[agentName], message);
                     console.log(response);
-                    // Clear the input after sending
+
+                    addPrivateMessage(agentName, userMessage);
+
                     setMessage('');
+                    setIsRunning(false);
                 } catch (error) {
                     console.error("Error sending private chat:", error);
-                    // Handle the error, e.g., show an error message to the user
+                    setIsRunning(false);
                 }
             }
         };
@@ -779,8 +794,8 @@ export const InteractPage: React.FC = () => {
                         <Paperclip className="h-4 w-4" />
                     </Button>
                     <Select
-                        value={chatType}
-                        onValueChange={(value: 'whisper' | 'interview') => setChatType(value)}
+                        value={chatTypes[agentName]}
+                        onValueChange={(value: 'whisper' | 'interview') => setChatTypes(prev => ({ ...prev, [agentName]: value }))}
                     >
                         <SelectTrigger className="w-[100px]">
                             <SelectValue placeholder="Chat type" />
@@ -868,7 +883,7 @@ export const InteractPage: React.FC = () => {
                         <CardContent className="flex-grow overflow-hidden">
                             <ScrollArea className="h-[calc(100vh-350px)] px-4">
                                 {privateChatAgent && privateMessages[privateChatAgent]?.map((msg, index) => (
-                                    <ChatMessageBox key={index} {...msg} />
+                                    <ChatMessageBox key={index} {...msg} variant="private" />
                                 )) || (
                                         <p>No private messages with {privateChatAgent}</p>
                                     )}

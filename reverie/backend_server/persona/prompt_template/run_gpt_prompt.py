@@ -2937,20 +2937,20 @@ def run_gpt_prompt_focal_pt_new(persona, statements, n, test_input=None, verbose
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
+
 def run_gpt_prompt_insight_and_guidance(persona, statements, n, test_input=None, verbose=False):
-    @llm_function(chat=True,prompt_file="insignt_and_evidence.md")
-    def llm_insight_and_evidence(statements, n):
+    # The old function and prompt does not work at all
+    @llm_function(is_chat=True, prompt_file="insight_and_evidence.md")
+    def llm_insight_and_evidence(statements, target):
 
         return [
-            {
-                "insight" : "<the first insight>",
-                "evidence" : [1,5,3]
-            },
-            {
-                "insight" : "<the second insight>",
-                "evidence" : [2,3]
-            }
+            {"insight": "<the first insight>", "evidence": [1, 5, 3]},
+            {"insight": "<the second insight>", "evidence": [2, 3]},
         ]
+
+    output = llm_insight_and_evidence(statements, str(n))
+    ret = {item["insight"]: item["evidence"] for item in output}
+    return [ret]
 
 
 def run_gpt_prompt_insight_and_guidance_old(persona, statements, n, test_input=None, verbose=False):

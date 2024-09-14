@@ -6,7 +6,7 @@ import time
 from collections import OrderedDict
 from datetime import datetime
 from queue import Queue
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -208,7 +208,7 @@ class EventPublishReq(BaseModel):
 class ChatReq(BaseModel):
     agent_name: str
     type: str
-    history: List[Dict[str, Any]] = []
+    history: List[Tuple[str, str]] = []
     content: str
 
 

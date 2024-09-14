@@ -97,7 +97,7 @@ class GaPersona(Persona):
         open_convo_session(self, convo_mode, vbase, input_queue)
 
     def chat_to_persona(self, mode, vbase, prev_msgs, msg):
-        chat_to_persona(self, mode, vbase, prev_msgs, msg)
+        return chat_to_persona(self, mode, vbase, prev_msgs, msg)
 
 
 class DaiPersona(Persona):
@@ -147,4 +147,4 @@ class DaiPersona(Persona):
         self.scratch.save(f_scratch)
 
     def chat_to_persona(self, mode, vbase, prev_msgs, msg):
-        chat_to_persona(self, mode, vbase, prev_msgs, msg)
+        return chat_to_persona(self, mode, vbase, prev_msgs, msg)
