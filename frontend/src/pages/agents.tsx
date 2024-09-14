@@ -14,6 +14,7 @@ import { RandomAvatar } from '@/components/Avatars';
 import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
 import { InfoIcon } from 'lucide-react';
 import DescriptionCard from '@/components/DescriptionCard';
+import { InfoTooltip } from '@/components/Tooltip';
 
 
 const mockAgents: (apis.Agent & { id: number })[] = [
@@ -358,13 +359,13 @@ export const AgentsPage = () => {
                                                     </AlertDialogTrigger>
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
-                                                            <AlertDialogTitle>Are you sure you want to delete this agent?</AlertDialogTitle>
+                                                            <AlertDialogTitle>您确定要删除这个智能体吗？</AlertDialogTitle>
                                                             <AlertDialogDescription>
-                                                                This action cannot be undone. This will permanently delete this agent and remove their data from our servers.
+                                                                该操作无法撤销。数据将从服务器上永远清除。
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogCancel>取消</AlertDialogCancel>
                                                             <AlertDialogAction
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
@@ -372,7 +373,7 @@ export const AgentsPage = () => {
                                                                 }}
                                                                 className="bg-red-600 hover:bg-red-700"
                                                             >
-                                                                Delete
+                                                                删除
                                                             </AlertDialogAction>
                                                         </AlertDialogFooter>
                                                     </AlertDialogContent>
@@ -381,7 +382,7 @@ export const AgentsPage = () => {
                                         ))}
                                     </div>
                                     <Button onClick={handleAddAgent} className="w-full mt-6 bg-indigo-500 hover:bg-indigo-600 text-white">
-                                        <PlusCircle className="mr-2 h-4 w-4" /> Add New Agent
+                                        <PlusCircle className="mr-2 h-4 w-4" /> 添加新智能体
                                     </Button>
                                 </div>
                             </div>
@@ -399,7 +400,7 @@ export const AgentsPage = () => {
                                     </div>
                                     <div className="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">姓氏</label>
                                             <Input
                                                 name="first_name"
                                                 value={localAgent.first_name}
@@ -410,7 +411,7 @@ export const AgentsPage = () => {
                                             {errors[localAgent.id]?.first_name && <p className="text-red-500 text-sm mt-1">{errors[localAgent.id]?.first_name}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">名字</label>
                                             <Input
                                                 name="last_name"
                                                 value={localAgent.last_name}
@@ -421,16 +422,19 @@ export const AgentsPage = () => {
                                             {errors[localAgent.id]?.last_name && <p className="text-red-500 text-sm mt-1">{errors[localAgent.id]?.last_name}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">年龄</label>
                                             <Input name="age" type="number" value={localAgent.age} onChange={handleInputChange} placeholder="Age" className="w-full" />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Lifestyle</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">生活方式</label>
                                             <Input name="lifestyle" value={localAgent.lifestyle} onChange={handleInputChange} placeholder="Lifestyle" className="w-full" />
                                         </div>
                                     </div>
                                     <div className="mt-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Daily Plan Requirements</label>
+                                        <div className="flex items-center align-center space-x-2 mb-1 relative">
+                                            <label className="block text-sm font-medium text-gray-700">每日计划要求</label>
+                                            <InfoTooltip message='a1' />
+                                        </div>
                                         <AutoResizeTextarea
                                             name="daily_plan_req"
                                             value={localAgent.daily_plan_req}
@@ -441,7 +445,10 @@ export const AgentsPage = () => {
                                         {errors[localAgent.id]?.daily_plan_req && <p className="text-red-500 text-sm mt-1">{errors[localAgent.id]?.daily_plan_req}</p>}
                                     </div>
                                     <div className="mt-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Innate Characteristics</label>
+                                        <div className="flex items-center align-center space-x-2 mb-1 relative">
+                                            <label className="block text-sm font-medium text-gray-700">内在性格</label>
+                                            <InfoTooltip message='a1' />
+                                        </div>
                                         <AutoResizeTextarea
                                             name="innate"
                                             value={localAgent.innate}
@@ -452,7 +459,10 @@ export const AgentsPage = () => {
                                         {errors[localAgent.id]?.innate && <p className="text-red-500 text-sm mt-1">{errors[localAgent.id]?.innate}</p>}
                                     </div>
                                     <div className="mt-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Learned Information</label>
+                                        <div className="flex items-center align-center space-x-2 mb-1 relative">
+                                            <label className="block text-sm font-medium text-gray-700">当前处境</label>
+                                            <InfoTooltip message='a2' />
+                                        </div>
                                         <AutoResizeTextarea
                                             name="learned"
                                             value={localAgent.learned}
@@ -463,11 +473,11 @@ export const AgentsPage = () => {
                                         {errors[localAgent.id]?.learned && <p className="text-red-500 text-sm mt-1">{errors[localAgent.id]?.learned}</p>}
                                     </div>
                                     <div className="mt-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Living Area</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">居住区域</label>
                                         <Input name="living_area" value={localAgent.living_area} onChange={handleInputChange} placeholder="Living Area" className="w-full" />
                                     </div>
                                     <div className="mt-6">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Bibliography</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">生平</label>
                                         <AutoResizeTextarea name="bibliography" value={localAgent.bibliography || ''} onChange={handleInputChange} placeholder="Bibliography" className="w-full min-h-[80px]" />
                                     </div>
                                 </div>

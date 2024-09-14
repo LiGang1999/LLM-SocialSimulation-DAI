@@ -186,10 +186,10 @@ export namespace apis {
         }
     };
 
-    export const fetchTemplates = async (): Promise<TemplateListItem[]> => {
+    export const fetchTemplates = async (): Promise<{ envs: TemplateListItem[], all_templates: string[] }> => {
         try {
-            const response = await api.get<{ envs: TemplateListItem[] }>('/fetch_templates/');
-            return response.data.envs;
+            const response = await api.get<{ envs: TemplateListItem[], all_templates: string[] }>('/fetch_templates/');
+            return response.data;
         } catch (error) {
             console.error("Error fetching templates:", error);
             throw error;

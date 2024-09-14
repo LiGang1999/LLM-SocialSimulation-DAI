@@ -25,6 +25,7 @@ export interface SimContext {
     publicMessages: ChatMessage[];  // Add public messages
     privateMessages: { [agentName: string]: ChatMessage[] };  // Add private messages by agent
     logs: string[] | undefined;
+    allEnvs: string[]
 }
 
 interface SimContextPair {
@@ -47,7 +48,8 @@ export const SimContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         initialRounds: 0,
         publicMessages: [],
         privateMessages: {},
-        logs: []
+        logs: [],
+        allEnvs: []
     });
 
     return (

@@ -1,58 +1,74 @@
-import React, { useState, useEffect, RefObject, useCallback } from 'react';
+import React, { useState, useEffect, useRef, RefObject, useCallback } from 'react';
+import { InfoIcon } from 'lucide-react';
 
 interface TooltipProps {
     message: string;
     isVisible: boolean;
     anchorRef: RefObject<HTMLElement>;
-    onClose?: () => void;  // Make onClose optional
+    onClose?: () => void;
 }
 
-export const Tooltip: React.FC<TooltipProps> = ({ message, isVisible, anchorRef, onClose }) => {
-    const [position, setPosition] = useState({ top: 0, left: 0 });
+export const Tooltip: React.FC<TooltipProps> = ({
+    message,
+    isVisible,
+    anchorRef,
+    onClose,
+}) => {
+    const tooltipRef = useRef<HTMLDivElement>(null);
 
-    const handleClickOutside = useCallback((event: MouseEvent) => {
-        if (anchorRef.current && !anchorRef.current.contains(event.target as Node)) {
-            // Check if onClose is provided before calling it
-            if (onClose && typeof onClose === 'function') {
-                onClose();
-            } else {
-                console.warn('Tooltip: onClose prop is not provided or not a function');
-            }
+    const updatePosition = useCallback(() => {
+        if (anchorRef.current && tooltipRef.current && isVisible) {
+            const anchorRect = anchorRef.current.getBoundingClientRect();
+            const tooltipRect = tooltipRef.current.getBoundingClientRect();
+
+            let top = anchorRect.top + anchorRect.height / 2 - tooltipRect.height / 2;
+            let left = anchorRect.right + 10;
+
+            tooltipRef.current.style.top = `${top}px`;
+            tooltipRef.current.style.left = `${left}px`;
         }
-    }, [anchorRef, onClose]);
+    }, [isVisible, anchorRef]);
+
+
+    const handleClickOutside = useCallback(
+        (event: MouseEvent) => {
+            if (
+                anchorRef.current &&
+                !anchorRef.current.contains(event.target as Node)
+            ) {
+                if (onClose && typeof onClose === 'function') {
+                    onClose();
+                } else {
+                    console.warn(
+                        'Tooltip: onClose prop is not provided or not a function'
+                    );
+                }
+            }
+        },
+        [anchorRef, onClose]
+    );
 
     useEffect(() => {
         if (isVisible) {
             document.addEventListener('click', handleClickOutside);
+            window.addEventListener('resize', updatePosition);
+            updatePosition();
         } else {
             document.removeEventListener('click', handleClickOutside);
+            window.removeEventListener('resize', updatePosition);
         }
-
         return () => {
             document.removeEventListener('click', handleClickOutside);
+            window.removeEventListener('resize', updatePosition);
         };
-    }, [isVisible, handleClickOutside]);
-
-    useEffect(() => {
-        if (anchorRef.current && isVisible) {
-            const rect = anchorRef.current.getBoundingClientRect();
-            setPosition({
-                top: rect.top + window.scrollY + rect.height / 2,
-                left: rect.right + 10,
-            });
-        }
-    }, [isVisible, anchorRef]);
+    }, [isVisible, handleClickOutside, updatePosition]);
 
     if (!isVisible) return null;
 
     return (
         <div
+            ref={tooltipRef}
             className="fixed z-50 max-w-xs"
-            style={{
-                top: `${position.top}px`,
-                left: `${position.left}px`,
-                transform: 'translateY(-50%)',
-            }}
         >
             <div className="relative bg-gray-700 bg-opacity-75 text-white text-sm p-2 rounded-lg">
                 <svg
@@ -70,6 +86,31 @@ export const Tooltip: React.FC<TooltipProps> = ({ message, isVisible, anchorRef,
                 </svg>
                 {message}
             </div>
+        </div>
+    );
+};
+
+interface InfoTooltipProps {
+    message: string;
+}
+
+export const InfoTooltip: React.FC<InfoTooltipProps> = ({ message }) => {
+    const [showTooltip, setShowTooltip] = useState(false);
+    const infoRef = useRef(null);
+
+    return (
+        <div className="relative">
+            <InfoIcon
+                ref={infoRef}
+                className="w-4 h-4 text-gray-500 cursor-pointer"
+                onClick={() => setShowTooltip(!showTooltip)}
+            />
+            <Tooltip
+                message={message}
+                isVisible={showTooltip}
+                anchorRef={infoRef}
+                onClose={() => setShowTooltip(false)}
+            />
         </div>
     );
 };

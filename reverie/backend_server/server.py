@@ -453,22 +453,20 @@ async def persona_detail(sim_code: str, agent_name: str):
 @app.get("/fetch_templates")
 async def fetch_templates():
     envs = [
-        dir
-        for dir in os.listdir(STORAGE_PATH)
-        if os.path.isdir(os.path.join(STORAGE_PATH, dir))
-        and "test" not in dir
-        and "sim" not in dir
-        and "July" not in dir
+        dir for dir in os.listdir(STORAGE_PATH) if os.path.isdir(os.path.join(STORAGE_PATH, dir))
+    ]
+    filtered_envs = [
+        env for env in envs if "test" not in env and "sim" not in env and "July" not in env
     ]
 
     result_envs = []
-    for dir in envs:
+    for dir in filtered_envs:
         template_meta_file = os.path.join(STORAGE_PATH, dir, "reverie", "meta.json")
         template_meta = load_json_file(template_meta_file)
         if template_meta:
             result_envs.append(template_meta)
 
-    return {"envs": result_envs}
+    return {"envs": result_envs, "all_templates": envs}
 
 
 @app.get("/fetch_template")

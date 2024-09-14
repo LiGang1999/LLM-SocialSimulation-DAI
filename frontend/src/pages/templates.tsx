@@ -82,12 +82,13 @@ export const TemplatePage = () => {
         const fetchTemplates = async () => {
             try {
                 const fetchedTemplates = await apis.fetchTemplates();
-                setTemplates(fetchedTemplates);
+                setTemplates(fetchedTemplates.envs);
                 setIsLoading(false);
                 ctx.setData(
                     {
                         ...ctx.data,
-                        allTemplates: fetchedTemplates
+                        allTemplates: fetchedTemplates.envs,
+                        allEnvs: fetchedTemplates.all_templates
                     }
                 )
             } catch (err) {

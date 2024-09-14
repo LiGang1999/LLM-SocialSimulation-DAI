@@ -66,6 +66,8 @@ export const EventsPage = () => {
                 newErrors.experimentName = '实验名称不能为空';
             } else if (ctx.data.allTemplates?.map(t => t.template_sim_code).includes(experimentName)) {
                 newErrors.experimentName = '实验名称已存在';
+            } else if (ctx.data.allEnvs.includes(experimentName)) {
+                newErrors.experimentName = '实验名称已存在';
             }
 
             const numValue = parseInt(replicateCount, 10);
@@ -112,7 +114,7 @@ export const EventsPage = () => {
             !isNaN(numValue) &&
             numValue >= 0 &&
             !ctx.data.allTemplates?.map(t => t.template_sim_code).includes(experimentName) &&
-            allEventDescriptionsFilled;
+            allEventDescriptionsFilled && !ctx.data.allEnvs.includes(experimentName);
     };
 
     const addNewEvent = () => {

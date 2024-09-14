@@ -12,7 +12,7 @@ import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 import { InfoIcon } from 'lucide-react';
 import { useRef } from 'react';
-import { Tooltip } from '@/components/Tooltip';
+import { InfoTooltip, Tooltip } from '@/components/Tooltip';
 import DescriptionCard from '@/components/DescriptionCard';
 
 const defaultConfig: apis.LLMConfig = {
@@ -104,18 +104,7 @@ export const ConfigPage = () => {
                                     <Label htmlFor="configType" className="flex items-center">
                                         配置类型
                                     </Label>
-                                    <div className="relative">
-                                        <InfoIcon
-                                            ref={configTypeRef}
-                                            className="w-4 h-4 text-gray-500 cursor-pointer"
-                                            onClick={() => setShowConfigTypeTooltip(!showConfigTypeTooltip)}
-                                        />
-                                        <Tooltip
-                                            message="选择预设配置或自定义设置。默认配置适用于大多数场景，自定义允许更精细的控制。"
-                                            isVisible={showConfigTypeTooltip}
-                                            anchorRef={configTypeRef}
-                                        />
-                                    </div>
+                                    <InfoTooltip message='选择预设配置或自定义设置。默认配置适用于大多数场景，自定义允许更精细的控制。' />
                                 </div>
                             </div>
                             <Select value={config.type} onValueChange={(value) => updateConfig('type', value)}>
@@ -139,18 +128,8 @@ export const ConfigPage = () => {
                                         <Label htmlFor="apiBase" className="flex items-center">
                                             API 基础地址
                                         </Label>
-                                        <div className="relative">
-                                            <InfoIcon
-                                                ref={apiBaseRef}
-                                                className="w-4 h-4 text-gray-500 cursor-pointer"
-                                                onClick={() => setShowApiBaseTooltip(!showApiBaseTooltip)}
-                                            />
-                                            <Tooltip
-                                                message="指定API服务器的地址。通常不需要更改，除非使用自定义或代理服务器。"
-                                                isVisible={showApiBaseTooltip}
-                                                anchorRef={apiBaseRef}
-                                            />
-                                        </div>
+                                        <InfoTooltip message="指定API服务器的地址。通常不需要更改，除非使用自定义或代理服务器。" />
+
                                     </div>
                                 </div>
                                 <Input
@@ -167,18 +146,8 @@ export const ConfigPage = () => {
                                         <Label htmlFor="apiKey" className="flex items-center">
                                             API 密钥
                                         </Label>
-                                        <div className="relative">
-                                            <InfoIcon
-                                                ref={apiKeyRef}
-                                                className="w-4 h-4 text-gray-500 cursor-pointer"
-                                                onClick={() => setShowApiKeyTooltip(!showApiKeyTooltip)}
-                                            />
-                                            <Tooltip
-                                                message="您的个人访问令牌，用于认证和访问AI服务。请保密处理。"
-                                                isVisible={showApiKeyTooltip}
-                                                anchorRef={apiKeyRef}
-                                            />
-                                        </div>
+
+                                        <InfoTooltip message="您的个人访问令牌，用于认证和访问AI服务。请保密处理。" />
                                     </div>
                                 </div>
                                 <Input
@@ -196,18 +165,8 @@ export const ConfigPage = () => {
                                         <Label htmlFor="engine" className="flex items-center">
                                             引擎
                                         </Label>
-                                        <div className="relative">
-                                            <InfoIcon
-                                                ref={engineRef}
-                                                className="w-4 h-4 text-gray-500 cursor-pointer"
-                                                onClick={() => setShowEngineTooltip(!showEngineTooltip)}
-                                            />
-                                            <Tooltip
-                                                message="选择用于生成文本的AI模型。不同的引擎可能在能力、速度和特定任务的表现上有所不同。"
-                                                isVisible={showEngineTooltip}
-                                                anchorRef={engineRef}
-                                            />
-                                        </div>
+                                        <InfoTooltip message="选择用于生成文本的AI模型。不同的引擎可能在能力、速度和特定任务的表现上有所不同。" />
+
                                     </div>
                                 </div>
                                 <Input
@@ -227,18 +186,8 @@ export const ConfigPage = () => {
                                         <Label htmlFor="temperature" className="flex items-center">
                                             温度：{config.temperature.toFixed(1)}
                                         </Label>
-                                        <div className="relative">
-                                            <InfoIcon
-                                                ref={infoIconRef}
-                                                className="w-4 h-4 text-gray-500 cursor-pointer"
-                                                onClick={() => setShowTooltip(!showTooltip)}
-                                            />
-                                            <Tooltip
-                                                message="温度控制生成文本的随机性。"
-                                                isVisible={showTooltip}
-                                                anchorRef={infoIconRef}
-                                            />
-                                        </div>
+                                        <InfoTooltip message="温度控制生成文本的随机性。" />
+
                                     </div>
                                 </div>
                                 <Slider
@@ -261,18 +210,7 @@ export const ConfigPage = () => {
                                         <Label htmlFor="maxTokens" className="flex items-center">
                                             最大令牌数：{config.maxTokens}
                                         </Label>
-                                        <div className="relative">
-                                            <InfoIcon
-                                                ref={maxTokensRef}
-                                                className="w-4 h-4 text-gray-500 cursor-pointer"
-                                                onClick={() => setShowMaxTokensTooltip(!showMaxTokensTooltip)}
-                                            />
-                                            <Tooltip
-                                                message="控制生成文本的最大长度。较高的值允许更长的输出，但可能增加处理时间。"
-                                                isVisible={showMaxTokensTooltip}
-                                                anchorRef={maxTokensRef}
-                                            />
-                                        </div>
+                                        <InfoTooltip message="控制生成文本的最大长度。较高的值允许更长的输出，但可能增加处理时间。" />
                                     </div>
                                 </div>
                                 <Input
@@ -291,18 +229,7 @@ export const ConfigPage = () => {
                                         <Label htmlFor="topP" className="flex items-center">
                                             Top P：{config.topP.toFixed(2)}
                                         </Label>
-                                        <div className="relative">
-                                            <InfoIcon
-                                                ref={topPRef}
-                                                className="w-4 h-4 text-gray-500 cursor-pointer"
-                                                onClick={() => setShowTopPTooltip(!showTopPTooltip)}
-                                            />
-                                            <Tooltip
-                                                message="控制输出的多样性。较低的值使输出更加集中和确定，较高的值增加创意性和多样性。"
-                                                isVisible={showTopPTooltip}
-                                                anchorRef={topPRef}
-                                            />
-                                        </div>
+                                        <InfoTooltip message="控制输出的多样性。较低的值使输出更加集中和确定，较高的值增加创意性和多样性。" />
                                     </div>
                                 </div>
                                 <Slider
@@ -322,18 +249,7 @@ export const ConfigPage = () => {
                                         <Label htmlFor="freqPenalty" className="flex items-center">
                                             频率惩罚：{config.freqPenalty.toFixed(2)}
                                         </Label>
-                                        <div className="relative">
-                                            <InfoIcon
-                                                ref={freqPenaltyRef}
-                                                className="w-4 h-4 text-gray-500 cursor-pointer"
-                                                onClick={() => setShowFreqPenaltyTooltip(!showFreqPenaltyTooltip)}
-                                            />
-                                            <Tooltip
-                                                message="降低模型重复使用相同词语的倾向。较高的值会鼓励使用更多样化的词汇。"
-                                                isVisible={showFreqPenaltyTooltip}
-                                                anchorRef={freqPenaltyRef}
-                                            />
-                                        </div>
+                                        <InfoTooltip message="降低模型重复使用相同词语的倾向。较高的值会鼓励使用更多样化的词汇。" />
                                     </div>
                                 </div>
                                 <Slider
@@ -368,18 +284,7 @@ export const ConfigPage = () => {
                                         <Label htmlFor="presPenalty" className="flex items-center">
                                             存在惩罚：{config.presPenalty.toFixed(2)}
                                         </Label>
-                                        <div className="relative">
-                                            <InfoIcon
-                                                ref={presPenaltyRef}
-                                                className="w-4 h-4 text-gray-500 cursor-pointer"
-                                                onClick={() => setShowPresPenaltyTooltip(!showPresPenaltyTooltip)}
-                                            />
-                                            <Tooltip
-                                                message="降低模型重复讨论相同主题的倾向。较高的值会鼓励模型探索新的话题。"
-                                                isVisible={showPresPenaltyTooltip}
-                                                anchorRef={presPenaltyRef}
-                                            />
-                                        </div>
+                                        <InfoTooltip message="降低模型重复讨论相同主题的倾向。较高的值会鼓励模型探索新的话题。" />
                                     </div>
                                 </div>
                                 <Slider
@@ -404,18 +309,7 @@ export const ConfigPage = () => {
                                         />
                                         <Label htmlFor="streamEnabled" className="flex items-center space-x-1">
                                             <span>启用流式传输</span>
-                                            <div className="relative">
-                                                <InfoIcon
-                                                    ref={streamingRef}
-                                                    className="w-4 h-4 text-gray-500 cursor-pointer"
-                                                    onClick={() => setShowStreamingTooltip(!showStreamingTooltip)}
-                                                />
-                                                <Tooltip
-                                                    message="允许实时接收生成的文本。这可以提供更快的响应，但可能增加网络负载。"
-                                                    isVisible={showStreamingTooltip}
-                                                    anchorRef={streamingRef}
-                                                />
-                                            </div>
+                                            <InfoTooltip message="允许实时接收生成的文本。这可以提供更快的响应，但可能增加网络负载。" />
                                         </Label>
                                     </div>
                                 </div>

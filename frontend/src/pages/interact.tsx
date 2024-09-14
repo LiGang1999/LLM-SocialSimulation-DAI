@@ -798,7 +798,7 @@ export const InteractPage: React.FC = () => {
                         onValueChange={(value: 'whisper' | 'interview') => setChatTypes(prev => ({ ...prev, [agentName]: value }))}
                     >
                         <SelectTrigger className="w-[100px]">
-                            <SelectValue placeholder="Chat type" />
+                            <SelectValue placeholder="Interview" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="whisper">Whisper</SelectItem>
