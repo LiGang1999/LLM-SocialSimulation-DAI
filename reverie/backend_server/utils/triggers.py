@@ -46,7 +46,7 @@ def another_data_handler(payload):
 
 
 @event_handler("chat_to_persona")
-def handle_chat_to_persona(reverie, payload):
+def handle_chat_to_persona(payload):
     # event_trigger(
     #     "chat_to_persona", {"mode": mode, "persona": persona_name, "reply": retval}
     # )

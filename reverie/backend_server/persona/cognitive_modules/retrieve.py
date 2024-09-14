@@ -220,11 +220,15 @@ def new_retrieve(persona, focal_points, n_count=30):
         # Getting all nodes from the agent's memory (both thoughts and events) and
         # sorting them by the datetime of creation.
         # You could also imagine getting the raw conversation, but for now.
+        L.debug(
+            f"seq events and seq_thought: {persona.a_mem.seq_event + persona.a_mem.seq_thought}"
+        )
         nodes = [
             [i.last_accessed, i]
             for i in persona.a_mem.seq_event + persona.a_mem.seq_thought
             if "idle" not in i.embedding_key
         ]
+        L.debug(f"{nodes}")
         nodes = sorted(nodes, key=lambda x: x[0])
         nodes = [i for created, i in nodes]
 
@@ -232,6 +236,7 @@ def new_retrieve(persona, focal_points, n_count=30):
         print("persona: ", persona)
         print("nodes: ", nodes)
         recency_out = extract_recency(persona, nodes)
+        L.debug(f"recency_out: {recency_out}")
         recency_out = normalize_dict_floats(recency_out, 0, 1)
         importance_out = extract_importance(persona, nodes)
         importance_out = normalize_dict_floats(importance_out, 0, 1)

@@ -105,26 +105,26 @@ class ScratchData(BaseModel):
     living_area: str
 
     # Optional fields with default values
-    vision_r: int = 0
-    att_bandwidth: int = 0
-    retention: int = 0
+    vision_r: int = 8
+    att_bandwidth: int = 8
+    retention: int = 8
     curr_time: Optional[str] = None
     curr_tile: Optional[str] = None
     currently: str = ""
-    concept_forget: int = 0
-    daily_reflection_time: int = 0
-    daily_reflection_size: int = 0
-    overlap_reflect_th: int = 0
-    kw_strg_event_reflect_th: int = 0
-    kw_strg_thought_reflect_th: int = 0
-    recency_w: int = 0
-    relevance_w: int = 0
-    importance_w: int = 0
-    recency_decay: float = 0.0
-    importance_trigger_max: int = 0
-    importance_trigger_curr: int = 0
+    concept_forget: int = 100
+    daily_reflection_time: int = 180
+    daily_reflection_size: int = 5
+    overlap_reflect_th: int = 4
+    kw_strg_event_reflect_th: int = 10
+    kw_strg_thought_reflect_th: int = 9
+    recency_w: int = 1
+    relevance_w: int = 1
+    importance_w: int = 1
+    recency_decay: float = 0.99
+    importance_trigger_max: int = 30 # very low poig score to cause reflection every online round!
+    importance_trigger_curr: int = 30
     importance_ele_n: int = 0
-    thought_count: int = 0
+    thought_count: int = 5
     daily_req: List[str] = Field(default_factory=list)
     f_daily_schedule: List[str] = Field(default_factory=list)
     f_daily_schedule_hourly_org: List[str] = Field(default_factory=list)
@@ -220,8 +220,8 @@ def bootstrap_persona(path: str, config: ScratchData):
             "relevance_w": 1,
             "importance_w": 1,
             "recency_decay": 0.99,
-            "importance_trigger_max": 150,
-            "importance_trigger_curr": 150,
+            "importance_trigger_max": 30,
+            "importance_trigger_curr": 30,
             "importance_ele_n": 0,
             "thought_count": 5,
             "daily_req": [],
@@ -851,6 +851,10 @@ class Reverie:
                     # Example: run 1000
                     int_count = int(sim_command.split()[-1])
                     self.start_server(int_count)
+                elif "print persona scratch" in sim_command[:21].lower():
+                    ret_str = f"importance_trigger_curr: {self.personas[
+                        " ".join(sim_command.split()[-2:])
+                    ].scratch.importance_trigger_curr}"
 
                 elif "print persona schedule" in sim_command[:22].lower():
                     # Print the decomposed schedule of the persona specified in the
@@ -1164,6 +1168,8 @@ class Reverie:
                         policy=json_data.get("policy", ""),
                         websearch=json_data.get("websearch", ""),
                     )
+
+                L.info(f"Command result: {ret_str}")
 
             except Exception as e:
                 traceback.print_exc()

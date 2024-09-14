@@ -9,7 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
-import { X, Plus, Edit, ChevronRight, InfoIcon } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+
+import { X, Plus, Edit, ChevronRight, InfoIcon, Trash2, Calendar, Globe, Globe2 } from "lucide-react";
+import DescriptionCard from '@/components/DescriptionCard';
 
 export interface Event {
     name: string;
@@ -38,6 +41,13 @@ export const EventsPage = () => {
             setNextEventId(1);
         }
     }, [events]);
+
+    useEffect(() => {
+        if (events && events.length > 0 && !selectedEvent) {
+            setSelectedEvent(events[0]);
+        }
+    }, [events]);
+
 
 
     const [errors, setErrors] = useState({
@@ -196,16 +206,10 @@ export const EventsPage = () => {
             <Navbar />
             <div className="container mx-auto">
                 <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 2.</span>方案设计</h2>
-                <div className="  mb-8">
-                    <div className="flex items-center mb-4">
-                        <InfoIcon className="w-6 h-6 text-blue-500 mr-2" />
-                        <h3 className="text-xl font-semibold text-gray-800">什么是仿真模板？</h3>
-                    </div>
-                    <p className="text-gray-700 leading-relaxed">
-                        仿真模板是预先配置好的社会情境和参数集合，集成了大型语言模型（LLM）技术。每个模板都代表一个独特的社交场景，如公共事件讨论、市长竞选或社区互动。这些模板预设了智能体数量、环境特征和互动规则，让您可以快速开始探索复杂的社会动态。选择一个模板，即可启动一个由AI驱动的、高度逼真的社会仿真实验。
-                    </p>
-
-                </div>
+                <DescriptionCard
+                    title="什么是仿真模板？"
+                    description="仿真模板是预先配置好的社会情境和参数集合，集成了大型语言模型（LLM）技术。每个模板都代表一个独特的社交场景，如公共事件讨论、市长竞选或社区互动。这些模板预设了智能体数量、环境特征和互动规则，让您可以快速开始探索复杂的社会动态。选择一个模板，即可启动一个由AI驱动的、高度逼真的社会仿真实验。"
+                />
 
 
 
@@ -264,27 +268,55 @@ export const EventsPage = () => {
 
 
 
-                                    <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
-                                        <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                                    <div className="space-y-2 max-h-80 overflow-y-auto">
+                                        <div className="space-y-2 max-h-80 overflow-y-auto">
                                             {events?.map((event) => (
                                                 <div
                                                     key={event.id}
-                                                    className={`flex items-center justify-between p-3 rounded-lg transition-shadow ${selectedEvent && selectedEvent.id === event.id
+                                                    className={`flex items-center justify-between p-3 rounded-lg transition-shadow cursor-pointer ${selectedEvent && selectedEvent.id === event.id
                                                         ? 'bg-blue-200'
                                                         : event.description.trim() === ''
                                                             ? 'bg-red-100'
                                                             : 'bg-indigo-50'
                                                         }`}
+                                                    onClick={() => setSelectedEvent(event)}
                                                 >
-                                                    <span className="text-gray-700 font-medium">{event.name}</span>
-                                                    <div>
-                                                        <Button variant="ghost" size="sm" onClick={() => setSelectedEvent(event)} className="text-blue-500 hover:text-blue-700">
-                                                            <Edit className="h-4 w-4 mr-1" /> 编辑
-                                                        </Button>
-                                                        <Button variant="ghost" size="sm" onClick={() => removeEvent(event.id)} className="text-red-500 hover:text-red-700">
-                                                            <X className="h-4 w-4 mr-1" /> 删除
-                                                        </Button>
+                                                    <div className="flex items-center space-x-3">
+                                                        <Globe className="h-5 w-5 text-blue-500" />
+                                                        <span className="text-gray-700 font-medium">{event.name}</span>
                                                     </div>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ml-2"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Are you sure you want to delete this event?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    This action cannot be undone. This will permanently delete this event and remove its data from our servers.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        removeEvent(event.id);
+                                                                    }}
+                                                                    className="bg-red-600 hover:bg-red-700"
+                                                                >
+                                                                    Delete
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
                                                 </div>
                                             ))}
                                         </div>

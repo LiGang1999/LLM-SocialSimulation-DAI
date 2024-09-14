@@ -1273,6 +1273,7 @@ def plan(persona, maze, personas, new_day, retrieved):
 
 ####wzt
 def plan_dai(persona, retrieved):
+    # NOTE HERE: the input of new_retrieve should be focal points instead of retrieved events.
     retrieved = new_retrieve_dai(persona, retrieved)
 
     # 使用字典推导式循环取出每个键值对的子字典

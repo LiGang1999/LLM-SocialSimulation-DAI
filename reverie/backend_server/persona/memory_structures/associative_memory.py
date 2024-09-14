@@ -58,6 +58,12 @@ class ConceptNode:
         self.keywords = keywords
         self.filling = filling
 
+    def __str__(self):
+        return f"ConceptNode({self.node_id}, {self.node_count}, {self.type_count}, {self.type}, {self.depth}, {self.created}, {self.expiration}, {self.subject}, {self.predicate}, {self.object}, {self.description}, {self.embedding_key}, {self.poignancy}, {self.keywords}, {self.filling})"
+
+    def __repr__(self):
+        return self.__str__()
+
     def spo_summary(self):
         return (self.subject, self.predicate, self.object)
 

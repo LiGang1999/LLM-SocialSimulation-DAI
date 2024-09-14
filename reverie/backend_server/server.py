@@ -316,7 +316,7 @@ async def add_command(sim_code: str, command: str):
     if not reverie_instance:
         L.warning(f"Simulation with code {sim_code} not found")
         raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
-    reverie_instance.handle_command(command)
+    reverie_instance.reverie.command_queue.put(command)
     return {"status": "success"}
 
 

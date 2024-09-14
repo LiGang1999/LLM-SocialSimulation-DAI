@@ -2937,8 +2937,23 @@ def run_gpt_prompt_focal_pt_new(persona, statements, n, test_input=None, verbose
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
-
 def run_gpt_prompt_insight_and_guidance(persona, statements, n, test_input=None, verbose=False):
+    @llm_function(chat=True,prompt_file="insignt_and_evidence.md")
+    def llm_insight_and_evidence(statements, n):
+
+        return [
+            {
+                "insight" : "<the first insight>",
+                "evidence" : [1,5,3]
+            },
+            {
+                "insight" : "<the second insight>",
+                "evidence" : [2,3]
+            }
+        ]
+
+
+def run_gpt_prompt_insight_and_guidance_old(persona, statements, n, test_input=None, verbose=False):
     def create_prompt_input(persona, statements, n, test_input=None):
         prompt_input = [statements, str(n)]
         return prompt_input

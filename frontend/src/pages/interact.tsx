@@ -12,14 +12,28 @@ import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, 
 import { apis } from '@/lib/api';
 import { ChatMessage, useSimContext } from '@/SimContext';
 import { RandomAvatar } from '@/components/Avatars';
-import mockBg from '@/assets/map.png'
+import mockBg from '@/assets/map.png';
+import SimulationGuide from '@/components/SimulationGuide';
+import { CSSTransition } from 'react-transition-group';
+
+import { Loader } from 'lucide-react';  // Import the Loader icon
+
 
 interface LogEntry {
     level: 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL' | 'COMMAND';
     message: string;
 };
 
-
+interface ChatFooterProps {
+    simCode: string;
+    agentName: string;
+    showGuide: boolean;
+    setShowGuide: (show: boolean) => void;
+    isRunning: boolean;
+    handleRunSimulation: (rounds: number) => void;
+    simRounds: number;
+    setSimRounds: (rounds: number) => void;
+}
 
 const ChatMessageBox: React.FC<ChatMessage> = ({ sender, content, timestamp, subject }) => (
     <div className={`flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4 items-start`}>
@@ -82,7 +96,7 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
 
 
 // Update DialogTab to accept messages as a prop
-const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
+const DialogTab: React.FC<{ messages: ChatMessage[], isRunning: boolean }> = ({ messages, isRunning }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [isAtBottom, setIsAtBottom] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -99,7 +113,6 @@ const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
         <div className="relative h-[calc(100vh-200px)]">
             <ScrollArea
                 className="h-full border-4 bg-gray-100 rounded-md border-gray-100 pl-2"
-                // onScrollCapture={handleScroll}
                 ref={scrollRef}
             >
                 <div className="p-4">
@@ -118,13 +131,23 @@ const DialogTab: React.FC<{ messages: ChatMessage[] }> = ({ messages }) => {
                     Back to Bottom
                 </Button>
             )}
+            {/* 3. Display the loading overlay when isRunning is true */}
+            {isRunning && (
+                <>
+                    <div className="absolute inset-0 bg-white opacity-75 rounded-lg" />
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
+                        <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
+                        <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
 
 
 
-const MapTab: React.FC = () => {
+const MapTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const moveStep = 50; // pixels to move per click
 
@@ -169,6 +192,15 @@ const MapTab: React.FC = () => {
                     <div></div>
                 </div>
             </div>
+            {isRunning && (
+                <>
+                    <div className="absolute inset-0 bg-white opacity-75 rounded-lg" />
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
+                        <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
+                        <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
@@ -209,11 +241,12 @@ const AgentStatusCard: React.FC<{ agent: apis.Agent, onViewFullInfo: (agentName:
                     </Button>
                 </CardFooter>
             )}
+
         </Card>
     );
 };
 
-const AgentStatusTab: React.FC = () => {
+const AgentStatusTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
     const [agents, setAgents] = useState<apis.Agent[]>([]);
     const [selectedAgent, setSelectedAgent] = useState<apis.Agent | null>(null);
 
@@ -242,7 +275,7 @@ const AgentStatusTab: React.FC = () => {
     };
 
     return (
-        <>
+        <div className="relative">
 
             <ScrollArea className="h-[calc(100vh-230px)] bg-gray-100 p-4 rounded-lg">
                 {agents.map((agent, index) => (
@@ -303,7 +336,16 @@ const AgentStatusTab: React.FC = () => {
                     </Card>
                 </div>
             )}
-        </>
+            {isRunning && (
+                <>
+                    <div className="absolute inset-0 bg-white opacity-75 rounded-lg" />
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
+                        <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
+                        <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
+                    </div>
+                </>
+            )}
+        </div>
     );
 };
 
@@ -312,8 +354,9 @@ const LogTab: React.FC<{
     logs: LogEntry[],
     addLog: (log: LogEntry) => void,
     clearLogs: () => void,
-    setIsRunning: (isRunning: boolean) => void
-}> = ({ logs, addLog, clearLogs, setIsRunning }) => {
+    setIsRunning: (isRunning: boolean) => void,
+    isRunning: boolean
+}> = ({ logs, addLog, clearLogs, setIsRunning, isRunning }) => {
     const [command, setCommand] = useState('');
     const ctx = useSimContext();
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -388,7 +431,7 @@ const LogTab: React.FC<{
     }, [JSON.stringify(logs)]);
 
     return (
-        <div className="flex-col rounded-lg bg-gray-100 p-4">
+        <div className="flex-col rounded-lg bg-gray-100 p-4 relative">
             <ScrollArea
                 className="font-mono text-sm h-[calc(100vh-280px)]"
                 // onScrollCapture={handleScroll}
@@ -424,6 +467,15 @@ const LogTab: React.FC<{
                     Clear
                 </Button>
             </div>
+            {isRunning && (
+                <>
+                    <div className="absolute inset-0 bg-white opacity-75 rounded-lg" />
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
+                        <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
+                        <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
@@ -436,12 +488,15 @@ export const InteractPage: React.FC = () => {
     const ctx = useSimContext();
     const [logs, setLogs] = useState<LogEntry[]>([]);
 
+    const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0, width: 0, height: 0 });
 
+    const runButtonRef = useRef<HTMLButtonElement>(null);
 
     const [isRunning, setIsRunning] = useState(true);
     const [privateChatAgent, setPrivateChatAgent] = useState<string>("");
     const [simRounds, setSimRounds] = useState<number>(1);
     const [demo, setDemo] = useState(true);
+    const [showGuide, setShowGuide] = useState(false);
 
     // New state for messages
     const [publicMessages, setPublicMessages] = useState<ChatMessage[]>([]);
@@ -476,6 +531,21 @@ export const InteractPage: React.FC = () => {
         fetchAgents();
         setIsOffline(ctx.data.currentTemplate?.meta.sim_mode != "online");
     }, [ctx.data.currSimCode, ctx.data.currentTemplate?.meta.sim_mode]);
+
+    useEffect(() => {
+        if (runButtonRef.current && showGuide) {
+            const rect = runButtonRef.current.getBoundingClientRect();
+            setButtonPosition({
+                top: rect.top,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height
+            });
+        }
+    }, [showGuide]);
+
+
+
 
     const addPublicMessage = (message: ChatMessage) => {
         setPublicMessages(prevMessages => [...prevMessages, message]);
@@ -547,14 +617,19 @@ export const InteractPage: React.FC = () => {
         }
     }, [demo, ctx.data.currentTemplate]);
 
+    const initialCheckRef = useRef(true);
+
     useEffect(() => {
         const checkStatus = async () => {
             const status = await apis.queryStatus(ctx.data.currSimCode || '');
             setIsRunning(status === 'running');
+            if (status !== 'running' && initialCheckRef.current) {
+                setShowGuide(true);
+                initialCheckRef.current = false;  // 标记为已检查
+            }
         };
 
-        // Check status immediately on mount
-        // checkStatus();
+        checkStatus();  // 初始检查
 
         // Set up interval to check status
         const intervalId = setInterval(checkStatus, 1000); // Check every 5 seconds
@@ -562,6 +637,7 @@ export const InteractPage: React.FC = () => {
         // Clean up interval on unmount
         return () => clearInterval(intervalId);
     }, [ctx.data.currSimCode]);
+
 
     const [messageSocket, setMessageSocket] = useState<WebSocket | null>(null);
 
@@ -604,14 +680,25 @@ export const InteractPage: React.FC = () => {
     }, [messageSocket]);
 
 
+
     // console.log(ctx.data)
     // const currentAgent = ctx.data.agents[privateChatAgent];
 
 
-    const ChatFooter: React.FC<{ simCode: string, agentName: string }> = ({ simCode, agentName }) => {
-        const [message, setMessage] = useState('');
-        const [chatType, setChatType] = useState<'whisper' | 'interview'>('interview');
+    const ChatFooter: React.FC<ChatFooterProps> = ({
+        simCode,
+        agentName,
+        showGuide,
+        setShowGuide,
+        isRunning,
+        handleRunSimulation,
+        simRounds,
+        setSimRounds
+    }) => {
 
+        const [message, setMessage] = useState('');
+        const [chatType, setChatType] = useState<'whisper' | 'interview'>('whisper');
+        const runButtonRef = useRef<HTMLButtonElement>(null);
         const handleSendMessage = async () => {
             console.log("Sending message:", simCode, agentName, chatType, privateMessages[agentName], message);
             if (message.trim()) {
@@ -630,6 +717,18 @@ export const InteractPage: React.FC = () => {
             }
         };
 
+        useEffect(() => {
+            if (runButtonRef.current && showGuide) {
+                const rect = runButtonRef.current.getBoundingClientRect();
+                setButtonPosition({
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,
+                    height: rect.height
+                });
+            }
+        }, [showGuide]);
+
         return (
             <CardFooter className="p-4 flex-col">
                 <div className="flex w-full justify-start space-x-2 mb-2">
@@ -637,6 +736,7 @@ export const InteractPage: React.FC = () => {
                         <Image className="h-4 w-4 mr-1" />
                         发布事件
                     </Button>
+
                     <Button
                         size="sm"
                         variant="outline"
@@ -645,16 +745,26 @@ export const InteractPage: React.FC = () => {
                     >
                         {isRunning ? '模拟中...' : '模拟1轮'}
                     </Button>
+
                     <div className="flex items-center space-x-1">
 
                         <Button
+                            ref={runButtonRef}
                             size="sm"
-                            variant="outline"
-                            onClick={() => { if (!isRunning) handleRunSimulation(simRounds) }}
+                            variant={showGuide ? "default" : "outline"}
+                            onClick={() => {
+                                handleRunSimulation(simRounds);
+                                setShowGuide(false);
+                            }}
                             disabled={isRunning}
+                            className={`
+        ${showGuide ? "animate-pulse bg-primary text-primary-foreground" : ""}
+        ${showGuide ? "z-[500] relative shadow-lg" : ""}
+    `}
                         >
                             {isRunning ? '模拟中...' : `模拟${simRounds}轮`}
                         </Button>
+
                         <Input
                             type="number"
                             value={simRounds}
@@ -677,7 +787,7 @@ export const InteractPage: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="whisper">Whisper</SelectItem>
-                            <SelectItem value="interview">Analysis</SelectItem>
+                            <SelectItem value="interview">Interview</SelectItem>
                         </SelectContent>
                     </Select>
                     <Input
@@ -711,16 +821,16 @@ export const InteractPage: React.FC = () => {
                             <TabsTrigger value="log"><FileText className="mr-2 h-4 w-4" />日志</TabsTrigger>
                         </TabsList>
                         <TabsContent value="dialog" className="flex-grow">
-                            <DialogTab messages={publicMessages} />
+                            <DialogTab messages={publicMessages} isRunning={isRunning} />
                         </TabsContent>
                         {isOffline && <TabsContent value="map" className="h-full w-full">
-                            <MapTab />
+                            <MapTab isRunning={isRunning} />
                         </TabsContent>}
                         <TabsContent value="ai" className="flex-grow">
-                            <AgentStatusTab />
+                            <AgentStatusTab isRunning={isRunning} />
                         </TabsContent>
                         <TabsContent value="log" className="flex-grow">
-                            <LogTab logs={logs} addLog={addLog} clearLogs={clearLogs} setIsRunning={setIsRunning} />
+                            <LogTab logs={logs} addLog={addLog} clearLogs={clearLogs} setIsRunning={setIsRunning} isRunning={isRunning} />
                         </TabsContent>
 
                     </Tabs>
@@ -764,10 +874,32 @@ export const InteractPage: React.FC = () => {
                                     )}
                             </ScrollArea>
                         </CardContent>
-                        <ChatFooter simCode={ctx.data.currSimCode || ""} agentName={privateChatAgent} />
+                        <ChatFooter
+                            simCode={ctx.data.currSimCode || ""}
+                            agentName={privateChatAgent}
+                            showGuide={showGuide}
+                            setShowGuide={setShowGuide}
+                            isRunning={isRunning}
+                            handleRunSimulation={handleRunSimulation}
+                            simRounds={simRounds}
+                            setSimRounds={setSimRounds}
+                        />
                     </Card>
                 </div>
             </div>
+            <CSSTransition
+                in={showGuide}
+                timeout={300} // Duration of the animation in milliseconds
+                classNames="fade"
+                unmountOnExit
+            >
+                <SimulationGuide
+                    onClose={() => setShowGuide(false)}
+                    simRounds={simRounds}
+                    buttonPosition={buttonPosition}
+                />
+            </CSSTransition>
+
         </div>
     );
 };

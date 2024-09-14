@@ -6,13 +6,24 @@ interface ProgressBarProps extends HTMLAttributes<HTMLDivElement> {
     orientation?: 'horizontal' | 'vertical';
 }
 
+interface Step {
+    label: string;
+    link: string;
+}
+
 export const ProgressBar: React.FC<ProgressBarProps> = ({
     currentStep,
     orientation = 'horizontal',
     className,
     ...props
 }) => {
-    const steps: string[] = ['选择模板', '方案设计', '智能体配置', '参数配置', '开始仿真'];
+    const steps: Step[] = [
+        { label: '选择模板', link: '/templates' },
+        { label: '方案设计', link: '/events' },
+        { label: '智能体配置', link: '/agents' },
+        { label: '参数配置', link: '/llmconfig' },
+        { label: '开始仿真', link: '/confirm' },
+    ];
 
     const isVertical = orientation === 'vertical';
 
@@ -42,16 +53,15 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
                 </div>
                 <div className={`flex ${isVertical ? 'flex-col justify-between h-full' : 'justify-between'}`}>
                     {steps.map((step, index) => (
-                        // Adjusted alignment for vertical mode
-                        <div key={index} className='flex flex-col items-center'>
+                        <a key={index} href={step.link} className='flex flex-col items-center'>
                             <div className='relative'>
                                 <div
                                     className={`w-6 h-6 rounded-full
-                        ${index < currentStep ? 'bg-blue-600' :
+                                        ${index < currentStep ? 'bg-blue-600' :
                                             index === currentStep ? 'bg-blue-500' : 'bg-gray-300'}`}
                                 >
                                     {index < currentStep && (
-                                        <svg className="w-4 h-4 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <svg className="w-4 h-4 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                         </svg>
                                     )}
@@ -59,9 +69,9 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
                             </div>
                             {/* Ensured text is centered and doesn't wrap */}
                             <div className='text-center mt-2'>
-                                <span className="text-sm text-gray-600 whitespace-nowrap">{step}</span>
+                                <span className="text-sm text-gray-600 whitespace-nowrap">{step.label}</span>
                             </div>
-                        </div>
+                        </a>
                     ))}
                 </div>
             </div>

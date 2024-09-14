@@ -58,6 +58,7 @@ def generate_focal_points_new(persona, n=3):
     return run_gpt_prompt_focal_pt_new(persona, statements, n)[0]
 
 
+# TODO this function is broken again...
 def generate_insights_and_evidence(persona, nodes, n=5):
     if debug:
         print("GNS FUNCTION: <generate_insights_and_evidence>")
@@ -199,6 +200,7 @@ def run_reflect_new(persona):
             thought_poignancy = generate_poig_score(persona, "thought", thought)
             thought_embedding_pair = (thought, get_embedding(thought))
 
+            L.debug(f"{persona.name} adding thought: s={s} p={p} o={o}")
             persona.a_mem.add_thought(
                 created,
                 expiration,
@@ -365,6 +367,7 @@ def reflect(persona):
             )
 
 
+# This function should be greatly improved
 def reflect_dai(persona):
 
     if reflection_trigger(persona):

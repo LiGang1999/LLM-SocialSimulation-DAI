@@ -44,6 +44,7 @@
     "react-dom": "^18.3.1",
     "react-nice-avatar": "^1.5.0",
     "react-router-dom": "^6.26.1",
+    "react-transition-group": "^4.4.5",
     "recharts": "^2.12.7",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
@@ -53,6 +54,7 @@
     "@types/node": "^22.5.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@types/react-transition-group": "^4.4.11",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.9.0",
