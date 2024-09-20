@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,10 +10,10 @@ import { Slider } from "@/components/ui/slider";
 import '@/App.css'
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
-import { InfoIcon } from 'lucide-react';
-import { useRef } from 'react';
-import { InfoTooltip, Tooltip } from '@/components/Tooltip';
+import { InfoTooltip } from '@/components/Tooltip';
 import DescriptionCard from '@/components/DescriptionCard';
+
+import backgroundImage from '@/assets/Untitled.png'
 
 const defaultConfig: apis.LLMConfig = {
     type: 'default',
@@ -31,30 +31,6 @@ const defaultConfig: apis.LLMConfig = {
 export const ConfigPage = () => {
     const ctx = useSimContext();
     const [config, setConfig] = useState<apis.LLMConfig>(ctx.data.llmConfig || defaultConfig);
-
-    const infoIconRef = useRef(null);  // 创建 ref
-    const [showTooltip, setShowTooltip] = useState(false);
-    const maxTokensRef = useRef(null);
-    const topPRef = useRef(null);
-    const freqPenaltyRef = useRef(null);
-    const presPenaltyRef = useRef(null);
-    const configTypeRef = useRef(null);
-    const apiBaseRef = useRef(null);
-    const apiKeyRef = useRef(null);
-    const engineRef = useRef(null);
-
-
-    const [showMaxTokensTooltip, setShowMaxTokensTooltip] = useState(false);
-    const [showTopPTooltip, setShowTopPTooltip] = useState(false);
-    const [showFreqPenaltyTooltip, setShowFreqPenaltyTooltip] = useState(false);
-    const [showPresPenaltyTooltip, setShowPresPenaltyTooltip] = useState(false);
-    const streamingRef = useRef(null);
-    const [showStreamingTooltip, setShowStreamingTooltip] = useState(false);
-    const [showConfigTypeTooltip, setShowConfigTypeTooltip] = useState(false);
-    const [showApiBaseTooltip, setShowApiBaseTooltip] = useState(false);
-    const [showApiKeyTooltip, setShowApiKeyTooltip] = useState(false);
-    const [showEngineTooltip, setShowEngineTooltip] = useState(false);
-
 
 
     useEffect(() => {
@@ -83,17 +59,17 @@ export const ConfigPage = () => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-50">
+        <div className="flex flex-col min-h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
             <Navbar />
             <main className="flex-grow w-full container mx-auto">
                 <h2 className="text-5xl font-bold my-12 text-gray-900"><span className="font-mono">Step 4.</span>仿真参数配置</h2>
 
                 <DescriptionCard
-                    title="描述标题"
-                    description="描述文本"
+                    title="选择仿真使用的大语言模型"
+                    description="我们的整个仿真实验由大语言模型驱动，包括智能体的对话、思考和行为。您可以选择以下两种方式之一：1. 使用默认配置，即我们为您部署的开源 LLaMA-3 70B 大模型及其参数；2. 指定您自己的符合 OpenAI 接口规范的大语言模型及其参数。"
                 />
 
-                <Card className="w-full mx-auto">
+                <Card className="w-full bg-opacity-70 bg-white mx-auto">
                     <CardContent className="space-y-6 my-4">
 
 

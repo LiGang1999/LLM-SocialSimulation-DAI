@@ -1,8 +1,8 @@
 import { ChatMessage } from '@/SimContext';
-import axios from 'axios'
+import axios from 'axios';
 
-export const apiBaseUrl = await import.meta.env.VITE_SERVER_IP;
-export const apiPort = await import.meta.env.VITE_BACK_PORT;
+export const apiBaseUrl = import.meta.env.VITE_SERVER_IP;
+export const apiPort = import.meta.env.VITE_BACK_PORT;
 
 export const api = axios.create({
     baseURL: `http://${apiBaseUrl}:${apiPort}`,

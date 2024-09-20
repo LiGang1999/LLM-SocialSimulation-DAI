@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from "@/components/Navbar"
 import { BottomNav } from "@/components/BottomNav"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { PlusCircle, Save, Trash2 } from 'lucide-react'
+import { PlusCircle, Trash2 } from 'lucide-react'
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 import { RandomAvatar } from '@/components/Avatars';
 import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
-import { InfoIcon } from 'lucide-react';
 import DescriptionCard from '@/components/DescriptionCard';
 import { InfoTooltip } from '@/components/Tooltip';
+
+import backgroundImage from '@/assets/Untitled.png'
 
 
 const mockAgents: (apis.Agent & { id: number })[] = [
@@ -318,18 +317,18 @@ export const AgentsPage = () => {
     const isNextDisabled = Object.keys(errors).length > 0 || agents.length === 0;
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-100">
+        <div className="flex flex-col min-h-screen bg-gray-100" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
             <Navbar />
             <div className="container mx-auto">
                 <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 3.</span>自定义智能体</h2>
 
                 <DescriptionCard
-                    title="描述标题"
-                    description="描述文本"
+                    title="配置仿真智能体"
+                    description="您可以自定义社会仿真实验中的各个智能体。您可以添加新的智能体，编辑现有智能体的各项属性，如姓名、年龄、性格特征、日常计划、生活方式和居住区域等。这些设置将决定智能体在仿真中的行为模式、互动方式和决策过程。通过精心配置这些参数，您可以创建更真实、更丰富的仿真环境，从而获得更有价值的实验结果。"
                 />
 
 
-                <Card className="shadow-lg overflow-hidden">
+                <Card className="bg-opacity-70 bg-white overflow-hidden">
                     <CardContent className='px-0'>
                         <div className="flex">
                             <div className={`${localAgent ? 'w-1/3' : 'w-full'} border-r border-gray-200`}>
@@ -388,7 +387,7 @@ export const AgentsPage = () => {
                             </div>
 
                             {localAgent && (
-                                <div className="w-2/3 bg-white p-6">
+                                <div className="w-2/3 p-6">
                                     <div className="flex items-center justify-between mb-6">
                                         <div className="flex items-center space-x-6">
                                             <RandomAvatar

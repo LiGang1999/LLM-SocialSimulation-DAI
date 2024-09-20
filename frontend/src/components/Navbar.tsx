@@ -30,7 +30,7 @@ const routeList: RouteProps[] = [
         label: "首页",
     },
     {
-        href: "#testimonials",
+        href: "#documents",
         label: "文档",
     },
     {
@@ -38,7 +38,7 @@ const routeList: RouteProps[] = [
         label: "仿真",
     },
     {
-        href: "#pricing",
+        href: "#about",
         label: "关于",
     },
     {

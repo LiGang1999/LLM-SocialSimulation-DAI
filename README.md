@@ -1,46 +1,108 @@
 # Generalized LLM Based Social Simulation Instrument
 
-this is xmt branch!
-
-<!-- <p align="center" width="100%">
-<img src="cover.png" alt="Smallville" style="width: 80%; min-width: 300px; display: block; margin: auto;">
-</p> -->
-
 <p align="center" width="100%">
-<img src="uml.jpg" alt="Smallville" style="width: 80%; min-width: 300px; display: block; margin: auto;">
+<img src="uml.jpg" alt="System Architecture" style="width: 80%; min-width: 300px; display: block; margin: auto;">
 </p>
 
-This repository has its origins in [GA](https://github.com/joonspk-research/generative_agents) but extends beyond it. Our simulation tool is readily scalable and encompasses an offline simulation module (GA) as well as an online simulation module. Additionally, we are in the process of developing a user interface (for launch, display, and interaction) to enhance user-friendliness.
+## Introduction
 
-## Environment
+This repository extends the work of [Generative Agents (GA)](https://github.com/joonspk-research/generative_agents) to create a more comprehensive and scalable simulation tool. Our project includes both an offline simulation module (based on GA) and an online simulation module. We are also developing a user-friendly interface for launching, displaying, and interacting with the simulation.
+
+## Environment Setup
+
+### Prerequisites
+
+- Linux operating system (recommended)
+- Git
+- Internet connection
+
 ### Frontend Environment Setup
-#### Installing NodeJS
-- For Linux
-```bash
-# Add the repository
-curl -sL https://deb.nodesource.com/setup_21.x | sudo -E bash -
-# Install NodeJS
-sudo apt-get install -y nodejs
-sudo apt-get install -y npm
-```
-#### Installing Dependencies
-Install frontend dependencies:
+
+#### Installing Node.js using NVM (Node Version Manager)
+
+1. Install NVM:
+   ```bash
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+   ```
+
+2. Restart your terminal or run:
+   ```bash
+   source ~/.bashrc
+   ```
+
+3. Install and use the latest LTS version of Node.js:
+   ```bash
+   nvm install --lts
+   nvm use --lts
+   ```
+
+4. Verify the installation:
+   ```bash
+   node --version
+   npm --version
+   ```
+
+#### Installing Frontend Dependencies
+
+Navigate to the frontend directory and install dependencies:
+
 ```bash
 cd frontend_online_old
 npm install
 ```
 
+### Backend Environment Setup
 
-Install backend dependencies:
-```bash
-cd . # projct root directory
-pip install -r requirements.txt
-```
+We recommend using Miniconda to manage Python environments and avoid package conflicts.
 
-We recommend using `Miniconda` or `Anaconda` to avoid package conflicts.
+#### Installing Miniconda
 
-## Changing Ports
-Modify `port1`, `port2`, and `port3` in `config.yaml` to unused ports.
+1. Download the Miniconda installer:
+   ```bash
+   wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+   ```
+
+2. Run the installer:
+   ```bash
+   bash Miniconda3-latest-Linux-x86_64.sh
+   ```
+
+3. Follow the prompts to complete the installation.
+
+4. Restart your terminal or run:
+   ```bash
+   source ~/.bashrc
+   ```
+
+#### Creating a Conda Environment and Installing Dependencies
+
+1. Create a new conda environment:
+   ```bash
+   conda create -n llm-sim python=3.12
+   ```
+
+2. Activate the environment:
+   ```bash
+   conda activate llm-sim
+   ```
+
+3. Install PyTorch (adjust the command based on your CUDA version if using GPU):
+   https://pytorch.org/get-started/locally/
+   ```bash
+   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+   ```
+
+4. Install other dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Configuration
+
+### Changing Ports
+
+Modify `port1`, `port2`, and `port3` in `config.yaml` to use available ports:
+
 ```yaml
 server_ip: 10.72.74.13
 front_port: port1
@@ -48,73 +110,64 @@ front_port2: port2
 back_port: port3
 ```
 
-## Modify llm configurations
-Create `utils/config.py` under `reverie/backend_server`. Here is a template:
+### LLM Configuration
+
+Create `utils/config.py` under `reverie/backend_server`. Use the following template and replace the placeholders with your actual API keys and preferences:
+
 ```python
-# Copy and paste your OpenAI API Key
 openai_api_base = "https://api.openai.com/v1"
-openai_api_key = "<Your OpenAI API>"
-override_model = "<Your Model Name>" # if override_model is set to non-empty string, all api calls will be overrided to this model
-
-# model_name="gpt-3.5-turbo",
-# model_name="Llama-2-7b-chat-hf",
-# model_name="Llama-2-13b-chat-hf",
-# model_name="vicuna-13b-v1.5-16k",
-# model_name="vicuna-33b-v1.3",
-# model_name="Baichuan-13B-Chat",
-
-google_api_key = "<>"  # Google Custom Search, api key
-google_api_cx = "c2ab1202fad094a87"  # Google Custom Search, engine id
-
-# Put your name
-key_owner = "<Name>"
-
+openai_api_key = "<Your OpenAI API Key>"
+override_model = "<Your Model Name>"  # Set to non-empty string to override all API calls
+google_api_key = "<Your Google API Key>"
+google_api_cx = "c2ab1202fad094a87"
+key_owner = "<Your Name>"
 maze_assets_loc = "../api/static/assets"
 env_matrix = f"{maze_assets_loc}/the_ville/matrix"
 env_visuals = f"{maze_assets_loc}/the_ville/visuals"
-
 storage_path = "../storage"
 temp_storage_path = "../temp_storage"
-
 collision_block_id = "32125"
-
-# Verbose
 debug = True
-
 ```
 
-## Starting the System
-```bash
-python start.py
-# python start.py --help to show helps
-```
+## Running the System
 
-如果`Django` 提示你需要 `migrate`，输入下面命令：
-```bash
-cd reverie/backend_server && python manage.py migrate
-```
+1. Ensure you're in the project root directory.
 
-```bash
-cd environment/frontend_server && python manage.py migrate
-```
+2. Start the system:
+   ```bash
+   python start.py
+   ```
+
+   Use `python start.py --help` for additional options.
+
+3. If Django prompts for migrations, run:
+   ```bash
+   cd reverie/backend_server && python manage.py migrate
+   cd environment/frontend_server && python manage.py migrate
+   ```
 
 ## Debugging
 
-set the environment variable LOG_LEVEL to `debug`, `info`, `warning`, `error` or `critical` to enable different levels of logging.
+Set the `LOG_LEVEL` environment variable to control logging verbosity:
 
 ```bash
-export LOG_LEVEL=debug
+export LOG_LEVEL=debug  # Options: debug, info, warning, error, critical
 python start.py
 ```
 
-You can save the stdout of web server, frontend server and backend server by adding `--save` argument, the logs will be saved to `webpage.log`, `frontend.log` and `backend.log` respectively.
+To save server logs, use the `--save` argument:
+
 ```bash
 python start.py --save
 ```
 
+This will save logs to `webpage.log`, `frontend.log`, and `backend.log`.
+
 ## Shutting Down
-Press `Ctrl+C` to shut down the services.
+
+Press `Ctrl+C` to shut down all services.
 
 ## Acknowledgements
 
-The source code has been adapted from [GA](https://github.com/joonspk-research/generative_agents).
+This project builds upon the work of [Generative Agents (GA)](https://github.com/joonspk-research/generative_agents). We extend our gratitude to the original authors for their contributions to the field.

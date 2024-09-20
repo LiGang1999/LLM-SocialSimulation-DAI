@@ -16,6 +16,9 @@ import mockBg from '@/assets/map.png';
 import SimulationGuide from '@/components/SimulationGuide';
 import { CSSTransition } from 'react-transition-group';
 
+
+import backgroundImage from '@/assets/Untitled.png'
+
 import { Loader } from 'lucide-react';  // Import the Loader icon
 
 
@@ -70,7 +73,7 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
     }, []);
 
     return (
-        <div className="flex justify-between items-center bg-secondary p-2 rounded-md mt-4">
+        <div className="flex justify-between items-center bg-white bg-opacity-70 p-2 border-2 border-blue rounded-md mt-4">
             <div className="flex items-center">
                 <Clock className="h-4 w-4 mr-1" />
                 <span className="text-sm">{currentTime.toLocaleTimeString()}</span>
@@ -98,7 +101,7 @@ const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
 // Update DialogTab to accept messages as a prop
 const DialogTab: React.FC<{ messages: ChatMessage[], isRunning: boolean }> = ({ messages, isRunning }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
-    const [isAtBottom, setIsAtBottom] = useState(true);
+    const [isAtBottom, _] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -112,7 +115,7 @@ const DialogTab: React.FC<{ messages: ChatMessage[], isRunning: boolean }> = ({ 
     return (
         <div className="relative h-[calc(100vh-200px)]">
             <ScrollArea
-                className="h-full border-4 bg-gray-100 rounded-md border-gray-100 pl-2"
+                className="h-full rounded-md bg-white bg-opacity-70 border-gray-100 pl-2"
                 ref={scrollRef}
             >
                 <div className="p-4">
@@ -134,7 +137,7 @@ const DialogTab: React.FC<{ messages: ChatMessage[], isRunning: boolean }> = ({ 
             {/* 3. Display the loading overlay when isRunning is true */}
             {isRunning && (
                 <>
-                    <div className="absolute inset-0 bg-white opacity-75 rounded-lg" />
+                    <div className="absolute inset-0 bg-white opacity-50 rounded-lg" />
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
                         <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
                         <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
@@ -174,10 +177,6 @@ const MapTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
                     transform: `translate(${position.x}px, ${position.y}px)`,
                     transition: 'transform 0.3s ease-out',
                 }}
-                onError={(e) => {
-                    // e.currentTarget.style.display = 'none';
-                    // e.currentTarget.parentElement.classList.add('bg-gray-200');
-                }}
             />
             <div className="absolute bottom-4 right-4">
                 <div className="grid grid-cols-3 gap-2">
@@ -194,7 +193,7 @@ const MapTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
             </div>
             {isRunning && (
                 <>
-                    <div className="absolute inset-0 bg-white opacity-75 rounded-lg" />
+                    <div className="absolute inset-0 bg-white opacity-50 rounded-lg" />
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
                         <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
                         <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
@@ -277,7 +276,7 @@ const AgentStatusTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
     return (
         <div className="relative">
 
-            <ScrollArea className="h-[calc(100vh-230px)] bg-gray-100 p-4 rounded-lg">
+            <ScrollArea className="h-[calc(100vh-230px)] bg-white bg-opacity-70 p-4 rounded-lg">
                 {agents.map((agent, index) => (
                     <AgentStatusCard key={index} agent={agent} onViewFullInfo={handleViewFullInfo} />
                 ))}
@@ -338,7 +337,7 @@ const AgentStatusTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
             )}
             {isRunning && (
                 <>
-                    <div className="absolute inset-0 bg-white opacity-75 rounded-lg" />
+                    <div className="absolute inset-0 bg-white opacity-50 rounded-lg" />
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
                         <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
                         <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
@@ -361,7 +360,6 @@ const LogTab: React.FC<{
     const ctx = useSimContext();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const [autoScroll, setAutoScroll] = useState(true);
 
     const handleCommand = async () => {
         setIsRunning(true);
@@ -401,15 +399,6 @@ const LogTab: React.FC<{
         // }
     };
 
-    const handleScroll = () => {
-        if (scrollRef.current) {
-            const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-            const atBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 1;
-            console.log(scrollHeight, clientHeight, scrollTop, atBottom)
-            setAutoScroll(atBottom);
-        }
-    };
-
     // const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     //     if (scrollRef.current) {
     //         const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
@@ -432,7 +421,7 @@ const LogTab: React.FC<{
     }, [JSON.stringify(logs)]);
 
     return (
-        <div className="flex-col rounded-lg bg-gray-100 p-4 relative">
+        <div className="flex-col rounded-lg bg-white bg-opacity-70 p-4 relative">
             <ScrollArea
                 className="font-mono text-sm h-[calc(100vh-280px)]"
                 // onScrollCapture={handleScroll}
@@ -470,7 +459,7 @@ const LogTab: React.FC<{
             </div>
             {isRunning && (
                 <>
-                    <div className="absolute inset-0 bg-white opacity-75 rounded-lg" />
+                    <div className="absolute inset-0 bg-white opacity-50 rounded-lg" />
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
                         <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
                         <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
@@ -497,7 +486,7 @@ export const InteractPage: React.FC = () => {
     const [isRunning, setIsRunning] = useState(true);
     const [privateChatAgent, setPrivateChatAgent] = useState<string>("");
     const [simRounds, setSimRounds] = useState<number>(1);
-    const [demo, setDemo] = useState(true);
+    const [demo, _] = useState(true);
     const [showGuide, setShowGuide] = useState(false);
 
     // New state for messages
@@ -821,7 +810,7 @@ export const InteractPage: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-background">
+        <div className="flex flex-col min-h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
             <Navbar />
             <div className="container flex w-full mx-auto mt-4 mb-4 px-4 flex-grow">
                 {/* Left panel with tabs and status bar */}
@@ -829,7 +818,7 @@ export const InteractPage: React.FC = () => {
                     <Tabs defaultValue="dialog" className="w-full flex-grow"
                     // onValueChange={(value) => value === 'ai' && fetchAgentStatus()}
                     >
-                        <TabsList className={isOffline ? `grid w-full grid-cols-4` : `grid w-full grid-cols-3`}>
+                        <TabsList className={isOffline ? `grid w-full grid-cols-4` : `grid w-full grid-cols-3` + " bg-white bg-opacity-50"}>
                             <TabsTrigger value="dialog"><MessageSquare className="mr-2 h-4 w-4" />对话</TabsTrigger>
                             {isOffline && <TabsTrigger value="map"><MapPin className="mr-2 h-4 w-4" />地图</TabsTrigger>}
                             <TabsTrigger value="ai"><Bot className="mr-2 h-4 w-4" />智能体状态</TabsTrigger>
@@ -854,7 +843,7 @@ export const InteractPage: React.FC = () => {
 
                 {/* Right panel with chat */}
                 <div className="w-1/3 pl-4">
-                    <Card className="h-full flex flex-col">
+                    <Card className="h-full flex flex-col bg-white bg-opacity-70">
                         <CardHeader className="flex flex-row items-center space-x-4 pb-6 mb-6 border-b border-b-gray-300">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

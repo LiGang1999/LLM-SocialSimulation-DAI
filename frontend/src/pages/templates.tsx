@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from '@/components/Navbar';
 
@@ -6,14 +6,15 @@ import start1 from '@/assets/template2.png';
 import chat from '@/assets/chat.png';
 import stf from '@/assets/start2.jpg'
 
-import { ProgressBar } from '@/components/ProgressBar';
+
 import { BottomNav } from '@/components/BottomNav';
 
 
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
-import { InfoIcon } from 'lucide-react';
 import DescriptionCard from '@/components/DescriptionCard';
+
+import backgroundImage from '@/assets/Untitled.png'
 
 // TODO Add background for this webpage
 const getTemplateImage = (template: apis.TemplateListItem) => {
@@ -76,14 +77,12 @@ export const TemplatePage = () => {
 
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [templates, setTemplates] = useState<apis.TemplateListItem[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchTemplates = async () => {
             try {
                 const fetchedTemplates = await apis.fetchTemplates();
                 setTemplates(fetchedTemplates.envs);
-                setIsLoading(false);
                 ctx.setData(
                     {
                         ...ctx.data,
@@ -94,7 +93,6 @@ export const TemplatePage = () => {
             } catch (err) {
                 console.error("Failed to fetch templates:", err);
                 setTemplates(mockTemplates);
-                setIsLoading(false);
             }
         };
 
@@ -121,7 +119,7 @@ export const TemplatePage = () => {
 
 
     return (
-        <div className="flex flex-col bg-gray-100 min-h-screen">
+        <div className="flex flex-col bg-gray-100 min-h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
             <Navbar />
             <main className="container flex-grow mx-auto">
 
@@ -136,7 +134,7 @@ export const TemplatePage = () => {
                     {templates.map((template) => (
                         <Card
                             key={template.template_sim_code}
-                            className={`w-full rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-150 cursor-pointer ${selectedTemplate === template.template_sim_code ? 'ring-4 ring-indigo-600 ring-offset-4' : ''
+                            className={`w-full rounded-xl bg-opacity-30 bg-white overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-150 cursor-pointer ${selectedTemplate === template.template_sim_code ? 'ring-4 ring-indigo-600 ring-offset-4' : ''
                                 }`}
                             onClick={() => handleSelectTemplate(template.template_sim_code)}
                         >
@@ -159,8 +157,8 @@ export const TemplatePage = () => {
                         </Card>
                     ))}
                     {/* 敬请期待 Card */}
-                    <Card className="w-full rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-150">
-                        <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                    <Card className="w-full rounded-xl overflow-hidden bg-opacity-30 bg-white shadow-lg hover:shadow-2xl transition-all duration-150">
+                        <div className="w-full h-48 bg-gray-200 bg-opacity-50 flex items-center justify-center">
                             <span className="text-4xl text-gray-500 text-center">COMING SOON</span>
                         </div>
                         <CardHeader className="p-4 bg-gradient-to-r from-gray-400 to-gray-500">
