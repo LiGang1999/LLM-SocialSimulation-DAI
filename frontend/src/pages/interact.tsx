@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator"
 import { Avatar } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -267,7 +268,7 @@ const AgentStatusTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
     const handleViewFullInfo = async (agentName: string) => {
         try {
             const agentDetail = await apis.agentDetail(data.currSimCode || "", agentName);
-            setSelectedAgent(agentDetail);
+            setSelectedAgent(agentDetail.scratch);
         } catch (error) {
             console.error('Error fetching agent detail:', error);
             // Handle error (e.g., show an error message to the user)
@@ -290,48 +291,100 @@ const AgentStatusTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
                 </Button>
             </div>
             {selectedAgent && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <Card className="w-2/3 max-h-[80vh] overflow-y-auto">
-                        <CardHeader>
-                            <h2 className="text-2xl font-bold">{selectedAgent.name} - Full Information</h2>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-4xl max-h-[90vh] shadow-lg">
+                        <CardHeader className="bg-primary text-primary-foreground">
+                            <h2 className="text-3xl font-bold">{selectedAgent.name} - Full Information</h2>
                         </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p><strong>Name:</strong> {selectedAgent.name}</p>
-                                    <p><strong>First Name:</strong> {selectedAgent.first_name}</p>
-                                    <p><strong>Last Name:</strong> {selectedAgent.last_name}</p>
-                                    <p><strong>Age:</strong> {selectedAgent.age}</p>
-                                    <p><strong>Daily Plan Requirement:</strong> {selectedAgent.daily_plan_req}</p>
-                                    <p><strong>Innate Traits:</strong> {selectedAgent.innate}</p>
-                                    <p><strong>Learned Traits:</strong> {selectedAgent.learned}</p>
-                                    <p><strong>Currently:</strong> {selectedAgent.currently}</p>
-                                    <p><strong>Lifestyle:</strong> {selectedAgent.lifestyle}</p>
-                                    <p><strong>Living Area:</strong> {selectedAgent.living_area}</p>
+                        <ScrollArea className="h-[calc(90vh-130px)]">
+                            <CardContent className="p-6">
+                                <div className="space-y-8">
+                                    {[
+                                        {
+                                            title: "Basic Info", fields: [
+                                                { label: "Name", value: selectedAgent.name },
+                                                { label: "First Name", value: selectedAgent.first_name },
+                                                { label: "Last Name", value: selectedAgent.last_name },
+                                                { label: "Age", value: selectedAgent.age },
+                                                { label: "Innate Traits", value: selectedAgent.innate },
+                                                { label: "Learned Traits", value: selectedAgent.learned },
+                                                { label: "Currently", value: selectedAgent.currently },
+                                                { label: "Lifestyle", value: selectedAgent.lifestyle },
+                                                { label: "Living Area", value: selectedAgent.living_area },
+                                                { label: "Avatar", value: selectedAgent.avatar },
+                                            ]
+                                        },
+                                        {
+                                            title: "Parameters", fields: [
+                                                { label: "Vision Range", value: selectedAgent.vision_r },
+                                                { label: "Attention Bandwidth", value: selectedAgent.att_bandwidth },
+                                                { label: "Retention", value: selectedAgent.retention },
+                                                { label: "Concept Forget", value: selectedAgent.concept_forget },
+                                                { label: "Daily Reflection Time", value: selectedAgent.daily_reflection_time },
+                                                { label: "Daily Reflection Size", value: selectedAgent.daily_reflection_size },
+                                                { label: "Overlap Reflect Threshold", value: selectedAgent.overlap_reflect_th },
+                                                { label: "Keyword Strong Event Reflect Threshold", value: selectedAgent.kw_strg_event_reflect_th },
+                                                { label: "Keyword Strong Thought Reflect Threshold", value: selectedAgent.kw_strg_thought_reflect_th },
+                                                { label: "Recency Weight", value: selectedAgent.recency_w },
+                                                { label: "Relevance Weight", value: selectedAgent.relevance_w },
+                                                { label: "Importance Weight", value: selectedAgent.importance_w },
+                                                { label: "Recency Decay", value: selectedAgent.recency_decay },
+                                                { label: "Importance Trigger Max", value: selectedAgent.importance_trigger_max },
+                                                { label: "Importance Trigger Current", value: selectedAgent.importance_trigger_curr },
+                                                { label: "Importance Element N", value: selectedAgent.importance_ele_n },
+                                                { label: "Thought Count", value: selectedAgent.thought_count },
+                                            ]
+                                        },
+                                        {
+                                            title: "Plan", fields: [
+                                                { label: "Daily Plan Requirement", value: selectedAgent.daily_plan_req },
+                                                { label: "Daily Requirements", value: selectedAgent.daily_req?.join(', ') },
+                                                { label: "Daily Schedule", value: selectedAgent.f_daily_schedule?.join(', ') },
+                                                { label: "Hourly Schedule", value: selectedAgent.f_daily_schedule_hourly_org?.join(', ') },
+                                                { label: "Plan", value: selectedAgent.plan?.join(', ') },
+                                                { label: "Memory", value: selectedAgent.memory?.join(', ') },
+                                                { label: "Bibliography", value: selectedAgent.bibliography },
+                                            ]
+                                        },
+                                        {
+                                            title: "Action", fields: [
+                                                { label: "Current Time", value: selectedAgent.curr_time },
+                                                { label: "Current Tile", value: selectedAgent.curr_tile },
+                                                { label: "Current Activity", value: selectedAgent.act_description },
+                                                { label: "Activity Start Time", value: selectedAgent.act_start_time },
+                                                { label: "Activity Duration", value: selectedAgent.act_duration },
+                                                { label: "Activity Pronunciation", value: selectedAgent.act_pronunciatio },
+                                                { label: "Current Event", value: selectedAgent.act_event?.join(', ') },
+                                                { label: "Object Description", value: selectedAgent.act_obj_description },
+                                                { label: "Object Pronunciation", value: selectedAgent.act_obj_pronunciatio },
+                                                { label: "Object Event", value: selectedAgent.act_obj_event?.join(', ') },
+                                                { label: "Chatting With", value: selectedAgent.chatting_with },
+                                                { label: "Chatting End Time", value: selectedAgent.chatting_end_time },
+                                                { label: "Chat", value: JSON.stringify(selectedAgent.chat) },
+                                                { label: "Chatting With Buffer", value: JSON.stringify(selectedAgent.chatting_with_buffer) },
+                                                { label: "Path Set", value: selectedAgent.act_path_set?.toString() },
+                                                { label: "Planned Path", value: selectedAgent.planned_path?.join(' → ') },
+                                            ]
+                                        },
+                                    ].map((section, index) => (
+                                        <div key={section.title}>
+                                            <h3 className="text-2xl font-semibold mb-4 text-primary">{section.title}</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4">
+                                                {section.fields.map((field) => (
+                                                    <div key={field.label} className="py-1">
+                                                        <span className="font-medium">{field.label}:</span>{' '}
+                                                        <span className="text-sm">{field.value?.toString() || 'N/A'}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            {index < 3 && <Separator className="my-6" />}
+                                        </div>
+                                    ))}
                                 </div>
-                                <div>
-                                    <p><strong>Current Time:</strong> {selectedAgent.curr_time}</p>
-                                    <p><strong>Current Tile:</strong> {selectedAgent.curr_tile}</p>
-                                    <p><strong>Daily Requirements:</strong> {selectedAgent.daily_req?.join(', ')}</p>
-                                    <p><strong>Daily Schedule:</strong> {selectedAgent.f_daily_schedule?.join(', ')}</p>
-                                    <p><strong>Hourly Schedule:</strong> {selectedAgent.f_daily_schedule_hourly_org?.join(', ')}</p>
-                                    <p><strong>Current Activity:</strong> {selectedAgent.act_description}</p>
-                                    <p><strong>Activity Start Time:</strong> {selectedAgent.act_start_time}</p>
-                                    <p><strong>Activity Duration:</strong> {selectedAgent.act_duration}</p>
-                                    <p><strong>Chatting With:</strong> {selectedAgent.chatting_with}</p>
-                                    <p><strong>Chatting End Time:</strong> {selectedAgent.chatting_end_time}</p>
-                                </div>
-                            </div>
-                            <div className="mt-4">
-                                <p><strong>Memory:</strong> {selectedAgent.memory?.join(', ')}</p>
-                                <p><strong>Plan:</strong> {selectedAgent.plan?.join(', ')}</p>
-                                <p><strong>Bibliography:</strong> {selectedAgent.bibliography}</p>
-                                <p><strong>Current Event:</strong> {selectedAgent.act_event?.join(', ')}</p>
-                                <p><strong>Planned Path:</strong> {selectedAgent.planned_path?.join(' → ')}</p>
-                            </div>
-                        </CardContent>
-                        <CardFooter>
-                            <Button onClick={() => setSelectedAgent(null)}>Close</Button>
+                            </CardContent>
+                        </ScrollArea>
+                        <CardFooter className="bg-muted">
+                            <Button onClick={() => setSelectedAgent(null)} className="w-full">Close</Button>
                         </CardFooter>
                     </Card>
                 </div>

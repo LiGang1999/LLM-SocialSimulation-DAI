@@ -69,7 +69,7 @@ export namespace apis {
         act_obj_pronunciatio?: string;
         act_obj_event?: [string?, string?, string?];
         chatting_with?: string;
-        chat?: string;
+        chat?: string[][];
         chatting_with_buffer?: Record<string, string>;
         chatting_end_time?: string;
         act_path_set?: boolean;
@@ -78,6 +78,25 @@ export namespace apis {
         plan?: string[];
         memory?: string[];
         bibliography?: string;
+
+        // New fields from Scratch class
+        vision_r: number;
+        att_bandwidth: number;
+        retention: number;
+        concept_forget: number;
+        daily_reflection_time: number;
+        daily_reflection_size: number;
+        overlap_reflect_th: number;
+        kw_strg_event_reflect_th: number;
+        kw_strg_thought_reflect_th: number;
+        recency_w: number;
+        relevance_w: number;
+        importance_w: number;
+        recency_decay: number;
+        importance_trigger_max: number;
+        importance_trigger_curr: number;
+        importance_ele_n: number;
+        thought_count: number;
     }
 
     export interface LLMConfig {
@@ -167,16 +186,30 @@ export namespace apis {
                     act_obj_pronunciatio: undefined,
                     act_obj_event: [undefined, undefined, undefined],
                     chatting_with: undefined,
-                    chat: undefined,
+                    chat: [[]],
                     chatting_with_buffer: {},
                     chatting_end_time: undefined,
                     act_path_set: false,
                     planned_path: [],
-                    // Additional fields from your original mapping
-                    // avatar: persona.avatar,
-                    // plan: persona.plan,
-                    // memory: persona.memory,
-                    // bibliography: persona.bibliography,
+
+                    // New fields from Scratch class
+                    vision_r: 4,
+                    att_bandwidth: 3,
+                    retention: 5,
+                    concept_forget: 100,
+                    daily_reflection_time: 60 * 3,
+                    daily_reflection_size: 5,
+                    overlap_reflect_th: 2,
+                    kw_strg_event_reflect_th: 4,
+                    kw_strg_thought_reflect_th: 4,
+                    recency_w: 1,
+                    relevance_w: 1,
+                    importance_w: 1,
+                    recency_decay: 0.99,
+                    importance_trigger_max: 150,
+                    importance_trigger_curr: 150, // Using importance_trigger_max as initial value
+                    importance_ele_n: 0,
+                    thought_count: 5,
                 })),
                 meta,
             };
@@ -246,7 +279,11 @@ export namespace apis {
         }
     };
 
-    export const agentDetail = async (simCode: string, agentName: string): Promise<Agent> => {
+    export const agentDetail = async (simCode: string, agentName: string): Promise<{
+        scratch: Agent,
+        a_mem: Record<string, string>,
+        s_mem: Record<string, string>,
+    }> => {
         try {
             const response = await api.get(`/persona_detail`, { params: { sim_code: simCode, agent_name: agentName } });
             return response.data;

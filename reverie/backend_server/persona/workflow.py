@@ -15,7 +15,7 @@ class WorkFlow:
 
 
 class GaWorkFlow(WorkFlow):
-    def __init__(self, reverie):
+    def __init__(self):
         self.perceive = GaPerceive()
         self.retrieve = GaRetrieve()
         self.plan = GaPlan()

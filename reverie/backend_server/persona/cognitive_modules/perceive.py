@@ -6,6 +6,7 @@ Description: This defines the "Perceive" module for generative agents.
 """
 
 import sys
+import math
 
 from operator import itemgetter
 

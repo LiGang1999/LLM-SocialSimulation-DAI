@@ -10,6 +10,7 @@
   "curr_time": "February 13, 2023, 00:00:00",
   "sec_per_step": 10,
   "maze_name": "the_ville",
+  "sim_mode": "offline",
   "persona_names": [
     "Latoya Williams",
     "Rajiv Patel",

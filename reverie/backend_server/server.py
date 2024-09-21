@@ -428,17 +428,17 @@ async def chat(chat_request: ChatReq, sim_code: str):
 
 @app.get("/persona_detail")
 async def persona_detail(sim_code: str, agent_name: str):
-    reverie_instance = get_reverie_instance(sim_code)
-    if not reverie_instance:
+    r = get_reverie_instance(sim_code)
+    if not r:
         L.warning(f"Simulation with code {sim_code} not found")
         raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
-
-    persona_path = os.path.join(
-        STORAGE_PATH, reverie_instance.template_sim_code, "personas", agent_name
-    )
-    scratch_file = os.path.join(persona_path, "bootstrap_memory", "scratch.json")
+    r = r.reverie
+    persona_path = os.path.join(STORAGE_PATH, r.template_sim_code, "personas", agent_name)
+    # scratch_file = os.path.join(persona_path, "bootstrap_memory", "scratch.json")
     # Actually the scratch data should be loaded from ReverieInstance
-    scratch_data = load_json_file(scratch_file)
+    # scratch_data = load_json_file(scratch_file)
+    scratch = r.personas[agent_name].scratch
+    scratch_data = vars(scratch)
 
     try:
         person = ScratchData(**scratch_data)
@@ -447,7 +447,7 @@ async def persona_detail(sim_code: str, agent_name: str):
         L.warning(f"Error parsing persona {agent_name}: {e}")
         raise HTTPException(status_code=500, detail=f"Error parsing persona data for {agent_name}")
 
-    return persona_detail
+    return {"scratch": persona_detail, "a_mem": {}, "s_mem": {}}
 
 
 @app.get("/fetch_templates")

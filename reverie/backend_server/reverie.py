@@ -138,7 +138,7 @@ class ScratchData(BaseModel):
     act_obj_pronunciatio: Optional[str] = None
     act_obj_event: Tuple[Optional[str], Optional[str], Optional[str]] = (None, None, None)
     chatting_with: Optional[str] = None
-    chat: Optional[str] = None
+    chat: Optional[List[List[str]]] = None
     chatting_with_buffer: dict = Field(default_factory=dict)
     chatting_end_time: Optional[str] = None
     act_path_set: bool = False
@@ -265,6 +265,8 @@ class Reverie:
         self.is_running = False
         self.command_queue = Queue()  # User command input queue
         self.message_queue = Queue()
+
+        L.info(f"Initializing Reverie with template {template_sim_code} and config {sim_config}")
 
         self.sim_config = sim_config
 
