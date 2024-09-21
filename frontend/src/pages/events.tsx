@@ -1,18 +1,18 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-import { X, Plus, Edit, ChevronRight, InfoIcon, Trash2, Calendar, Globe, Globe2 } from "lucide-react";
+import { Plus, InfoIcon, Trash2, Globe } from "lucide-react";
 import DescriptionCard from '@/components/DescriptionCard';
+
+import backgroundImage from '@/assets/Untitled.png'
 
 export interface Event {
     name: string;
@@ -144,7 +144,7 @@ export const EventsPage = () => {
             ...ctx.data,
             currentTemplate: ctx.data.currentTemplate ? {
                 ...ctx.data.currentTemplate,
-                events: ctx.data.currentTemplate?.events.filter((event, index) => index + 1 !== id) || []
+                events: ctx.data.currentTemplate?.events.filter((_, index) => index + 1 !== id) || []
             } : undefined
         });
         if (selectedEvent && selectedEvent.id === id) {
@@ -204,19 +204,17 @@ export const EventsPage = () => {
     }, []);
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-100">
+        <div className="flex flex-col min-h-screen bg-gray-100" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
             <Navbar />
             <div className="container mx-auto">
                 <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 2.</span>方案设计</h2>
                 <DescriptionCard
-                    title="描述标题"
-                    description="描述文本"
+                    title="设计仿真方案"
+                    description="定义和配置社会仿真实验的核心要素。首先，设置实验名称和初次仿真轮数，即初次进入实验之后自动运行的仿真轮数。然后，添加和编辑仿真中的事件，每个事件代表一个特定的社会情境或讨论话题。您可以为每个事件提供详细描述、相关政策和网络搜索关键词。这些事件将成为智能体互动和讨论的焦点，从而塑造整个仿真过程。通过精心设计这些元素，您可以创建一个丰富、多样的仿真环境，以探索复杂的社会动态。"
                 />
 
 
-
-
-                <Card className="shadow-lg">
+                <Card className="bg-opacity-70 bg-white">
                     <CardContent className='pt-8'>
                         <div className="grid md:grid-cols-2 gap-8">
                             <div className="space-y-6">

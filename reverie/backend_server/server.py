@@ -458,14 +458,20 @@ async def fetch_templates():
     filtered_envs = [
         env for env in envs if "test" not in env and "sim" not in env and "July" not in env
     ]
-
     result_envs = []
     for dir in filtered_envs:
         template_meta_file = os.path.join(STORAGE_PATH, dir, "reverie", "meta.json")
         template_meta = load_json_file(template_meta_file)
         if template_meta:
             result_envs.append(template_meta)
-
+    
+    # Sort result_envs based on template_sim_code
+    def sort_key(env):
+        sim_code = env.get('template_sim_code', '')
+        return (0 if 'online' in sim_code.lower() else 1, sim_code)
+    
+    result_envs.sort(key=sort_key)
+    
     return {"envs": result_envs, "all_templates": envs}
 
 

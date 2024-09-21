@@ -2,15 +2,16 @@ import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSimContext } from '@/SimContext';
 import { apis } from "@/lib/api";
 import { RandomAvatar } from "@/components/Avatars";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 import start1 from '@/assets/template2.png';
 import chat from '@/assets/chat.png';
 import stf from '@/assets/start2.jpg'
+
+import backgroundImage from '@/assets/Untitled.png'
 
 const truncateString = (str: string, num: number) => {
     if (str.length <= num) {
@@ -73,12 +74,12 @@ export const ConfirmPage = () => {
     }, [ctx, ctx?.data.currentTemplate.simCode]);
 
     return (
-        <div className="flex flex-col bg-gray-100 min-h-screen">
+        <div className="flex flex-col bg-gray-100 min-h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
             <Navbar />
             <div className="container mx-auto">
                 <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 5.</span>确认您的方案</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
-                    <Card className="shadow-lg rounded-lg">
+                    <Card className="rounded-lg bg-white bg-opacity-50">
                         <CardHeader>
                             <CardTitle>模板信息</CardTitle>
                         </CardHeader>
@@ -107,7 +108,7 @@ export const ConfirmPage = () => {
                     </Card>
 
 
-                    <Card className="shadow-lg rounded-lg">
+                    <Card className="rounded-lg bg-opacity-50 bg-white">
                         <CardHeader>
                             <CardTitle>智能体配置</CardTitle>
                         </CardHeader>
@@ -132,7 +133,7 @@ export const ConfirmPage = () => {
                         </CardContent>
                     </Card>
 
-                    <Card className="shadow-lg rounded-lg">
+                    <Card className=" rounded-lg bg-opacity-50 bg-white">
                         <CardHeader>
                             <CardTitle>方案设计</CardTitle>
                         </CardHeader>
@@ -148,7 +149,7 @@ export const ConfirmPage = () => {
                         </CardContent>
                     </Card>
 
-                    <Card className="shadow-lg rounded-lg">
+                    <Card className="rounded-lg bg-opacity-50 bg-white">
                         <CardHeader>
                             <CardTitle>模型参数配置</CardTitle>
                         </CardHeader>

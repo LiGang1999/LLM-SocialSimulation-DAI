@@ -4,8 +4,7 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardHeader,
-    CardTitle,
+    CardHeader, CardTitle
 } from "@/components/ui/card"
 import {
     Tabs,

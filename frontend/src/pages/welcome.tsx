@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight, Github, Play, Trash2 } from 'lucide-react'
 
 import start1 from '@/assets/start1.jpg'

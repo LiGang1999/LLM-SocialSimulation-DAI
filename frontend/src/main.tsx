@@ -1,7 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import App from './App.tsx';
 import DashboardPage from './pages/dashboard.tsx';
 import { TabsDemo } from './pages/tabsdemo.tsx';
 import './index.css';

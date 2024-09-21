@@ -1,7 +1,7 @@
 import { ChatMessage } from "@/SimContext";
 import { apis } from "./api";
 
-const generateDemoMessages = (persona: apis.Agent): ChatMessage[] => {
+export const generateDemoMessages = (persona: apis.Agent): ChatMessage[] => {
     const messageCount = Math.floor(Math.random() * 5) + 3; // Random number of messages between 3 and 7
     const messages: ChatMessage[] = [];
 
