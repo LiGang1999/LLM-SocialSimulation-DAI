@@ -2,7 +2,7 @@
 
 prompt to generatea location (sector) for an agent's current task.
 
-parameters:
+## Parameters
 
 - persona_name: persona name
 - all_sectors: all sectors of the maze

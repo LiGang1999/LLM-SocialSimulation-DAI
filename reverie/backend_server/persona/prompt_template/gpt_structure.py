@@ -16,6 +16,19 @@ from utils.logs import L, get_outer_caller
 
 client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
 
+print_raw_log = False
+print_short_log = True
+
+
+def llm_logging_repr(object):
+    if print_raw_log:
+        s = str(object)
+    else:
+        s = repr(object)
+    if print_short_log:
+        s = s[:50] + "..."
+    return s
+
 
 def extract_largest_jsno_dict(data_str):
     # Find the largest json from a unstructured string
@@ -133,7 +146,9 @@ Requirements:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt},
                 ]
-                L.debug(f"SYSTEM_PROMPT:{repr(system_prompt)};USER_PROMPT:{repr(prompt)}")
+                L.debug(
+                    f"SYSTEM_PROMPT:{llm_logging_repr(system_prompt)};USER_PROMPT:{llm_logging_repr(prompt)}"
+                )
                 response = client.chat.completions.create(
                     model=model,
                     messages=messages,
@@ -145,13 +160,12 @@ Requirements:
                     stream=gpt_parameters["stream"],
                     stop=gpt_parameters["stop"],
                 )
-                L.debug(response)
                 curr_gpt_response = str(
                     extract_first_json_dict(response.choices[0].message.content.strip())["output"]
                 )
             else:
                 # Directly use completion API
-                L.debug(f"USER_PROMPT:{repr(prompt)}")
+                L.debug(f"USER_PROMPT:{llm_logging_repr(prompt)}")
                 response = client.completions.create(
                     model=model,
                     prompt=prompt,
@@ -165,7 +179,7 @@ Requirements:
                 )
                 curr_gpt_response = response.choices[0].text.strip()
 
-            L.debug(f"GPT_RESPONSE:{repr(curr_gpt_response)}")
+            L.debug(f"GPT_RESPONSE:{llm_logging_repr(curr_gpt_response)}")
 
             valid = func_validate(curr_gpt_response, prompt=prompt)
             L.stats(

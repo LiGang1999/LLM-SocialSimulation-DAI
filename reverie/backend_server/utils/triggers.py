@@ -50,6 +50,7 @@ def handle_chat_to_persona(payload):
     # event_trigger(
     #     "chat_to_persona", {"mode": mode, "persona": persona_name, "reply": retval}
     # )
+    L.info(f"[persona chat] {repr(payload)}")
     sock_send(
         {
             "sender": payload["persona"],
@@ -82,6 +83,7 @@ def handle_chat(payload):
         # This will send a message like:
         # {"role": "agent", "name": "Agent Smith", "content": "Hello, how can I help you?"}
     """
+    L.info(f"[persona comment] {repr(payload)}")
     sock_send(
         {
             "sender": payload["name"],

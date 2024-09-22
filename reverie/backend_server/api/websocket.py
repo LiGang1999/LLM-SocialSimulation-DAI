@@ -93,8 +93,9 @@ def sock_send(message, message_type):
     # sock_name is deprecated.
     if hasattr(thread_local, "reverie_instance"):
         reverie_instance = thread_local.reverie_instance
-        message = json.dumps({"type": message_type, "message": message})
-        reverie_instance.reverie.message_queue.put(message)
+        if reverie_instance:
+            message = json.dumps({"type": message_type, "message": message})
+            reverie_instance.reverie.message_queue.put(message)
 
 
 # Example usage of the socket_handler decorator
@@ -138,7 +139,7 @@ class WebSocketHandler(logging.Handler):
             sock_send({"level": record.levelname, "message": log_entry}, "log")
         except Exception as e:
             # Do nothing if socket send is not successfu
-            L.warning(f"Failed to send log message to socket: {e}", native=True)
+            # L.warning(f"Failed to send log message to socket: {e}", native=True)
             pass
 
 

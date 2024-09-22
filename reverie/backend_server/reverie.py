@@ -34,7 +34,7 @@ from queue import Queue
 from typing import List, Optional, Tuple
 
 import numpy
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, parse_obj_as
 from selenium import webdriver
 
 from institution import *
@@ -165,6 +165,53 @@ class ReverieConfig:
     direction: str | None = ""  # The instruction of what the agents should do with each other
     initial_rounds: int | None = 0  # The number of initial rounds
 
+def load_config_from_files(path: str) -> ReverieConfig:
+    meta_file_path = f"{path}/reverie/meta.json"
+    event_file_path = f"{path}/reverie/events.json"
+    personas_folder_path = f"{path}/personas"
+
+    # Load meta.json
+    with open(meta_file_path, "r") as meta_file:
+        meta_data = json.load(meta_file)
+    
+    # Load events.json
+    if os.path.exists(event_file_path):
+        with open(event_file_path, "r") as event_file:
+            events_data = json.load(event_file)
+    else:
+        events_data = []
+    
+    # Initialize ReverieConfig
+    cfg = ReverieConfig(
+        sim_code=meta_data.get("template_sim_code", ""),
+        sim_mode=meta_data.get("sim_mode"),
+        start_date=meta_data.get("start_date"),
+        curr_time=meta_data.get("curr_time"),
+        maze_name=meta_data.get("maze_name"),
+        step=meta_data.get("step", 0),
+        public_events=events_data,
+        direction=meta_data.get("description", ""),
+        initial_rounds=0  # You might want to add this to meta.json if needed
+    )
+
+    # Load LLMConfig if present in meta_data
+    if "llm_config" in meta_data:
+        cfg.llm_config = LLMConfig(**meta_data["llm_config"])
+
+    # Load persona configs
+    cfg.persona_configs = {}
+    for persona_name in meta_data.get("persona_names", []):
+        scratch_file_path = f"{personas_folder_path}/{persona_name}/bootstrap_memory/scratch.json"
+        with open(scratch_file_path, "r") as scratch_file:
+            scratch_data = json.load(scratch_file)
+        
+        # Parse the JSON data into a ScratchData object
+        persona_config = ScratchData.model_validate_json(json.dumps(scratch_data))
+        cfg.persona_configs[persona_name] = persona_config
+
+    return cfg
+
+
 
 def bootstrap_persona(path: str, config: ScratchData):
 
@@ -258,7 +305,7 @@ class Reverie:
         "base_the_villie_n25",
     ]
 
-    def __init__(self, template_sim_code, sim_config: ReverieConfig):
+    def __init__(self, template_sim_code, sim_config: ReverieConfig, reverie_storage_path=""):
         # Check if all required fields in sim_config are populated
         missing_fields = []
 
@@ -266,7 +313,11 @@ class Reverie:
         self.command_queue = Queue()  # User command input queue
         self.message_queue = Queue()
 
-        L.info(f"Initializing Reverie with template {template_sim_code} and config {sim_config}")
+        if not reverie_storage_path:
+            reverie_storage_path = storage_path
+        self.storage_path = reverie_storage_path
+
+        # L.info(f"Initializing Reverie with template {template_sim_code} and config {sim_config}")
 
         self.sim_config = sim_config
 
@@ -280,13 +331,13 @@ class Reverie:
             # raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
 
         self.template_sim_code = template_sim_code
-        template_folder = f"{storage_path}/{self.template_sim_code}"
+        template_folder = f"{self.storage_path}/{self.template_sim_code}"
 
         self.sim_code = sim_config.sim_code
-        sim_folder = f"{storage_path}/{self.sim_code}"
+        sim_folder = f"{self.storage_path}/{self.sim_code}"
 
         if check_if_dir_exists(sim_folder):
-            if self.template_sim_code in BASE_TEMPLATES:
+            if self.sim_code in BASE_TEMPLATES:
                 L.error(
                     f"Cannot overwrite base template {self.template_sim_code}. Operation aborted."
                 )
@@ -318,7 +369,7 @@ class Reverie:
 
             # This one should be called sim_code, but call it template_sim_code to maintain backward compatability
             reverie_meta["template_sim_code"] = sim_config.sim_code
-            self.storage_home = f"{storage_path}/{self.sim_code}"
+            self.storage_home = f"{self.storage_path}/{self.sim_code}"
 
             # check fields for reverie_meta
 
@@ -457,7 +508,7 @@ class Reverie:
         except Exception as e:
             L.error(f"Error during reverie initialization: {e}")
             if self.sim_code not in BASE_TEMPLATES:
-                removeanything(f"{storage_path}/{self.sim_code}")
+                removeanything(f"{self.storage_path}/{self.sim_code}")
             raise e
 
     def handle_command(self, payload):
@@ -475,7 +526,7 @@ class Reverie:
           * Saves all relevant data to the designated memory directory
         """
         # <sim_folder> points to the current simulation folder.
-        sim_folder = f"{storage_path}/{self.sim_code}"
+        sim_folder = f"{self.storage_path}/{self.sim_code}"
 
         # Save Reverie meta information.
         reverie_meta = dict()
@@ -605,7 +656,7 @@ class Reverie:
           None
         """
         # <sim_folder> points to the current simulation folder.
-        sim_folder = f"{storage_path}/{self.sim_code}"
+        sim_folder = f"{self.storage_path}/{self.sim_code}"
         self.is_running = True
 
         # When a persona arrives at a game object, we give a unique event
@@ -796,7 +847,7 @@ class Reverie:
         print("and independent decision-making.\n---")
 
         # <sim_folder> points to the current simulation folder.
-        sim_folder = f"{storage_path}/{self.sim_code}"
+        sim_folder = f"{self.storage_path}/{self.sim_code}"
 
         # set instance to thread local storage
         thread_local.reverie_instance = reverie_instance
@@ -915,9 +966,11 @@ class Reverie:
                     # the prompt
                     # Ex: print persona associative memory (thought) Isabella Rodriguez
                     ret_str += f'{self.personas[" ".join(sim_command.split()[-2:])]}\n'
-                    ret_str += self.personas[
+                    thoughts = self.personas[
                         " ".join(sim_command.split()[-2:])
-                    ].a_mem.get_str_seq_thoughts()
+                    ].a_mem.get_thoughts()
+                    for count , event in enumerate(thoughts):
+                        ret_str += f"Thought {count}: {event.spo_summary()} -- {event.description}\n"
 
                 elif "print persona associative memory (chat)" in sim_command.lower():
                     # Print the associative memory (chat) of the persona specified in

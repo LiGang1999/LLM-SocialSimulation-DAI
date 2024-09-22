@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LLM Prompt Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <style>
+        /* Basic styles for the webpage */
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+        }
+
+        .panel {
+            width: 50%;
+            padding: 20px;
+        }
+
+        .panel-left {
+            border-right: 1px solid #ccc;
+        }
+
+        .panel-right {
+            padding-left: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .parameter-list input {
+            width: calc(100% - 10px);
+            margin-bottom: 10px;
+        }
+
+        .parameter-list label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        textarea {
+            width: calc(100% - 10px);
+            height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            background-color: #f9f9f9;
+            padding: 10px;
+        }
+
+        .response {
+            white-space: pre-wrap;
+            background-color: #f1f1f1;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .submit-btn {
+            padding: 10px 20px;
+        }
+
+        .error {
+            color: red;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"] {
+            width: calc(100% - 10px);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>LLM Prompt Generator</h1>
+    <form method="POST">
+        <div class="container">
+            <!-- Left Panel -->
+            <div class="panel panel-left">
+                <h2>{{ prompt_template_name or 'Prompt Template Name' }}</h2>
+                <label for="prompt_template_name">Prompt Template Name:</label>
+                <input type="text" id="prompt_template_name" name="prompt_template_name"
+                    value="{{ prompt_template_name }}" placeholder="Enter template name">
+
+                <h3>Parameters (format: key1=value1, key2=value2):</h3>
+                <input type="text" name="parameters" value="{{ parameters }}" placeholder="key1=value1, key2=value2">
+
+                <h3>System Prompt:</h3>
+                <textarea name="sys_prompt" placeholder="Enter system prompt here...">{{ sys_prompt }}</textarea>
+
+                <h3>User Prompt:</h3>
+                <textarea name="usr_prompt" placeholder="Enter user prompt here...">{{ usr_prompt }}</textarea>
+
+                <h3>LLM Configuration:</h3>
+                <label for="api_base">API Base URL:</label>
+                <input type="text" id="api_base" name="api_base" value="{{ llm_config.api_base }}"
+                    placeholder="https://api.openai.com/v1">
+
+                <label for="api_key">API Key:</label>
+                <input type="password" id="api_key" name="api_key" value="{{ llm_config.api_key }}"
+                    placeholder="Enter your API key">
+
+                <label for="model">Model:</label>
+                <input type="text" id="model" name="model" value="{{ llm_config.model }}" placeholder="gpt-3.5-turbo">
+
+                <label for="temperature">Temperature:</label>
+                <input type="number" step="0.01" id="temperature" name="temperature"
+                    value="{{ llm_config.params.temperature }}" placeholder="0.7">
+
+                <label for="max_tokens">Max Tokens:</label>
+                <input type="number" id="max_tokens" name="max_tokens" value="{{ llm_config.params.max_tokens }}"
+                    placeholder="150">
+
+                <!-- Add other parameters as needed -->
+
+                <button type="submit" class="submit-btn">Generate</button>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="panel panel-right">
+                {% if result %}
+                {% if result.error %}
+                <p class="error">Error: {{ result.error }}</p>
+                {% endif %}
+                <h3>Generated Prompt:</h3>
+                <div class="response">{{ result.generated_prompt }}</div>
+
+                <h3>LLM Response:</h3>
+                <div class="response">{{ result.response }}</div>
+
+                <h3>Statistics:</h3>
+                <div class="stats">
+                    <p>Time Cost: {{ result.time_cost }} seconds</p>
+                    {% if result.token_usage %}
+                    <p>Tokens Used: {{ result.token_usage.total_tokens }}</p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p>No response yet. Fill out the form and click Generate.</p>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</body>
+
+</html>

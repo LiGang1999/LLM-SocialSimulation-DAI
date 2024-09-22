@@ -13,8 +13,8 @@ default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
 
 default_llm_config = override_gpt_param
 
-print_raw_log = True
-print_short_log = False
+print_raw_log = False
+print_short_log = True
 
 
 def llm_logging_repr(object):
@@ -27,57 +27,64 @@ def llm_logging_repr(object):
     return s
 
 
+import os
+import re
+
+
 def unescape_markdown(text):
-    # 使用正则表达式去除反斜杠前缀
     temp_text = text.replace("\\\\", "TEMP_DOUBLE_BACKSLASH")
     unescaped_text = re.sub(r"\\([\\\*\_\#\[\]\(\)\!\>\|\{\}\+\\\-\.])", r"\1", temp_text)
-
-    # 恢复原有的双反斜杠
     unescaped_text = unescaped_text.replace("TEMP_DOUBLE_BACKSLASH", "\\\\")
     return unescaped_text
 
 
 def extract_sections_with_content(md_content):
-    # Regular expression to match markdown headers (e.g., # Header)
     header_pattern = re.compile(r"^(#+)\s+(.*)")
-
-    # Dictionary to store the sections
     sections = {}
-
     current_header = None
     current_content = []
-
     for line in md_content.splitlines():
         header_match = header_pattern.match(line)
         if header_match:
-            # If there's an ongoing section, save it before starting a new one
             if current_header:
                 sections[current_header.lower().strip()] = "\n".join(current_content).strip()
-
-            # Start a new section
             current_header = header_match.group(2)
             current_content = []
         else:
-            # Add line to the current section content
-            if current_header:  # Ensure content is added only after the first header
+            if current_header:
                 current_content.append(line)
-
-    # Save the last section
     if current_header:
         sections[current_header.lower().strip()] = "\n".join(current_content).strip()
-
     return sections
+
+
+def extract_parameters(parameters_content):
+    parameters = []
+    for line in parameters_content.split("\n"):
+        if line.strip().startswith("-"):
+            param = line.strip()[1:].split(":")[0].strip()
+            parameters.append(param)
+    return parameters
 
 
 def load_prompt_file(prompt_file, prompt_storage="prompt_templates"):
     cwd = os.getcwd()
     fullpath = os.path.join(cwd, prompt_storage, prompt_file)
+    L.debug(f"{prompt_file, prompt_storage, fullpath}")
+
     with open(fullpath, "r") as f:
         file_content = f.read()
         sections = extract_sections_with_content(file_content)
-        system_prompt = unescape_markdown(sections.get("system prompt").strip())
-        user_prompt = unescape_markdown(sections.get("user prompt").strip())
-    return user_prompt, system_prompt
+        system_prompt = unescape_markdown(sections.get("system prompt", "").strip())
+        user_prompt = unescape_markdown(sections.get("user prompt", "").strip())
+        parameters = extract_parameters(unescape_markdown(sections.get("parameters", "")))
+        description = sections.get("description", "").strip()
+    return {
+        "system_prompt": system_prompt,
+        "user_prompt": user_prompt,
+        "parameters": parameters,
+        "description": description,
+    }
 
 
 def llm_request(
@@ -314,7 +321,9 @@ def llm_function(
 ):
     # load prompt files if necessary
     if prompt_file:
-        user_prompt, system_prompt = load_prompt_file(prompt_file)
+        loaded_prompt = load_prompt_file(prompt_file)
+        user_prompt = loaded_prompt["user_prompt"]
+        system_prompt = loaded_prompt["system_prompt"]
 
     def decorator(desc_func):
         # Use inspect to get the function signature and default values

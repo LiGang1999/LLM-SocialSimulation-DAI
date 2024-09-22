@@ -397,6 +397,9 @@ class AssociativeMemory(Memory):
             ret_str += f'{"Event", len(self.seq_event) - count, ": ", event.spo_summary(), " -- ", event.description}\n'
         return ret_str
 
+    def get_thoughts(self):
+        return self.seq_thought
+
     def get_str_seq_thoughts(self):
         ret_str = ""
         for count, event in enumerate(self.seq_thought):
