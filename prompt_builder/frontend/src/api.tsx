@@ -3,9 +3,10 @@ import axios, { AxiosResponse } from 'axios';
 // Types
 export type Template = string;
 export type TemplateDetails = {
-    params: string[];
+    parameters: string[];
     system_prompt: string;
     user_prompt: string;
+    example: string;
 };
 export type Params = { [key: string]: string };
 export type GeneratedPrompts = {
@@ -60,13 +61,15 @@ export const fetchPromptTemplate = async (templateName: string): Promise<Templat
 export const generatePrompt = async (
     systemPrompt: string,
     userPrompt: string,
-    params: Params
+    parameters: Params,
+    exampleOutput: string,
 ): Promise<GeneratedPrompts> => {
     try {
         const response: AxiosResponse<GeneratedPrompts> = await api.post('/generate_prompt', {
             system_prompt: systemPrompt,
             user_prompt: userPrompt,
-            params,
+            parameters,
+            example: exampleOutput
         });
         return response.data;
     } catch (error) {
@@ -77,15 +80,17 @@ export const generatePrompt = async (
 export const generateResponse = async (
     systemPrompt: string,
     userPrompt: string,
-    params: Params,
-    llmParams: LLMParams
+    parameters: Params,
+    llmParams: LLMParams,
+    exampleOutput: string,
 ): Promise<string> => {
     try {
         const response: AxiosResponse<{ content: string }> = await api.post('/generate_response', {
             system_prompt: systemPrompt,
             user_prompt: userPrompt,
-            params,
+            parameters,
             llm_params: llmParams,
+            example: exampleOutput
         });
         return response.data.content;
     } catch (error) {

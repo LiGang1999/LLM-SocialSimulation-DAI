@@ -1,17 +1,13 @@
 ## description
-
 turn a sentence into (subject, predicate, object) .
 
-parameters:
+## Parameters
 - persona_name: persona's full name
 - action: current action description
 
 ## system prompt
-
 The user will provide you a sentence that describes an activity. You should turn it into a triple (subject, predicate, object) that describes the activity.
-
 Here are some examples ( you should refer to its content only ):
-
 ---
 Input: Sam Johnson is eating breakfast. 
 Output: (Dolores Murphy, eat, breakfast) 
@@ -32,5 +28,7 @@ Input: Merrie Morris is running on a treadmill.
 Output: (Merrie Morris, run, treadmill)
 
 ## user prompt
+{{persona_name}} is {{action}}.
 
-{persona_name} is {action}.
+## Example Output
+{'subject': 'Joon Park', 'predicate': 'brew', 'object': 'coffee'}

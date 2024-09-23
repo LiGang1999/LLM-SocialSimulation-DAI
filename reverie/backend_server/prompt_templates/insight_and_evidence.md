@@ -2,7 +2,8 @@
 
 Generate insights of a list of statements
 
-parameters:
+## Parameters
+
 - statements: a string of a list of statements
 - target: target persona name or 'the conversation'
 
@@ -27,4 +28,4 @@ Follow these guidelines:
 
 Statements: 
 
-{statements}
+{{statements}}

@@ -8,6 +8,7 @@ import time
 import openai
 from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model
 from utils.logs import L
+from jinja2 import Template
 
 default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
 
@@ -25,10 +26,6 @@ def llm_logging_repr(object):
     if print_short_log:
         s = s[:50] + "..."
     return s
-
-
-import os
-import re
 
 
 def unescape_markdown(text):
@@ -79,11 +76,13 @@ def load_prompt_file(prompt_file, prompt_storage="prompt_templates"):
         user_prompt = unescape_markdown(sections.get("user prompt", "").strip())
         parameters = extract_parameters(unescape_markdown(sections.get("parameters", "")))
         description = sections.get("description", "").strip()
+        example = sections.get("example output", "")
     return {
         "system_prompt": system_prompt,
         "user_prompt": user_prompt,
         "parameters": parameters,
         "description": description,
+        "example": example,
     }
 
 
@@ -98,6 +97,7 @@ def llm_request(
     func_name="",
     max_retries=3,
     retry_delay=0.5,
+    raw_response=False,
 ):
     """
     Send a LLM request with error handling and logging. The llm_config dictionary consists of the following fields:
@@ -134,6 +134,7 @@ def llm_request(
     )
     while attempt < max_retries:
         try:
+            result = ""
             L.debug(
                 f"[{func_name}] Attempt {attempt + 1}: Sending LLM request. Model: {llm_config['engine']}, Chat: {llm_config['chat']}"
             )
@@ -156,7 +157,10 @@ def llm_request(
                     presence_penalty=presence_penalty,
                     stop=stop,
                 )
+                if raw_response:
+                    return response
                 result = response.choices[0].message.content
+
                 # result = response["choices"][0]["message"]["content"]
             else:
                 # Standard completion mode
@@ -172,7 +176,11 @@ def llm_request(
                     presence_penalty=presence_penalty,
                     stop=stop,
                 )
+                if raw_response:
+                    return response
+
                 result = response.choices[0].text
+
                 # result = response["choices"][0]["text"]
             valid = validate_fn(result, kwargs)
             L.stats(
@@ -210,12 +218,13 @@ def llm_request(
 
 
 def insert_prompt_args(prompt: str, kwargs):
-    formatted_prompt = prompt.format_map(kwargs)
-    return formatted_prompt
+    template = Template(prompt)
+    return template.render(**kwargs)
 
 
-def example_output_format(example_kwargs: dict, example_retval):
+def example_output_format(example_kwargs: dict, example_retval={}, example_ret_json=""):
     prompt = f"""
+\n
 Here is the example user input and the answer:
 
 {'\n'.join([ f"{key}: {value}" for key, value in example_kwargs.items()])}"""
@@ -223,7 +232,7 @@ Here is the example user input and the answer:
     prompt = f"""\n
  
 You MUST reply the answer in the following json format (the values for each key are for reference only):
-{json.dumps(example_retval, indent=4)}
+{example_ret_json if example_ret_json else json.dumps(example_retval, indent=4)}
 
 You should not give any explanation unless it is required in your answer.
 You MUST not add additional formats (headers, footers, points ) in your answer.
