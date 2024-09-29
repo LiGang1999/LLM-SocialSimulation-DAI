@@ -1,8 +1,7 @@
 # Generalized LLM Based Social Simulation Instrument
 
-<p align="center" width="100%">
-<img src="uml.jpg" alt="System Architecture" style="width: 80%; min-width: 300px; display: block; margin: auto;">
-</p>
+
+<a href="README_cn.md">简体中文</a>
 
 ## Introduction
 
@@ -44,11 +43,14 @@ This repository extends the work of [Generative Agents (GA)](https://github.com/
 
 #### Installing Frontend Dependencies
 
+Install pnpm package manager: https://pnpm.io/installation
+
+
 Navigate to the frontend directory and install dependencies:
 
 ```bash
 cd frontend_online_old
-npm install
+pnpm install
 ```
 
 ### Backend Environment Setup
@@ -101,18 +103,19 @@ We recommend using Miniconda to manage Python environments and avoid package con
 
 ### Changing Ports
 
-Modify `port1`, `port2`, and `port3` in `config.yaml` to use available ports:
+1. Copy `config.template.yaml` into `config.yaml`
+
+2. Modify `port1`, `port2`, and `port3` in `config.yaml` to use available ports:
 
 ```yaml
-server_ip: 10.72.74.13
-front_port: port1
-front_port2: port2
-back_port: port3
+server_ip: <your server ip address>
+front_port: <frontend port>
+back_port: <backend port>
 ```
 
 ### LLM Configuration
 
-Create `utils/config.py` under `reverie/backend_server`. Use the following template and replace the placeholders with your actual API keys and preferences:
+Copy `config_template.py` to `config.py` under `reverie/backend_server/utils`. Use the following template and replace the placeholders with your actual API keys and preferences:
 
 ```python
 openai_api_base = "https://api.openai.com/v1"
@@ -140,12 +143,6 @@ debug = True
    ```
 
    Use `python start.py --help` for additional options.
-
-3. If Django prompts for migrations, run:
-   ```bash
-   cd reverie/backend_server && python manage.py migrate
-   cd environment/frontend_server && python manage.py migrate
-   ```
 
 ## Debugging
 
