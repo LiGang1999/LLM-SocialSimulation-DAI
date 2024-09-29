@@ -64,7 +64,7 @@ Install pnpm package manager: https://pnpm.io/installation
 Navigate to the frontend directory and install dependencies:
 
 ```bash
-cd frontend_online_old
+cd frontend
 pnpm install
 ```
 

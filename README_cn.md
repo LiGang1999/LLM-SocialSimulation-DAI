@@ -63,7 +63,7 @@
 导航到前端目录并安装依赖：
 
 ```bash
-cd frontend_online_old
+cd frontend
 pnpm install
 ```
 
