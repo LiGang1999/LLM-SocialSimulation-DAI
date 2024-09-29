@@ -3,9 +3,29 @@
 
 <a href="README_cn.md">简体中文</a>
 
+
 ## Introduction
 
 This repository extends the work of [Generative Agents (GA)](https://github.com/joonspk-research/generative_agents) to create a more comprehensive and scalable simulation tool. Our project includes both an offline simulation module (based on GA) and an online simulation module. We are also developing a user-friendly interface for launching, displaying, and interacting with the simulation.
+
+# Table of Contents
+
+- [Introduction](#introduction)
+- [Environment Setup](#environment-setup)
+  - [Prerequisites](#prerequisites)
+  - [Frontend Environment Setup](#frontend-environment-setup)
+    - [Installing Node.js using NVM](#installing-nodejs-using-nvm)
+    - [Installing Frontend Dependencies](#installing-frontend-dependencies)
+  - [Backend Environment Setup](#backend-environment-setup)
+    - [Installing Miniconda](#installing-miniconda)
+    - [Creating a Conda Environment and Installing Dependencies](#creating-a-conda-environment-and-installing-dependencies)
+- [Runtime Configuration](#runtime-configuration)
+  - [Changing Ports](#changing-ports)
+  - [LLM Configuration](#llm-configuration)
+- [Running the System](#running-the-system)
+- [Debugging](#debugging)
+- [Shutting Down](#shutting-down)
+- [Acknowledgements](#acknowledgements)
 
 ## Environment Setup
 
@@ -99,7 +119,7 @@ We recommend using Miniconda to manage Python environments and avoid package con
    pip install -r requirements.txt
    ```
 
-## Configuration
+## Runtime Configuration
 
 ### Changing Ports
 
