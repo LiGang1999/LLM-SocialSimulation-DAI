@@ -136,11 +136,18 @@ debug = True
 1. 确保您位于项目的根目录。
 
 2. 启动系统：
-   ```bash
-   python start.py
-   ```
+```bash
+python start.py
+```
 
-   使用 `python start.py --help` 查看其他选项。
+使用 `python start.py --help` 查看其他选项。
+
+3. 如果你想直接在终端中运行：
+```bash
+cd reverie/backend_server
+python reverie.py
+```
+
 
 ## 调试
 

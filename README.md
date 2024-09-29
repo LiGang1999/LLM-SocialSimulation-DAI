@@ -138,11 +138,19 @@ debug = True
 1. Ensure you're in the project root directory.
 
 2. Start the system:
-   ```bash
-   python start.py
-   ```
+```bash
+python start.py
+```
 
-   Use `python start.py --help` for additional options.
+Use `python start.py --help` for additional options.
+
+3. If you want to run it directy in your terminal:
+
+```bash
+cd reverie/backend_server
+python reverie.py
+```
+
 
 ## Debugging
 
