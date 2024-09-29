@@ -10,15 +10,10 @@ This repository extends the work of [Generative Agents (GA)](https://github.com/
 
 # Table of Contents
 
-- [Introduction](#introduction)
 - [Environment Setup](#environment-setup)
   - [Prerequisites](#prerequisites)
   - [Frontend Environment Setup](#frontend-environment-setup)
-    - [Installing Node.js using NVM](#installing-nodejs-using-nvm)
-    - [Installing Frontend Dependencies](#installing-frontend-dependencies)
   - [Backend Environment Setup](#backend-environment-setup)
-    - [Installing Miniconda](#installing-miniconda)
-    - [Creating a Conda Environment and Installing Dependencies](#creating-a-conda-environment-and-installing-dependencies)
 - [Runtime Configuration](#runtime-configuration)
   - [Changing Ports](#changing-ports)
   - [LLM Configuration](#llm-configuration)
