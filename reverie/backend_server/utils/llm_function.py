@@ -128,8 +128,11 @@ def llm_request(
     stop = llm_config.get("stop", None)  # Default stop sequence
     model = override_model if override_model else llm_config["engine"]
 
-    if llm_config["base_url"] or llm_config["api_key"]:
-        client = default_client.copy(base_url=llm_config["base_url"], api_key=llm_config["api_key"])
+    if "base_url" in llm_config or "api_key" in llm_config:
+        client = default_client.copy(
+            base_url=llm_config["base_url"] if "base_url" in llm_config else openai_api_base,
+            api_key=llm_config["api_key"] if "api_key" in llm_config else openai_api_key,
+        )
     else:
         client = default_client
 

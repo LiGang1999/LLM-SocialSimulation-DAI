@@ -40,7 +40,7 @@ def save_json_file(file_path: str, data: Dict[str, Any]) -> None:
 
 def parse_llm_config(llm_config_data: Dict[str, Any]) -> LLMConfig:
     return LLMConfig(
-        api_base=llm_config_data.get("api_base", config.openai_api_base),
+        base_url=llm_config_data.get("base_url", config.openai_api_base),
         api_key=llm_config_data.get("api_key", config.openai_api_key),
         engine=llm_config_data.get("engine", ""),
         tempreature=float(llm_config_data.get("temperature", 1.0)),

@@ -12,11 +12,7 @@ import {
 } from '../api';
 
 import CreatableSelect from 'react-select/creatable';
-
-
 import { X } from 'lucide-react';
-
-
 
 interface AutoResizeTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
     value: string;
@@ -46,9 +42,6 @@ const AutoResizeTextarea: React.FC<AutoResizeTextareaProps> = ({ value, onChange
         ></textarea>
     );
 };
-
-
-
 
 interface DialogProps {
     isOpen: boolean;
@@ -193,6 +186,47 @@ const MainPage: React.FC = () => {
     const [isAddParamDialogOpen, setIsAddParamDialogOpen] = useState(false);
     const [isLLMConfigDialogOpen, setIsLLMConfigDialogOpen] = useState(false);
 
+    // Custom styles for CreatableSelect to match the old select
+    const customStyles = {
+        control: (provided: any, state: any) => ({
+            ...provided,
+            marginTop: '0.25rem',
+            width: '100%',
+            paddingLeft: '0.2rem',
+            paddingRight: '0.2rem',
+            paddingTop: '0rem',
+            paddingBottom: '0',
+            backgroundColor: 'white',
+            fontSize: '1rem',
+            borderRadius: '0',
+            borderColor: 'black',
+            borderWidth: '1px',
+            boxShadow: 'none',
+            '&:hover': {
+                borderColor: 'black',
+            },
+        }),
+        menu: (provided: any) => ({
+            ...provided,
+            borderRadius: '0',
+        }),
+        input: (provided: any) => ({
+            ...provided,
+            margin: '0',
+            padding: '0',
+        }),
+        placeholder: (provided: any) => ({
+            ...provided,
+            margin: '0',
+            padding: '0',
+        }),
+        singleValue: (provided: any) => ({
+            ...provided,
+            margin: '0',
+            padding: '0',
+        }),
+    };
+
     useEffect(() => {
         const getTemplates = async () => {
             try {
@@ -219,6 +253,7 @@ const MainPage: React.FC = () => {
                     setSystemPrompt(details.system_prompt);
                     setUserPrompt(details.user_prompt);
                     setExampleOuput(details.example)
+                    setError('')
                 } catch (err) {
                     setError('Failed to fetch template details');
                     console.error(err);
@@ -274,6 +309,21 @@ const MainPage: React.FC = () => {
         }));
     }, []);
 
+    // Handle changes in CreatableSelect
+    const handleTemplateChange = (newValue: any, actionMeta: any) => {
+        if (newValue) {
+            setSelectedTemplate(newValue.value);
+        } else {
+            setSelectedTemplate('');
+        }
+    };
+
+    const handleCreateTemplate = (inputValue: string) => {
+        const newOption = inputValue;
+        setTemplates([...templates, newOption]);
+        setSelectedTemplate(newOption);
+    };
+
     return (
         <div className="min-h-screen bg-white ">
             <div className="mx-auto py-6 px-4">
@@ -297,7 +347,17 @@ const MainPage: React.FC = () => {
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium mb-1">Prompt Template</label>
 
-                                    <CreatableSelect options={templates.map(template => ({ value: template, label: template }))} />
+                                    <CreatableSelect
+                                        options={templates.map(template => ({ value: template, label: template }))}
+                                        value={selectedTemplate ? { value: selectedTemplate, label: selectedTemplate } : null}
+                                        onChange={handleTemplateChange}
+                                        onCreateOption={handleCreateTemplate}
+                                        styles={customStyles}
+                                        isDisabled={templates.length === 0}
+                                        placeholder="Select a template"
+                                    />
+
+                                    {/* Old select component (commented out) */}
                                     {/* <select
                                         value={selectedTemplate}
                                         onChange={e => setSelectedTemplate(e.target.value)}
@@ -329,11 +389,10 @@ const MainPage: React.FC = () => {
                                         {Object.entries(params).map(([key, value]) => (
                                             <div key={key} className="flex items-center">
                                                 <span className="w-1/4 text-sm">{key}</span>
-                                                <input
-                                                    type="text"
+                                                <AutoResizeTextarea
                                                     value={value}
                                                     onChange={e => handleParamChange(key, e.target.value)}
-                                                    className="w-2/3 px-1  font-mono text-sm border border-black focus:outline-none bg-white focus:border-black"
+                                                    className="w-2/3 px-1 font-mono text-sm border border-black focus:outline-none bg-white focus:border-black"
                                                 />
                                                 <button
                                                     onClick={() => removeParam(key)}
@@ -424,21 +483,21 @@ const MainPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Custom Dialogs */}
+                <AddParameterDialog
+                    isOpen={isAddParamDialogOpen}
+                    onClose={() => setIsAddParamDialogOpen(false)}
+                    onAdd={handleAddParam}
+                />
+
+                <LLMConfigDialog
+                    isOpen={isLLMConfigDialogOpen}
+                    onClose={() => setIsLLMConfigDialogOpen(false)}
+                    llmParams={llmParams}
+                    onParamChange={handleLLMParamChange}
+                />
             </div>
-
-            {/* Custom Dialogs */}
-            <AddParameterDialog
-                isOpen={isAddParamDialogOpen}
-                onClose={() => setIsAddParamDialogOpen(false)}
-                onAdd={handleAddParam}
-            />
-
-            <LLMConfigDialog
-                isOpen={isLLMConfigDialogOpen}
-                onClose={() => setIsLLMConfigDialogOpen(false)}
-                llmParams={llmParams}
-                onParamChange={handleLLMParamChange}
-            />
         </div>
     );
 };

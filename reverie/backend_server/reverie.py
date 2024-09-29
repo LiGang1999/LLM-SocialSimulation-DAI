@@ -81,7 +81,7 @@ class EventInfo:
 
 @dataclass
 class LLMConfig:
-    api_base: str = config.openai_api_base
+    base_url: str = config.openai_api_base
     api_key: str = config.openai_api_key
     engine: str = ""
     tempreature: float = 1.0
@@ -1243,9 +1243,35 @@ def start_sim(template_sim_name: str, sim_config: ReverieConfig):
 
 
 if __name__ == "__main__":
+    import threading
 
-    origin = input("Enter the name of the forked simulation: ").strip()
-    target = input("Enter the name of the new simulation: ").strip()
+    template_sim_code = input("Enter the name of the forked simulation: ").strip()
+    sim_code = input("Enter the name of the new simulation: ").strip()
 
-    rs = Reverie(origin, target)
-    rs.open_server()
+    # Create a default ReverieConfig
+    cfg = load_config_from_files(f"{storage_path}/{template_sim_code}")
+    cfg.sim_code = sim_code
+    cfg.llm_config = LLMConfig(
+        base_url=openai_api_base,
+        api_key=openai_api_key,
+        engine=override_gpt_param["engine"]
+    )
+
+    rs = Reverie(template_sim_code, cfg)
+
+    # Define a function to read from stdin and put commands into the command_queue
+    def stdin_reader():
+        while True:
+            try:
+                command = input()
+                rs.handle_command(command)
+            except EOFError:
+                break
+
+    # Start the stdin reader thread
+    input_thread = threading.Thread(target=stdin_reader)
+    input_thread.daemon = True
+    input_thread.start()
+
+    # Start processing commands
+    rs.open_server(None)

@@ -59,7 +59,7 @@ def save_json_file(file_path: str, data: Dict[str, Any]) -> None:
 
 def parse_llm_config(llm_config_data: Dict[str, Any]) -> LLMConfig:
     return LLMConfig(
-        api_base=llm_config_data.get("api_base", config.openai_api_base),
+        base_url=llm_config_data.get("base_url", config.openai_api_base),
         api_key=llm_config_data.get("api_key", config.openai_api_key),
         engine=llm_config_data.get("engine", ""),
         tempreature=float(llm_config_data.get("temperature", 1.0)),
@@ -464,14 +464,14 @@ async def fetch_templates():
         template_meta = load_json_file(template_meta_file)
         if template_meta:
             result_envs.append(template_meta)
-    
+
     # Sort result_envs based on template_sim_code
     def sort_key(env):
-        sim_code = env.get('template_sim_code', '')
-        return (0 if 'online' in sim_code.lower() else 1, sim_code)
-    
+        sim_code = env.get("template_sim_code", "")
+        return (0 if "online" in sim_code.lower() else 1, sim_code)
+
     result_envs.sort(key=sort_key)
-    
+
     return {"envs": result_envs, "all_templates": envs}
 
 

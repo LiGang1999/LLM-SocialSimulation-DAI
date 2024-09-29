@@ -1,10 +1,6 @@
 import os
 import openai
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_random_exponential,
-)  # for exponential backoff
+from tenacity import retry, stop_after_attempt, wait_random_exponential  # for exponential backoff
 
 import logging
 
@@ -33,14 +29,14 @@ class OpenAIWrapper:
         # TODO: set up your API key with the environment variable OPENAIKEY
         # openai.api_key = "5c09a47bc6a44b44a6094f952882d958"
         # openai.api_type = "azure"
-        # openai.api_base = "https://zjudai.openai.azure.com/"
+        # openai.base_url = "https://zjudai.openai.azure.com/"
         # openai.api_version = "2023-03-15-preview"
         # openai.api_key = os.environ.get("OPENAI_API_KEY")
 
         # if os.environ.get("USE_AZURE")=="True":
         #     print("using azure api")
         #     openai.api_type = "azure"
-        # openai.api_base = os.environ.get("API_BASE")
+        # openai.base_url = os.environ.get("API_BASE")
         # openai.api_version = os.environ.get("API_VERSION")
 
         self.config = config
@@ -51,7 +47,9 @@ class OpenAIWrapper:
         self.prompt_tokens = 0
 
         # system message
-        self.system_message = system_message  # "You are an AI assistant that helps people find information."
+        self.system_message = (
+            system_message  # "You are an AI assistant that helps people find information."
+        )
 
     # retry using tenacity
     @retry(
@@ -88,12 +86,8 @@ class OpenAIWrapper:
             while n > 0:
                 cnt = min(n, 10)  # number of generations per api call
                 n -= cnt
-                res = self.completions_with_backoff(
-                    messages=messages, n=cnt, **self.config
-                )
-                text_outputs.extend(
-                    [choice["message"]["content"] for choice in res["choices"]]
-                )
+                res = self.completions_with_backoff(messages=messages, n=cnt, **self.config)
+                text_outputs.extend([choice["message"]["content"] for choice in res["choices"]])
                 # add prompt to log
                 res["prompt"] = prompt
                 if sys_m != "":
@@ -111,10 +105,7 @@ class OpenAIWrapper:
     def compute_gpt_usage(self):
         model = self.config["model"]
         if model == "gpt-3.5-turbo":
-            cost = (
-                self.completion_tokens / 1000 * 0.002
-                + self.prompt_tokens / 1000 * 0.0015
-            )
+            cost = self.completion_tokens / 1000 * 0.002 + self.prompt_tokens / 1000 * 0.0015
         else:
             cost = 0  # TODO: add custom cost calculation for other engines
         # engine = self.config["engine"]
