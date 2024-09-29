@@ -14,12 +14,12 @@ export type GeneratedPrompts = {
     user: string;
 };
 export type LLMParams = {
-    base_url: string;
-    api_key: string;
-    model: string;
-    max_tokens: number;
-    top_p: number;
-    temperature: number;
+    base_url?: string;
+    api_key?: string;
+    model?: string;
+    max_tokens?: number;
+    top_p?: number;
+    temperature?: number;
 };
 
 // Base URL for API calls
@@ -97,3 +97,4 @@ export const generateResponse = async (
         return handleApiError(error);
     }
 };
+

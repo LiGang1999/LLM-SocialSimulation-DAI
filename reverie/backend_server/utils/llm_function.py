@@ -128,6 +128,11 @@ def llm_request(
     stop = llm_config.get("stop", None)  # Default stop sequence
     model = override_model if override_model else llm_config["engine"]
 
+    if llm_config["base_url"] or llm_config["api_key"]:
+        client = default_client.copy(base_url=llm_config["base_url"], api_key=llm_config["api_key"])
+    else:
+        client = default_client
+
     attempt = 0
     L.debug(
         f"[{func_name}] LLM REQUEST; KIND: {'chat' if llm_config['chat'] else 'completion'}; USER_PROMPT:{llm_logging_repr(usr_prompt)}; SYSTEM_PROMPT:{llm_logging_repr(sys_prompt)}"
@@ -146,7 +151,8 @@ def llm_request(
                     {"role": "user", "content": usr_prompt},
                 ]
                 # L.debug(f"Prompt:{str(messages)}")
-                response = default_client.chat.completions.create(
+
+                response = client.chat.completions.create(
                     model=model,
                     messages=messages,
                     temperature=temperature,
@@ -156,6 +162,8 @@ def llm_request(
                     frequency_penalty=frequency_penalty,
                     presence_penalty=presence_penalty,
                     stop=stop,
+                    # api_key=llm_config.get("api_key"),
+                    # base_url=llm_config.get("base_url"),
                 )
                 if raw_response:
                     return response
@@ -165,7 +173,7 @@ def llm_request(
             else:
                 # Standard completion mode
                 # L.debug(f"Prompt:{str(sys_prompt + "\n" + usr_prompt)}")
-                response = default_client.completions.create(
+                response = client.completions.create(
                     model=model,
                     prompt=sys_prompt + "\n" + usr_prompt,
                     temperature=temperature,

@@ -11,7 +11,12 @@ import {
     generateResponse
 } from '../api';
 
+import CreatableSelect from 'react-select/creatable';
+
+
 import { X } from 'lucide-react';
+
+
 
 interface AutoResizeTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
     value: string;
@@ -178,7 +183,7 @@ const MainPage: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [llmParams, setLlmParams] = useState<LLMParams>({
-        base_url: 'https://api.openai.com/v1/completions',
+        base_url: '',
         api_key: '',
         model: 'gpt-3.5-turbo',
         max_tokens: 150,
@@ -291,7 +296,9 @@ const MainPage: React.FC = () => {
                                 {/* Prompt Template Selector */}
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium mb-1">Prompt Template</label>
-                                    <select
+
+                                    <CreatableSelect options={templates.map(template => ({ value: template, label: template }))} />
+                                    {/* <select
                                         value={selectedTemplate}
                                         onChange={e => setSelectedTemplate(e.target.value)}
                                         className="mt-1 block w-full pl-3 bg-white pr-10 py-2 text-base border border-black focus:outline-none focus:border-black sm:text-sm"
@@ -302,7 +309,7 @@ const MainPage: React.FC = () => {
                                         {templates.map(template => (
                                             <option key={template} value={template}>{template}</option>
                                         ))}
-                                    </select>
+                                    </select> */}
                                 </div>
 
                                 {/* Parameter List */}

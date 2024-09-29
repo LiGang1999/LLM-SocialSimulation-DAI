@@ -1,6 +1,6 @@
 import os
 import json
-from typing import List, Dict
+from typing import List, Dict, Any
 import aiohttp
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -50,7 +50,7 @@ class GenerateResponseRequest(BaseModel):
     user_prompt: str
     parameters: Dict[str, str]
     example: str
-    # llm_params: Dict[str, str]
+    llm_params: Dict[str, Any]
 
 
 class GenerateResponse(BaseModel):
@@ -117,6 +117,9 @@ async def generate_response(data: GenerateResponseRequest):
 
     config = override_gpt_param
     config["chat"] = True
+    config["engine"] = data.llm_params["model"]
+    config["base_url"] = data.llm_params["base_url"]
+    config["api_key"] = data.llm_params["api_key"]
 
     result = llm_request(
         usr_prompt=user_prompt,
