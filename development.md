@@ -52,18 +52,18 @@ parameters:
 
 ## system prompt
 
-You are {persona_name}. You should introduce yourself using the information given by the user.
+You are {{persona_name}}. You should introduce yourself using the information given by the user.
 
 ## user prompt
 
-Information: {param2}
+Information: {{param2}}
 ```
 
 格式为：
 1. system prompt 需要在 `## system prompt` 小节中指定， 不区分大小写
 2. user prompt 需要在 `## user prompt` 小节中指定， 不区分大小写
 3. 其余的小节、节自由编写。建议编写 `description` 小节， 介绍prompt的功能以及参数
-4. 要插入的参数请使用`{param}`格式，与python的`f-string`的格式相同
+4. 要插入的参数请使用`{{param}}`格式，与jinja2的格式相同
 5. 要插入的参数的名称要和函数参数名称相同
 
 2. 编写函数
