@@ -9,29 +9,19 @@ a. 在 `reverie/backend_server/prompt_templates/` 目录下创建新的 `.md` �
 ```markdown
 ## description
 
-This is a new prompt for [specific purpose].
+<prompt description>
 
 parameters:
-- param1: explanation of param1
+- persona_name: the name of persona
 - param2: explanation of param2
 
 ## system prompt
 
-You are an AI assistant tasked with [specific task].
+You are {persona_name}. You should introduce yourself using the information given by the user.
 
-## human prompt
+## user prompt
 
-Given the following information:
-{param1}
-{param2}
-
-Please [specific instruction].
-
-## ai prompt
-
-I understand. Based on the provided information, I will [specific task].
-
-[Output format or additional instructions]
+Information: {param2}
 ```
 
 b. 在 `reverie/backend_server/persona/prompt_template/run_gpt_structure.py` 文件中添加新的函数来调用这个prompt:
