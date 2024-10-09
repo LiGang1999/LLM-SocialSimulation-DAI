@@ -1280,8 +1280,13 @@ def plan_dai(persona, retrieved):
     sub_dicts = [{key: value} for key, value in retrieved.items()]
 
     plan = dict()
+    use_llm = False
+    
     for sub_dict in sub_dicts:
-        sub_plan = run_gpt_prompt_decide_to_comment(persona, sub_dict)[0]
+        if use_llm: 
+            sub_plan = run_gpt_prompt_decide_to_comment(persona, sub_dict)[0]
+        else:
+            sub_plan = random.choices(["yes", "no"], weights=[70, 30], k=1)[0]
         plan[list(sub_dict.keys())[0]] = sub_plan
 
     return plan
