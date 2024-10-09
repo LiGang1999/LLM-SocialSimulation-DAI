@@ -42,6 +42,7 @@ def execute(persona, maze, personas, plan):
 
     # <act_path_set> is set to True if the path is set for the current action.
     # It is False otherwise, and means we need to construct a new path.
+    print("execute")
     if not persona.scratch.act_path_set:
         # <target_tiles> is a list of tile coordinates where the persona may go
         # to execute the current action. The goal is to pick one of them.

@@ -35,7 +35,6 @@ class GaWorkFlow(WorkFlow):
             ):  # extend planning cycle
                 maze.need_stagely_planning = True
         persona.scratch.curr_time = curr_time
-
         perceived = self.perceive.action(persona, maze)
         retrieved = self.retrieve.action(persona, perceived)
         plan = self.plan.action(persona, maze, personas, new_day, retrieved)

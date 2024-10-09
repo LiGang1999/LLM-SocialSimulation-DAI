@@ -4,6 +4,7 @@ import logging
 import os
 
 import colorlog
+from tabulate import tabulate
 
 
 def get_log_level(default="DEBUG"):
@@ -55,22 +56,52 @@ _term_logger.setLevel(get_log_level())
 _term_logger.propagate = False
 
 
-def get_outer_caller(module_name) -> str:
-    # Iterate over the call stack
-    ret = ""
-    for frame_info in inspect.stack():
-        # Get the module of the current frame
-        frame = frame_info.frame
-        module = inspect.getmodule(frame)
+def get_outer_caller():
+    """
+    Returns the name of the nearest caller function that is outside the module
+    that called get_outer_caller().
 
-        # Check if the module name matches the one we're looking for
-        # if module and module.__name__ != module_name:
-        modstr = f"{module.__name__}"
-        if __name__ not in modstr and module_name not in modstr:
-            ret = f"{modstr}.{frame_info.function}"
-            return ret
+    If no such caller is found, returns None.
+    """
+    # Get the current frame (inside get_outer_caller)
+    current_frame = inspect.currentframe()
+    try:
+        # The caller of get_outer_caller is one frame back
+        caller_frame = current_frame.f_back
+        if not caller_frame:
+            return None
 
-    return ret  # Return None if no outer caller is found
+        # Determine the module of the caller
+        caller_module = inspect.getmodule(caller_frame)
+        caller_module_name = caller_module.__name__ if caller_module else None
+
+        # Start traversing the call stack from the caller's frame
+        frame = caller_frame.f_back
+        while frame:
+            # Get the module of the current frame
+            module = inspect.getmodule(frame)
+            module_name = module.__name__ if module else None
+
+            # If the module is different from the caller's module, we've found the external caller
+            if module_name != caller_module_name:
+                func_name = frame.f_code.co_name
+                # Optionally, skip '<module>' if you only want function names
+                if func_name != "<module>":
+                    return func_name
+                else:
+                    # If the caller is at the module level, return None or a placeholder
+                    return None  # or '<module>'
+
+            # Move to the previous frame in the stack
+            frame = frame.f_back
+
+        # If no external caller is found
+        return None
+    finally:
+        # Explicitly delete frame references to avoid reference cycles
+        del current_frame
+        del caller_frame
+        del frame
 
 
 class _UsageStats:
@@ -162,11 +193,50 @@ class L:
     @staticmethod
     def print_stats(native=False):
         logger = _logger if not native else _term_logger
-        logger.info("Usage stats:")
-        logger.info("Total requests: %d", _all_stats.total_requests)
-        logger.info("Total duration: %f", _all_stats.total_duration)
-        logger.info("Prompt tokens: %d", _all_stats.prompt_tokens)
-        logger.info("Completion tokens: %d", _all_stats.completion_tokens)
+
+        # Prepare Overall Stats
+        overall_headers = ["Metric", "Value"]
+        overall_data = [
+            ["Total Requests", _all_stats.total_requests],
+            ["Total Duration (s)", f"{_all_stats.total_duration:.2f}"],
+            ["Prompt Tokens", _all_stats.prompt_tokens],
+            ["Completion Tokens", _all_stats.completion_tokens],
+            ["Successful Requests", _all_stats.success_requests],
+        ]
+
+        overall_table = tabulate(overall_data, headers=overall_headers, tablefmt="grid")
+        logger.info("=== Overall Usage Stats ===")
+        logger.info("\n%s", overall_table)
+
+        # Prepare Function-Specific Stats
+        if _stats_by_func:
+            func_headers = [
+                "Function Name",
+                "Total Requests",
+                "Total Duration (s)",
+                "Prompt Tokens",
+                "Completion Tokens",
+                "Successful Requests",
+            ]
+            func_data = []
+            for function_name, fstat in _stats_by_func.items():
+                func_data.append(
+                    [
+                        function_name,
+                        fstat.total_requests,
+                        f"{fstat.total_duration:.2f}",
+                        fstat.prompt_tokens,
+                        fstat.completion_tokens,
+                        fstat.success_requests,
+                    ]
+                )
+
+            func_table = tabulate(func_data, headers=func_headers, tablefmt="grid")
+            logger.info("\n=== Usage Stats by Function ===")
+            logger.info("\n%s", func_table)
+        else:
+            logger.info("\n=== Usage Stats by Function ===")
+            logger.info("No function-specific stats available.")
 
     @staticmethod
     def set_level(level):

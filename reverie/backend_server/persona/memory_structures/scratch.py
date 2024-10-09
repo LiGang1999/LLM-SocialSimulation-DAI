@@ -596,3 +596,46 @@ class Scratch(Memory):
             minute = curr_min_sum % 60
             ret += f"{hour:02}:{minute:02} || {row[0]}\n"
         return ret
+
+    def get_str_summary(self):
+        """
+        Prints a comprehensive and well-formatted view of the persona's scratch.
+        """
+        ret_str = f"Scratch for {self.name}:\n"
+        ret_str += "=" * (len(ret_str) - 1) + "\n\n"
+
+        # Print core identity
+        ret_str += "Core Identity:\n"
+        ret_str += f"  Name: {self.name}\n"
+        ret_str += f"  Age: {self.age}\n"
+        ret_str += f"  Innate traits: {self.innate}\n"
+        ret_str += f"  Learned traits: {self.learned}\n"
+        ret_str += f"  Current state: {self.currently}\n"
+        ret_str += f"  Lifestyle: {self.lifestyle}\n"
+        ret_str += f"  Living area: {self.living_area}\n\n"
+
+        # Print current status
+        ret_str += "Current Status:\n"
+        ret_str += f"  Current time: {self.curr_time}\n"
+        ret_str += f"  Current tile: {self.curr_tile}\n"
+        ret_str += f"  Current action: {self.act_description}\n"
+        ret_str += f"  Action start time: {self.act_start_time}\n"
+        ret_str += f"  Action duration: {self.act_duration} minutes\n\n"
+
+        # Print planning information
+        ret_str += "Planning:\n"
+        ret_str += f"  Daily requirements: {self.daily_req}\n"
+        ret_str += "  Daily schedule:\n"
+        for item in self.f_daily_schedule:
+            ret_str += f"    - {item[0]} ({item[1]} minutes)\n"
+        ret_str += "  ...\n\n"
+
+        # Print reflection variables
+        ret_str += "Reflection Variables:\n"
+        ret_str += f"  Importance trigger current: {self.importance_trigger_curr}\n"
+        ret_str += f"  Importance trigger max: {self.importance_trigger_max}\n"
+        ret_str += f"  Recency weight: {self.recency_w}\n"
+        ret_str += f"  Relevance weight: {self.relevance_w}\n"
+        ret_str += f"  Importance weight: {self.importance_w}\n"
+
+        return ret_str

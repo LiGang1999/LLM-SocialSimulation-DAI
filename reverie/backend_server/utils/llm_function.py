@@ -9,6 +9,7 @@ import openai
 from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model
 from utils.logs import L
 from jinja2 import Template
+from utils import thread_local
 
 default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
 
@@ -64,10 +65,27 @@ def extract_parameters(parameters_content):
     return parameters
 
 
+def extract_first_json_dict(data_str):
+    # Find the largest json from a unstructured string
+    # Regular expression to find JSON objects or arrays in the string
+    json_pattern = re.compile(r"(\{.*?\}|\[.*?\])", flags=re.DOTALL)
+    json_strings = json_pattern.findall(data_str)
+
+    for json_str in json_strings:
+        try:
+            # Try to load the JSON to ensure it's valid
+            json_obj = json.loads(json_str)
+            return json_obj
+
+        except json.JSONDecodeError:
+            continue
+
+    return None
+
+
 def load_prompt_file(prompt_file, prompt_storage="prompt_templates"):
     cwd = os.getcwd()
     fullpath = os.path.join(cwd, prompt_storage, prompt_file)
-    L.debug(f"{prompt_file, prompt_storage, fullpath}")
 
     with open(fullpath, "r") as f:
         file_content = f.read()
@@ -98,6 +116,7 @@ def llm_request(
     max_retries=3,
     retry_delay=0.5,
     raw_response=False,
+    legacy=False,
 ):
     """
     Send a LLM request with error handling and logging. The llm_config dictionary consists of the following fields:
@@ -119,6 +138,9 @@ def llm_request(
     if "engine" not in llm_config or "chat" not in llm_config:
         raise ValueError("The 'engine' and 'chat' fields are required in llm_config.")
 
+    r = thread_local.reverie_local
+    r.interested = True
+
     # Provide default values for optional fields
     temperature = llm_config.get("temperature", 1.0)  # Default temperature
     max_tokens = llm_config.get("max_tokens", 150)  # Default max tokens
@@ -127,6 +149,9 @@ def llm_request(
     presence_penalty = llm_config.get("presence_penalty", 0.0)  # Default presence penalty
     stop = llm_config.get("stop", None)  # Default stop sequence
     model = override_model if override_model else llm_config["engine"]
+    is_chat = llm_config["chat"]
+    if not is_chat and not model.endswith("-instruct"):
+        model += "-instruct"
 
     if "base_url" in llm_config or "api_key" in llm_config:
         client = default_client.copy(
@@ -171,6 +196,13 @@ def llm_request(
                 if raw_response:
                     return response
                 result = response.choices[0].message.content
+
+                if legacy:
+                    result = str(
+                        extract_first_json_dict(response.choices[0].message.content.strip())[
+                            "output"
+                        ]
+                    )
 
                 # result = response["choices"][0]["message"]["content"]
             else:

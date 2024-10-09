@@ -13,6 +13,7 @@ import time
 from openai import OpenAI
 from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model
 from utils.logs import L, get_outer_caller
+from utils.llm_function import llm_request
 
 client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
 
@@ -53,24 +54,6 @@ def extract_largest_jsno_dict(data_str):
             continue
 
     return json.loads(largest_json_str) if largest_json_str else None
-
-
-def extract_first_json_dict(data_str):
-    # Find the largest json from a unstructured string
-    # Regular expression to find JSON objects or arrays in the string
-    json_pattern = re.compile(r"(\{.*?\}|\[.*?\])", flags=re.DOTALL)
-    json_strings = json_pattern.findall(data_str)
-
-    for json_str in json_strings:
-        try:
-            # Try to load the JSON to ensure it's valid
-            json_obj = json.loads(json_str)
-            return json_obj
-
-        except json.JSONDecodeError:
-            continue
-
-    return None
 
 
 def unescape_markdown(text):
@@ -114,101 +97,63 @@ def generate_gpt_response(
     RETURNS:
       A string containing the GPT response, or the fail_safe_response if unsuccessful.
     """
-    tries = 0
+
+    example_output_str = (
+        example_output if isinstance(example_output, str) else json.dumps(example_output)
+    )
+    system_prompt = f"""
+    You are a helpful assistant. You should only output your response to the user in JSON format, and you should meet the requirements.
+
+    Example for your response:
+
+    {{
+    "output" : {example_output_str}
+    }}
+
+    Requirements:
+    {special_instruction}
+    """
+
+    user_prompt = prompt
 
     if override_gpt_param:
         gpt_parameters.update(override_gpt_param)
-    while tries < max_retries:
-        try:
-            model = gpt_parameters["engine"] + ("" if is_chat else "-instruct")
-            start_time = time.time()
 
-            if is_chat:
-                # Prepare system prompt if in chat mode
-                example_output_str = (
-                    example_output
-                    if isinstance(example_output, str)
-                    else json.dumps(example_output)
-                )
-                system_prompt = f"""
-You are a helpful assistant. You should only output your response to the user in JSON format, and you should meet the requirements.
+    engine = gpt_parameters["engine"]
 
-Example for your response:
+    llm_config = {
+        "engine": engine,
+        "temperature": gpt_parameters["temperature"],
+        "top_p": gpt_parameters["top_p"],
+        "max_tokens": gpt_parameters["max_tokens"],
+        "stream": gpt_parameters["stream"],
+        "stop": gpt_parameters["stop"],
+        "frequency_penalty": gpt_parameters["frequency_penalty"],
+        "presence_penalty": gpt_parameters["presence_penalty"],
+        "chat": is_chat,
+    }
 
-{{
-"output" : {example_output_str}
-}}
+    def validate_fn(response, kwargs):
+        return func_validate(response, prompt="")
 
-Requirements:
-{special_instruction}
-"""
-                messages = [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt},
-                ]
-                L.debug(
-                    f"SYSTEM_PROMPT:{llm_logging_repr(system_prompt)};USER_PROMPT:{llm_logging_repr(prompt)}"
-                )
-                response = client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    temperature=gpt_parameters["temperature"],
-                    max_tokens=gpt_parameters["max_tokens"],
-                    top_p=gpt_parameters["top_p"],
-                    frequency_penalty=gpt_parameters["frequency_penalty"],
-                    presence_penalty=gpt_parameters["presence_penalty"],
-                    stream=gpt_parameters["stream"],
-                    stop=gpt_parameters["stop"],
-                )
-                curr_gpt_response = str(
-                    extract_first_json_dict(response.choices[0].message.content.strip())["output"]
-                )
-            else:
-                # Directly use completion API
-                L.debug(f"USER_PROMPT:{llm_logging_repr(prompt)}")
-                response = client.completions.create(
-                    model=model,
-                    prompt=prompt,
-                    temperature=gpt_parameters["temperature"],
-                    max_tokens=gpt_parameters["max_tokens"],
-                    top_p=gpt_parameters["top_p"],
-                    frequency_penalty=gpt_parameters["frequency_penalty"],
-                    presence_penalty=gpt_parameters["presence_penalty"],
-                    stream=gpt_parameters["stream"],
-                    stop=gpt_parameters["stop"],
-                )
-                curr_gpt_response = response.choices[0].text.strip()
+    def cleanup_fn(response, kwargs):
+        return func_clean_up(response, prompt="")
 
-            L.debug(f"GPT_RESPONSE:{llm_logging_repr(curr_gpt_response)}")
+    def failsafe_fn(response, kwargs):
+        return fail_safe_response
 
-            valid = func_validate(curr_gpt_response, prompt=prompt)
-            L.stats(
-                get_outer_caller(__name__),
-                model=model,
-                is_chat=is_chat,
-                valid=valid,
-                duration=time.time() - start_time,
-                request_tokens=response.usage.prompt_tokens,
-                response_tokens=response.usage.completion_tokens,
-            )
-            if valid:
-                return (
-                    func_clean_up(unescape_markdown(curr_gpt_response), prompt=prompt)
-                    if func_clean_up
-                    else unescape_markdown(curr_gpt_response)
-                )
-            else:
-                return unescape_markdown(curr_gpt_response)
-
-        except Exception as e:
-            L.warning(f"Error during GPT request: {e}", exc_info=True)
-
-        tries += 1
-        time.sleep(0.1)  # Optional: Wait before retrying
-        L.debug(f"Attempt {tries}/{max_retries} failed.")
-
-    L.error("GPT Request failed after all attempts", exc_info=True)
-    return fail_safe_response
+    return llm_request(
+        usr_prompt=user_prompt,
+        sys_prompt=system_prompt,
+        llm_config=llm_config,
+        validate_fn=validate_fn,
+        cleanup_fn=cleanup_fn,
+        failsafe_fn=failsafe_fn,
+        kwargs={},
+        func_name=get_outer_caller(),  # TODO
+        max_retries=max_retries,
+        legacy=True,
+    )
 
 
 def safe_generate_response(
@@ -324,7 +269,7 @@ def get_embedding(text, model="text-embedding-ada-002"):
 
 if __name__ == "__main__":
     gpt_parameter = {
-        "engine": "text-davinci-003",
+        "engine": "gpt-3.5-turbo-instruct",
         "max_tokens": 50,
         "temperature": 0,
         "top_p": 1,
