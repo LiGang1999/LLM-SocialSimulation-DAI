@@ -30,3 +30,10 @@ collision_block_id = "32125"
 
 # Verbose
 debug = True
+
+BASE_TEMPLATES = [
+    # "base_the_villie_isabella_maria_klaus",
+    "base_the_villie_isabella_maria_klaus_online",
+    # "base_the_villie_n25",
+    "base_the_villie_n25_info"
+]

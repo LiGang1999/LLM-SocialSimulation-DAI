@@ -49,12 +49,6 @@ from vector_db import *
 rs_lock = threading.Lock()
 
 
-BASE_TEMPLATES = [
-    "base_the_villie_isabella_maria_klaus",
-    "base_the_villie_isabella_maria_klaus_online",
-    "base_the_villie_n25",
-]
-
 
 ##############################################################################
 #                                  REVERIE                                   #
@@ -301,12 +295,6 @@ def bootstrap_persona(path: str, config: ScratchData):
 
 
 class Reverie:
-    BASE_TEMPLATES = [
-        "base_the_villie_isabella_maria_klaus",
-        "base_the_villie_isabella_maria_klaus_online",
-        "base_the_villie_n25",
-    ]
-
     def __init__(self, template_sim_code, sim_config: ReverieConfig, reverie_storage_path=""):
         # Check if all required fields in sim_config are populated
         missing_fields = []

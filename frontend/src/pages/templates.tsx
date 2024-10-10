@@ -23,7 +23,7 @@ const getTemplateImage = (template: apis.TemplateListItem) => {
     } else if (template.template_sim_code === 'base_the_ville_isabella_maria_klaus') {
         return start1;
     }
-    else if (template.template_sim_code === 'base_the_ville_n25') {
+    else if (template.template_sim_code === 'base_the_ville_n25_info') {
         return stf;
     }
 }

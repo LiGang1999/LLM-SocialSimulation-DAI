@@ -9,13 +9,8 @@ from django.views.decorators.http import require_http_methods
 
 from reverie import LLMConfig, ReverieConfig, ScratchData, get_rs, start_sim
 from utils import config
+from utils.config import BASE_TEMPLATES
 from utils.logs import L
-
-BASE_TEMPLATES = [
-    "base_the_villie_isabella_maria_klaus",
-    "base_the_villie_isabella_maria_klaus_online",
-    "base_the_villie_n25",
-]
 
 STORAGE_PATH = config.storage_path
 TEMP_STORAGE_PATH = config.temp_storage_path

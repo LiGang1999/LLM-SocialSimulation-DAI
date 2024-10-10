@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ValidationError
 from utils import *
 from utils import config
+from utils.config import BASE_TEMPLATES
 from utils.logs import L
 
 from reverie import LLMConfig, Reverie, ReverieConfig, ScratchData
@@ -27,12 +28,6 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-
-BASE_TEMPLATES = [
-    "base_the_villie_isabella_maria_klaus",
-    "base_the_villie_isabella_maria_klaus_online",
-    "base_the_villie_n25",
-]
 
 STORAGE_PATH = config.storage_path
 TEMP_STORAGE_PATH = config.temp_storage_path
@@ -458,12 +453,18 @@ async def fetch_templates():
     filtered_envs = [
         env for env in envs if "test" not in env and "sim" not in env and "July" not in env
     ]
+    # 暂时不显示这个
+    # if "base_the_ville_n25" in filtered_envs:
+        # filtered_envs.remove("base_the_ville_n25")
     result_envs = []
     for dir in filtered_envs:
         template_meta_file = os.path.join(STORAGE_PATH, dir, "reverie", "meta.json")
         template_meta = load_json_file(template_meta_file)
         if template_meta:
-            result_envs.append(template_meta)
+            hidden = template_meta.get("hidden", True)
+            L.debug(f"Hidden: {hidden}")
+            if not hidden:
+                result_envs.append(template_meta)
 
     # Sort result_envs based on template_sim_code
     def sort_key(env):
