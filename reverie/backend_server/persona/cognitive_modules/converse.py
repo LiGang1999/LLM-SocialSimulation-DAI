@@ -394,17 +394,21 @@ def generate_one_utterance_for_comment(persona, retrieved, all_news, policy, web
     print("正在生成评论，请稍等")
     if policy is None:
         if websearch is None:
+            print("debug: 1")
             x = run_gpt_generate_iterative_comment_utt_new(persona, retrieved, all_news)
         else:
+            print("debug: 2")
             x = run_gpt_generate_iterative_comment_utt_with_websearch(
                 persona, retrieved, all_news, websearch
             )[0]
     else:
         if websearch is None:
+            print("debug: 3")
             x = run_gpt_generate_iterative_comment_utt_with_policy(
                 persona, retrieved, all_news, policy
             )[0]
         else:
+            print("debug: 4")
             x = run_gpt_generate_iterative_comment_utt_with_policy_and_websearch(
                 persona, retrieved, all_news, policy, websearch
             )[0]

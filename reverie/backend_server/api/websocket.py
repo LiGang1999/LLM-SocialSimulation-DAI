@@ -95,7 +95,7 @@ def sock_send(message, message_type):
         reverie_instance = thread_local.reverie_instance
         if reverie_instance:
             message = json.dumps({"type": message_type, "message": message})
-            reverie_instance.message_queue.put(message)
+            reverie_instance.reverie.message_queue.put(message)
 
 
 # Example usage of the socket_handler decorator

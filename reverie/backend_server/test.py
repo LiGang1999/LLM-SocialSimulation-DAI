@@ -3,7 +3,7 @@ from datetime import datetime
 import threading
 
 storage_path = "../storage"
-template_code = "base_the_ville_isabella_maria_klaus"
+template_code = "base_the_ville_isabella_maria_klaus_online"
 test_code = f"test_temp_{datetime.now().strftime('%m%d%H%M')}"
 test_commands = []
 

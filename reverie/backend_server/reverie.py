@@ -474,14 +474,15 @@ class Reverie:
                     self.personas[persona_name] = curr_persona
 
             self.personas_positions = {}
-            for persona_name in self.personas:
-                initial_tile = self.personas_tile[persona_name]
-                self.personas_positions[persona_name] = {
-                    'x': initial_tile[0] ,
-                    'y': initial_tile[1] ,
-                    'pronunciatio': '',  # Initialize if needed
-                    'description': '',   # Initialize if needed
-                }
+            if self.is_offline_mode:
+                for persona_name in self.personas:
+                    initial_tile = self.personas_tile[persona_name]
+                    self.personas_positions[persona_name] = {
+                        'x': initial_tile[0] ,
+                        'y': initial_tile[1] ,
+                        'pronunciatio': '',  # Initialize if needed
+                        'description': '',   # Initialize if needed
+                    }
 
             # REVERIE SETTINGS PARAMETERS:
             # <server_sleep> denotes the amount of time that our while loop rests each
