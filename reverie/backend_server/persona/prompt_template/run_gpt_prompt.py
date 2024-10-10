@@ -3493,6 +3493,34 @@ def run_gpt_prompt_generate_next_convo_line(
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
+def run_gpt_prompt_generate_interview_content(persona, interlocutor_desc, prev_convo, retrieved_summary, message, test_input=None, verbose=False):
+    """
+    Generate interview content based on the persona, interlocutor description, 
+    previous conversation, and retrieved summary without additional processing.
+
+    Parameters:
+    - persona: The persona object containing the interviewee's details.
+    - interlocutor_desc: A string describing the interviewer (e.g., "Interviewer").
+    - prev_convo: A list of previous conversation messages.
+    - retrieved_summary: A summary of ideas for the interview.
+
+    Returns:
+    A dictionary containing the generated interview content and the sentiment score.
+    """
+    @llm_function(is_chat=True, prompt_file="generate_interview_content.md")
+    def llm_generate_interview_content(persona_name, persona_iss, interlocutor_desc, prev_convo, retrieved_summary, message):
+        return {
+            "content": "This is a generated response based on the persona and action.",
+            "emotion": "neutral(Balanced)" # Placeholder sentiment score
+        }
+
+    output = output = llm_generate_interview_content(persona.scratch.name, persona.scratch.get_str_iss(), interlocutor_desc, prev_convo, retrieved_summary, message)
+    # return [(output["subject"], output["predicate"], output["object"])]
+    return {
+        "interview_content": output["content"],
+        "emotion": output["emotion"]
+    }
+
 def run_gpt_prompt_generate_whisper_inner_thought(persona, whisper, test_input=None, verbose=False):
     def create_prompt_input(persona, whisper, test_input=None):
         prompt_input = [persona.scratch.name, whisper]
@@ -3940,6 +3968,54 @@ def run_gpt_generate_iterative_comment_utt_with_policy(
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
+def run_gpt_generate_iterative_comment_utt_with_policy_new(
+    persona, retrieved, all_news, policy,  test_input=None, verbose=False
+):
+    @llm_function(prompt_file="iterative_comment_with_policy.md", is_chat=True, stop="---")
+    def iterative_comments(
+        persona_iss: str,
+        public_memory: str,
+        retrieved_memory: str,
+        persona_name: str,
+        all_news: str,
+        policy: str,    
+    ):
+
+        # You must write an example of output here
+        return {"comment": f"{persona_name}'s comments on news"}
+
+    # Step 1. Create prompt inputs
+    pm = ""
+    n, m = 1, 1
+    retrieved_context = ""
+    description1, description2 = [], []
+
+    for key, vals in retrieved.items():
+        pm += f"{n}. {vals['curr_event'].name} said, {vals['curr_event'].description}\n"
+
+        # Collect descriptions from events and thoughts
+        description1 += [c_node.description for c_node in vals["events"]]
+        description2 += [c_node.description for c_node in vals["thoughts"]]
+        n += 1
+
+    for des in dict.fromkeys(description1):
+        retrieved_context += f"{m}. {des}\n"
+        m += 1
+
+    for des in dict.fromkeys(description2):
+        retrieved_context += f"{m}. {des}\n"
+        m += 1
+
+    ###个人信息概述 (init_iss)：
+    init_iss = f"{persona.scratch.get_str_iss()}"  # Here is the content and comments about the case, here is a brief description of {persona.scratch.name}.
+
+    # Step 2. Call llm function
+    result = iterative_comments(
+        init_iss, pm, retrieved_context, persona.scratch.name, all_news, policy
+    )
+    return result
+
+
 def run_gpt_generate_iterative_comment_utt_new(
     persona, retrieved, all_news, test_input=None, verbose=False
 ):
@@ -4163,6 +4239,55 @@ def run_gpt_generate_iterative_comment_utt_with_policy_and_websearch(
         prompt, gpt_param, 3, fail_safe, __chat_func_validate, __chat_func_clean_up, verbose
     )
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
+
+
+def run_gpt_generate_iterative_comment_utt_with_policy_and_websearch_new(
+    persona, retrieved, all_news, policy, websearch, test_input=None, verbose=False
+):
+    @llm_function(prompt_file="iterative_comment_with_policy_and_websearch.md", is_chat=True, stop="---")
+    def iterative_comments(
+        persona_iss: str,
+        public_memory: str,
+        retrieved_memory: str,
+        persona_name: str,
+        all_news: str,
+        policy: str,
+        websearch: str
+    ):
+
+        # You must write an example of output here
+        return {"comment": f"{persona_name}'s comments on news"}
+
+    # Step 1. Create prompt inputs
+    pm = ""
+    n, m = 1, 1
+    retrieved_context = ""
+    description1, description2 = [], []
+
+    for key, vals in retrieved.items():
+        pm += f"{n}. {vals['curr_event'].name} said, {vals['curr_event'].description}\n"
+
+        # Collect descriptions from events and thoughts
+        description1 += [c_node.description for c_node in vals["events"]]
+        description2 += [c_node.description for c_node in vals["thoughts"]]
+        n += 1
+
+    for des in dict.fromkeys(description1):
+        retrieved_context += f"{m}. {des}\n"
+        m += 1
+
+    for des in dict.fromkeys(description2):
+        retrieved_context += f"{m}. {des}\n"
+        m += 1
+
+    ###个人信息概述 (init_iss)：
+    init_iss = f"{persona.scratch.get_str_iss()}"  # Here is the content and comments about the case, here is a brief description of {persona.scratch.name}.
+
+    # Step 2. Call llm function
+    result = iterative_comments(
+        init_iss, pm, retrieved_context, persona.scratch.name, all_news, policy, websearch
+    )
+    return result
 
 
 ###wzt plan里面调用的判断

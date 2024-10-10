@@ -227,6 +227,21 @@ def generate_next_line(persona, interlocutor_desc, curr_convo, summarized_idea, 
     return next_line
 
 
+def generate_interview_content(persona, interlocutor_desc, curr_convo, summarized_idea, message, vbase):
+    # def generate_interview_content(persona, interlocutor_desc, curr_convo, summarized_idea):
+    prev_convo = ""
+    for row in curr_convo:
+        prev_convo += f"{row[0]}: {row[1]}\n"
+
+    output = run_gpt_prompt_generate_interview_content(
+        persona, interlocutor_desc, prev_convo, summarized_idea, message
+    )
+    
+    interview_content = output.get("interview_content", "")
+    emotion = output.get("emotion", "")
+    return interview_content + " \nemotion:"+  emotion
+
+
 def generate_inner_thought(persona, whisper):
     inner_thought = run_gpt_prompt_generate_whisper_inner_thought(persona, whisper)[0]
     return inner_thought
@@ -304,19 +319,41 @@ def load_history_via_whisper(personas, whispers):
         )
 
 
+import re
+
+
+
 def chat_to_persona(persona, convo_mode, vbase, prev_messages, message):
     # The prev_messages is a list of tuples of (speaker, message)
     # vbase is currently not necessary
-    if convo_mode == "interview":
+    if convo_mode == "interview_old":
         # analysis means start an interview with the persona, without any side effects
         interlocutor_desc = "Interviewer"
-
+        
         retrieved = new_retrieve(persona, [message], 50)[message]
         summarized_idea = generate_summarize_ideas(persona, retrieved, message)
         next_line = generate_next_line(
             persona, interlocutor_desc, prev_messages, summarized_idea, vbase
         )
         return next_line
+    elif convo_mode == "interview":
+        def extract_keyword_from_message(message):
+            # 使用正则表达式提取 * 之间的内容
+            keyword = re.findall(r'\*(.*?)\*', message)
+            
+            # 如果找到了关键词，返回它，否则返回空字符串或其他默认值
+            return keyword[0] if keyword else ""
+        # analysis means start an interview with the persona, without any side effects
+        interlocutor_desc = "Interviewer"
+        L.debug(f"message is {message}")
+        keyword = extract_keyword_from_message(message)
+        L.debug(f"keyword is {keyword}")
+        retrieved = new_retrieve(persona, [keyword], 50)[keyword]
+        summarized_idea = generate_summarize_ideas(persona, retrieved, message)
+        result = generate_interview_content(
+            persona, interlocutor_desc, prev_messages, summarized_idea, message, vbase
+        )
+        return result
     elif convo_mode == "whisper":
         # Whisper means adding the knowledge directly into the agent's brain
         thought = generate_inner_thought(persona, message)
@@ -401,11 +438,11 @@ def generate_one_utterance_for_comment(persona, retrieved, all_news, policy, web
             )[0]
     else:
         if websearch is None:
-            x = run_gpt_generate_iterative_comment_utt_with_policy(
+            x = run_gpt_generate_iterative_comment_utt_with_policy_new(
                 persona, retrieved, all_news, policy
-            )[0]
+            )
         else:
-            x = run_gpt_generate_iterative_comment_utt_with_policy_and_websearch(
+            x = run_gpt_generate_iterative_comment_utt_with_policy_and_websearch_new(
                 persona, retrieved, all_news, policy, websearch
-            )[0]
+            )
     return x["comment"]
