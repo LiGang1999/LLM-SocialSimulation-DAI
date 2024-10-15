@@ -1,12 +1,12 @@
-standard_prompt = '''{input}
+standard_prompt = """{input}
 
 Your output should be of the following format:
 
 Answer:
 The house number here.
-'''
+"""
 
-cot_prompt = '''{input}
+cot_prompt = """{input}
 
 Solve the task step by step. Your output should be of the following format:
 
@@ -15,9 +15,9 @@ Your steps here.
 
 Answer:
 The house number here.
-'''
+"""
 
-spp_prompt = '''When faced with a task, begin by identifying the participants who will contribute to solving the task. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
+spp_prompt = """When faced with a task, begin by identifying the participants who will contribute to solving the task. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
 
 Here are some examples:
 ---
@@ -93,10 +93,10 @@ Transforming our future, we await.
 Now, identify the participants and collaboratively solve the following task step by step. Remember to provide the final solution with the following format "Final answer: The house number here.".
 
 Task: {input}
-'''
+"""
 
 
-spp_prompt_profile = '''When faced with a task, begin by identifying the participants who will contribute to solving the task. Provide profiles of the participants, describing their expertise or needs. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
+spp_prompt_profile = """When faced with a task, begin by identifying the participants who will contribute to solving the task. Provide profiles of the participants, describing their expertise or needs. Then, initiate a multi-round collaboration process until a final solution is reached. The participants will give critical comments and detailed suggestions whenever necessary.
 
 Here are some examples:
 ---
@@ -182,11 +182,10 @@ Transforming our future, we await.
 Now, identify the participants, provide their profiles, and collaboratively solve the following task step by step. Remember to provide the final solution with the following format "Final answer: The house number here.".
 
 Task: {input}
-'''
+"""
 
 
-
-spp_prompt_fixed_persona = '''When faced with a task, begin by identifying the participants who will contribute to solving the task. Note that the participants can only be either AI Assistant (you) or Expert. Then, initiate a multi-round collaboration process until a final conclusion is reached.  The Expert will give critical comments and detailed suggestions whenever necessary.  
+spp_prompt_fixed_persona = """When faced with a task, begin by identifying the participants who will contribute to solving the task. Note that the participants can only be either AI Assistant (you) or Expert. Then, initiate a multi-round collaboration process until a final conclusion is reached.  The Expert will give critical comments and detailed suggestions whenever necessary.  
  
 Here are some examples:
 ---
@@ -257,4 +256,4 @@ Transforming our future, we await.
 Now, identify the participants and collaboratively solve the following task step by step. Note that the participants can only be either AI Assistant (you) or Expert. Remember to provide the final solution with the following format "Final answer: The house number here.".
 
 Task: {input}
-'''
+"""

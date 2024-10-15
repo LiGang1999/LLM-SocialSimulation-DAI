@@ -1,4 +1,4 @@
-decide_to_comment_v1.txt
+decide_to_comment_v2.txt
 
 <commentblockmarker>###</commentblockmarker>
 Task -- given the public memory and the context, determine whether the subject will comment for a case.

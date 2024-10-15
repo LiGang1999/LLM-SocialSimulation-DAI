@@ -1,11 +1,9 @@
 reverie/backend_server/utils.py
 frontend_server/settings/local.py
-storage/*
+**/storage/*
 static_dirs/*
 
-!environment/frontend_server/storage/base_the_ville_isabella_maria_klaus/*
-!environment/frontend_server/storage/base_the_ville_n25/*
-environment/frontend_server/storage/test*
+!**/storage/base_*
 
 bin/
 include/
@@ -102,4 +100,11 @@ ENV/
 # Rope project settings
 .ropeproject
 
-.vscode/
+.vscode
+
+vite.config.js.*
+
+curr_sim_code.json
+
+config.yaml
+node_modules

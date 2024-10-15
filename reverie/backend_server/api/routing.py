@@ -13,22 +13,11 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path
-import consumers
-from channels.routing import ProtocolTypeRouter, URLRouter
+
+from api import websocket as ws
 from channels.auth import AuthMiddlewareStack
+from channels.routing import ProtocolTypeRouter, URLRouter
+from django.contrib import admin
+from django.urls import path, re_path
 
-websocket_urlpatterns = [
-    path('ws/log', consumers.LogConsumer),
-    path('ws/online', consumers.OnlineConsumer),
-]
-
-application = ProtocolTypeRouter({
-    # (http->django views is added by default)
-    'websocket': AuthMiddlewareStack(
-        URLRouter(
-            websocket_urlpatterns
-        )
-    ),
-})
+websocket_urlpatterns = [re_path(r"ws/(?P<sock_name>\w+)$", ws.SocketConsumer.as_asgi())]
