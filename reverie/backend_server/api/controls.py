@@ -66,6 +66,19 @@ def parse_persona_configs(personas_data: List[Dict[str, Any]]) -> Dict[str, Scra
             lifestyle=persona.get("lifestyle", ""),
             living_area=persona.get("living_area", ""),
             bibliography=persona.get("bibliography", ""),
+            political_info={
+                "general_stance": persona.get("political_info", {}).get("general_stance", ""),
+                "core_values": persona.get("political_info", {}).get("core_values", []),
+                "primary_areas": persona.get("political_info", {}).get("primary_areas", []),
+                "knowledge_depth": persona.get("political_info", {}).get("knowledge_depth", ""),
+                "cross_domain": persona.get("political_info", {}).get("cross_domain", "")
+            },
+            speech_patterns={
+                "language_style": persona.get("speech_patterns", {}).get("language_style", ""),
+                "argument_patterns": persona.get("speech_patterns", {}).get("argument_patterns", ""),
+                "interaction_style": persona.get("speech_patterns", {}).get("interaction_style", ""),
+                "emotional_expression": persona.get("speech_patterns", {}).get("emotional_expression", "")
+            }
         )
         for persona in personas_data
     }

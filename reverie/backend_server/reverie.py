@@ -44,7 +44,6 @@ from persona.persona import *
 from utils import *
 from utils import config
 from utils.config import *
-from vector_db import *
 
 rs_lock = threading.Lock()
 
@@ -121,7 +120,7 @@ class ScratchData(BaseModel):
     relevance_w: int = 1
     importance_w: int = 1
     recency_decay: float = 0.99
-    importance_trigger_max: int = 30 # very low poig score to cause reflection every online round!
+    importance_trigger_max: int = 30  # very low poig score to cause reflection every online round!
     importance_trigger_curr: int = 30
     importance_ele_n: int = 0
     thought_count: int = 5
@@ -165,6 +164,7 @@ class ReverieConfig:
     direction: str | None = ""  # The instruction of what the agents should do with each other
     initial_rounds: int | None = 0  # The number of initial rounds
 
+
 def load_config_from_files(path: str) -> ReverieConfig:
     meta_file_path = f"{path}/reverie/meta.json"
     event_file_path = f"{path}/reverie/events.json"
@@ -173,14 +173,14 @@ def load_config_from_files(path: str) -> ReverieConfig:
     # Load meta.json
     with open(meta_file_path, "r") as meta_file:
         meta_data = json.load(meta_file)
-    
+
     # Load events.json
     if os.path.exists(event_file_path):
         with open(event_file_path, "r") as event_file:
             events_data = json.load(event_file)
     else:
         events_data = []
-    
+
     # Initialize ReverieConfig
     cfg = ReverieConfig(
         sim_code=meta_data.get("template_sim_code", ""),
@@ -191,7 +191,7 @@ def load_config_from_files(path: str) -> ReverieConfig:
         step=meta_data.get("step", 0),
         public_events=events_data,
         direction=meta_data.get("description", ""),
-        initial_rounds=0  # You might want to add this to meta.json if needed
+        initial_rounds=0,  # You might want to add this to meta.json if needed
     )
 
     # Load LLMConfig if present in meta_data
@@ -204,13 +204,12 @@ def load_config_from_files(path: str) -> ReverieConfig:
         scratch_file_path = f"{personas_folder_path}/{persona_name}/bootstrap_memory/scratch.json"
         with open(scratch_file_path, "r") as scratch_file:
             scratch_data = json.load(scratch_file)
-        
+
         # Parse the JSON data into a ScratchData object
         persona_config = ScratchData.model_validate_json(json.dumps(scratch_data))
         cfg.persona_configs[persona_name] = persona_config
 
     return cfg
-
 
 
 def bootstrap_persona(path: str, config: ScratchData):
@@ -908,7 +907,9 @@ class Reverie:
                     ret_str = f"importance_trigger_curr: {self.personas[
                         " ".join(sim_command.split()[-2:])
                     ].scratch.importance_trigger_curr}"
-
+                elif "print persona style" in sim_command[:20].lower():
+                    p = self.personas[sim_command[20:].strip()]
+                    ret_str = f"political_info: {p.scratch.political_info}\nspeech_patterns:{p.scratch.speech_patterns}"
                 elif "print persona schedule" in sim_command[:22].lower():
                     # Print the decomposed schedule of the persona specified in the
                     # prompt.
@@ -969,8 +970,10 @@ class Reverie:
                     thoughts = self.personas[
                         " ".join(sim_command.split()[-2:])
                     ].a_mem.get_thoughts()
-                    for count , event in enumerate(thoughts):
-                        ret_str += f"Thought {count}: {event.spo_summary()} -- {event.description}\n"
+                    for count, event in enumerate(thoughts):
+                        ret_str += (
+                            f"Thought {count}: {event.spo_summary()} -- {event.description}\n"
+                        )
 
                 elif "print persona associative memory (chat)" in sim_command.lower():
                     # Print the associative memory (chat) of the persona specified in
@@ -1252,9 +1255,7 @@ if __name__ == "__main__":
     cfg = load_config_from_files(f"{storage_path}/{template_sim_code}")
     cfg.sim_code = sim_code
     cfg.llm_config = LLMConfig(
-        base_url=openai_api_base,
-        api_key=openai_api_key,
-        engine=override_gpt_param["engine"]
+        base_url=openai_api_base, api_key=openai_api_key, engine=override_gpt_param["engine"]
     )
 
     rs = Reverie(template_sim_code, cfg)

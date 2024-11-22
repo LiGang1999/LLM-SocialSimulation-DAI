@@ -1,6 +1,6 @@
 # Copy and paste your OpenAI API Key
-openai_api_base = "https://api.bianxie.ai/v1"
-openai_api_key = "sk-Mc0h6rJZ1dvmnZiRD3B8F117B65d437c8a1a38D6E26c8585"
+openai_api_base = "https://api.gpt.ge/v1"
+openai_api_key = "sk-4lmqg2X3f6ZGA6aN7c6b61933f7a43B0B38735851a481dE6"
 
 override_model = "gpt-3.5-turbo"
 override_gpt_param = {

@@ -163,6 +163,23 @@ class Scratch(Memory):
         # e.g., [(50, 10), (49, 10), (48, 10), ...]
         self.planned_path = []
 
+        # 政治人物特定信息
+        self.political_info = {
+            "general_stance": None,  # 总体政治立场
+            "core_values": [],       # 核心价值观
+            "primary_areas": [],     # 主要专业领域
+            "knowledge_depth": None, # 知识深度
+            "cross_domain": None,    # 跨领域能力
+        }
+        
+        # 演讲模式信息
+        self.speech_patterns = {
+            "language_style": None,    # 语言风格
+            "argument_patterns": None, # 论证模式  
+            "interaction_style": None, # 互动方式
+            "emotional_expression": None # 情感表达
+        }
+
         if check_if_file_exists(f_saved):
             # If we have a bootstrap file, load that here.
             scratch_load = json.load(open(f_saved))
@@ -239,6 +256,15 @@ class Scratch(Memory):
             self.act_path_set = scratch_load["act_path_set"]
             self.planned_path = scratch_load["planned_path"]
 
+            # 加载政治信息
+            self.political_info = scratch_load["political_info"]
+            
+            # 加载演讲模式
+            self.speech_patterns = scratch_load["speech_patterns"]
+
+
+
+
     def save(self, out_json):
         """
         Save persona's scratch.
@@ -308,6 +334,11 @@ class Scratch(Memory):
 
         scratch["act_path_set"] = self.act_path_set
         scratch["planned_path"] = self.planned_path
+
+        # 保存政治信息
+        scratch["political_info"] = self.political_info
+        # 保存演讲模式
+        scratch["speech_patterns"] = self.speech_patterns
 
         with open(out_json, "w") as outfile:
             json.dump(scratch, outfile, indent=2)
@@ -411,6 +442,11 @@ class Scratch(Memory):
         commonset += f"Lifestyle: {self.lifestyle}\n"
         commonset += f"Daily plan requirement: {self.daily_plan_req}\n"
         commonset += f"Current Date: {self.curr_time.strftime('%A %B %d')}\n"
+        # 添加政治立场信息
+        commonset += f"Political stance: {self.political_info['general_stance']}\n"
+        commonset += f"Core values: {', '.join(self.political_info['core_values'])}\n"
+        commonset += f"Expertise areas: {', '.join(self.political_info['primary_areas'])}\n"
+            
         return commonset
 
     def get_str_name(self):
@@ -596,3 +632,4 @@ class Scratch(Memory):
             minute = curr_min_sum % 60
             ret += f"{hour:02}:{minute:02} || {row[0]}\n"
         return ret
+
