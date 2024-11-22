@@ -266,11 +266,12 @@ def insert_prompt_args(prompt: str, kwargs):
 
 
 def example_output_format(example_kwargs: dict, example_retval={}, example_ret_json=""):
+    mid = '\n'.join([ f"{key}: {value}" for key, value in example_kwargs.items()])
     prompt = f"""
 \n
 Here is the example user input and the answer:
 
-{'\n'.join([ f"{key}: {value}" for key, value in example_kwargs.items()])}"""
+{mid}"""
     # TODO shoud we include the example inputs and outputs here?
     prompt = f"""\n
  

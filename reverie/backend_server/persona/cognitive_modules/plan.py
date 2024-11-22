@@ -1290,3 +1290,19 @@ def plan_dai(persona, retrieved):
         plan[list(sub_dict.keys())[0]] = sub_plan
 
     return plan
+
+def plan_dai_custom(persona, retrieved):
+    # NOTE HERE: the input of new_retrieve should be focal points instead of retrieved events.
+    retrieved = new_retrieve_dai(persona, retrieved)
+
+    # 使用字典推导式循环取出每个键值对的子字典
+    sub_dicts = [{key: value} for key, value in retrieved.items()]
+
+    plan = dict()
+
+    
+    for sub_dict in sub_dicts:
+        sub_plan = run_gpt_prompt_decide_to_comment_custom(persona, sub_dict)
+        plan[list(sub_dict.keys())[0]] = sub_plan
+
+    return plan

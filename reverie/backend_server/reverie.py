@@ -417,6 +417,23 @@ class Reverie:
             # the Reverie instance.
             # e.g., ["Isabella Rodriguez"] = Persona("Isabella Rodriguezs")
             self.personas = dict()
+            if not self.is_offline_mode:
+                self.workflow_config = {
+                    "plan": {
+                        "task": "Decide whether the agent should vote on a policy proposal.",
+                        "output_format": {
+                                "reasoning": "Step-by-step reasoning...", 
+                                 "decision": "The decision made."
+                        }
+                    },
+                    "execute": {
+                        "task": "Execute the agent's plan.",
+                        "output_format": {
+                                "reasoning": "Step-by-step reasoning...",
+                                "execution": "The action to take."
+                        }
+                    },
+                }
             # <personas_tile> is a dictionary that contains the tile location of
             # the personas (!-> NOT px tile, but the actual tile coordinate).
             # The tile take the form of a set, (row, col).
@@ -809,10 +826,71 @@ class Reverie:
                 if (not do_skip) or self.interested:
                     int_counter -= 1
 
-            
-
             # Sleep so we don't burn our machines.
+                plan_task_info = {}
+            execute_task_info = {}
+ 
+    def custom_start_server(self, int_counter, participating_agents=None,do_skip=False):
+        """
+        The main backend server of Reverie, customized for selective agent participation in a simulation.
+        
+        This function retrieves the environment file from the frontend to understand the state of the world, 
+        calls on each participating persona to make decisions based on the world state, 
+        and saves their moves at certain step intervals.
 
+        INPUT:
+        int_counter: Integer value for the number of steps left for us to take in this iteration.
+        participating_agents: A dictionary of participating agents (personas) for this simulation.
+                                If None, all agents in self.personas will participate.
+        do_skip: Boolean flag indicating whether to skip steps (default: False).
+        
+        OUTPUT:
+        None
+        """
+        # <sim_folder> points to the current simulation folder.
+        sim_folder = f"{self.storage_path}/{self.sim_code}"
+        self.is_running = True
+
+        # Cleanup for any game object events that need to be reset after the simulation.
+        game_obj_cleanup = dict()
+
+        # The main while loop of Reverie.
+        n = 1
+        while True:
+            self.interested = False
+            
+            # Terminate the simulation if <int_counter> reaches 0.
+            if int_counter == 0:
+                break
+
+            if self.is_offline_mode:
+                return
+            else:  # online mode
+                # If participating_agents is not provided, default to all personas.
+                if participating_agents is None:
+                    participating_agents = self.personas
+
+                # Iterate over the participating agents
+                for persona_name, persona in participating_agents.items():
+                    print(
+                        "\n\n\n★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ "
+                        + persona_name
+                        + " 第"
+                        + str(n)
+                        + "轮"
+                        + " ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★"
+                    )
+                    persona.single_workflow(self.maze, self.curr_time)
+
+                n += 1
+                self.step += 1
+                self.curr_time += datetime.timedelta(seconds=self.sec_per_step)
+                print("❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ next step ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤")
+                if (not do_skip) or self.interested:
+                    int_counter -= 1
+
+            # Sleep to prevent overloading the machine.
+           
     def load_online_event(self, event_desc="", policy="", websearch="", access_list=[]):
         s, p, o = generate_action_event_triple_new(event_desc)
         # TODO 只用spo来完整表示一个事件是远远不够的
@@ -828,6 +906,44 @@ class Reverie:
             self.maze.add_events_policy(event_id, policy)
         if websearch:
             self.maze.add_events_websearch(event_id, websearch)
+    
+    def custom_run(self, sim_command):
+         # Parses the command to extract the number of steps and the included/excluded agents.
+        # Example: custom-run 1 lisa candy -> only 'lisa' and 'candy' participate in 1 step.
+        # Example: custom-run 7 no candy -> everyone except 'candy' participates in 7 steps.
+        # Example: custom-run 1 -> all agents participate in 1 step.
+        
+        # Split the command into parts
+        parts = sim_command.split()
+        print("Parts of the command:", parts)
+        
+        # Parse the number of steps
+        int_count = int(parts[1])
+        
+        # Determine participating agents
+        if len(parts) == 2:  # No specific agents mentioned, include all agents
+            participating_agents = self.personas
+        elif parts[2].lower() == "no":  # Exclusion case
+            excluded_agents = [agent.lower() for agent in parts[3:]]  # Excluded agents
+            participating_agents = {
+                persona_name: persona
+                for persona_name, persona in self.personas.items()
+                if persona_name.lower() not in excluded_agents
+            }
+        else:  # Inclusion case
+            included_agents = [agent.lower() for agent in parts[2:]]  # Included agents
+            participating_agents = {
+                persona_name: persona
+                for persona_name, persona in self.personas.items()
+                if persona_name.lower() in included_agents
+            } 
+        
+        # set plan
+        for persona_name, persona in participating_agents.items():
+            persona.set_workflow_stage_config(self.workflow_config)
+            
+        # Execute the simulation with the filtered agents
+        self.custom_start_server(int_count, participating_agents)
 
     def open_server(self, reverie_instance):
         """
@@ -878,7 +994,50 @@ class Reverie:
                     # Example: fin
                     self.save()
                     break
+               
+                elif "custom-run" in sim_command.lower():
+                    self.workflow_config = {
+                        "plan": {
+                            "task": "Decide which aspects to consider when discussing whether there should be a waiting period before marriage.",
+                            "output_format": {
+                                "reasoning": "Step-by-step reasoning about which factors to take into account (e.g., legal, psychological, social, personal).",
+                                "decision": "List of aspects to consider, such as legality, psychological well-being, social impact, personal experience, etc."
+                            }
+                        },
+                        "execute": {
+                            "task": "Decide and provide an opinion on whether there should be a waiting period before marriage based on the plan stage considerations.",
+                            "output_format": {
+                                "reasoning": "Step-by-step reasoning explaining the stance taken, based on the considerations from the plan stage.",
+                                "execution": "The opinion or stance to be shared. A statement or speech that the agent would deliver regarding the topic (e.g., 'I believe a waiting period is necessary because...')."
+                            }
+                        },
+                    }
 
+                    commands = "custom-run 1"
+                    
+                    self.custom_run(commands)
+                    
+                    self.workflow_config = {
+                        "plan": {
+                            "task": "Determine which factors are relevant for deciding whether to support a marriage waiting period policy.",
+                            "output_format": {
+                                "reasoning": "Step-by-step reasoning about the key factors to consider (e.g., societal benefits, individual rights, psychological effects).",
+                                "decision": "List of aspects to evaluate, such as societal benefits, legal implications, psychological impact, and fairness."
+                            }
+                        },
+                        "execute": {
+                            "task": "Decide whether to support the marriage waiting period policy based on the factors identified in the plan stage.",
+                            "output_format": {
+                                "reasoning": "Step-by-step reasoning explaining the decision to either support or oppose the marriage waiting period policy based on the identified factors.",
+                                "execution": "Yes (support) or No (oppose)"
+                            }
+                        }
+                    }
+
+
+                    commands = "custom-run 1"
+                    self.custom_run(commands)
+               
                 elif sim_command.lower() == "start path tester mode":
                     # Starts the path tester and removes the currently forked sim files.
                     # Note that once you start this mode, you need to exit out of the
@@ -904,6 +1063,9 @@ class Reverie:
                     int_count = int(sim_command.split()[-1])
                     self.start_server(int_count)
 
+                elif sim_command[:10].lower() == "custom-run":
+                   self.custom_run(sim_command)
+ 
                 elif sim_command[:4].lower() == "skip":  # base_the_ville_n25
                     # Runs the number of steps specified in the prompt.
                     # Example: run 1000
@@ -911,9 +1073,8 @@ class Reverie:
                     self.start_server(int_count, True)
                 
                 elif "print persona scratch" in sim_command[:21].lower():
-                    ret_str = f"importance_trigger_curr: {self.personas[
-                        " ".join(sim_command.split()[-2:])
-                    ].scratch.get_str_summary()}"
+                    importance_trigger_curr = self.personas[" ".join(sim_command.split()[-2:])].scratch.get_str_summary()
+                    ret_str = f"importance_trigger_curr: {importance_trigger_curr}"
 
                 elif "print persona schedule" in sim_command[:22].lower():
                     # Print the decomposed schedule of the persona specified in the
@@ -1156,6 +1317,7 @@ class Reverie:
                         load_history_via_whisper(self.personas, clean_whispers)
                     else:
                         print("<---There is no case.--->")
+
                 elif "call -- zjy test 1" in sim_command.lower():
                     commands = [
                         "call -- load online event",
@@ -1168,6 +1330,7 @@ class Reverie:
                     ]
                     for cmd in commands:
                         self.command_queue.put(cmd)
+              
                 elif "call -- load online event" in sim_command.lower():  # 将事件广播给每个智能体。
                     # tyn
                     word_command = self.command_queue.get().strip()

@@ -4318,3 +4318,87 @@ def run_gpt_prompt_decide_to_comment(persona, retrieved, test_input=None, verbos
 
     output = decide_to_comment(pm, curr_time, retrieved_context, persona.name, init_iss)
     return [output["answer"].lower()]
+
+def run_gpt_prompt_decide_to_comment_custom(persona, retrieved,  test_input=None, verbose=False):
+    """
+    A function to interact with the LLM for planning agent actions based on task-specific parameters.
+    
+    Parameters:
+    - persona: The agent persona involved in the task.
+    - retrieved: The retrieved context related to the task.
+    - plan_task_info: A dictionary containing:
+        * "task": The specific task to plan for (e.g., "decide whether to vote").
+        * "output_format": Expected output structure.
+    - test_input: Optional input for testing.
+    - verbose: Enable verbose logging for debugging purposes.
+    """
+    pm = ""
+    retrieved_context = ""
+    description1, description2 = set(), set()
+
+    for n, (key, vals) in enumerate(retrieved.items(), start=1):
+        pm += f"{n}. {vals['curr_event'].name} said, {vals['curr_event'].description}\n"
+
+        description1.update(c_node.description for c_node in vals["events"])
+        description2.update(c_node.description for c_node in vals["thoughts"])
+
+    for m, des in enumerate(description1 | description2, start=1):
+        retrieved_context += f"{m}. {des}\n"
+
+    curr_time = persona.scratch.curr_time.strftime("%B %d, %Y, %H:%M:%S %p")
+    init_iss = f"{persona.scratch.get_str_iss()}"
+
+    task_info = persona.get_workflow_stage_config()["plan"]
+    task_description = task_info.get("task", "Decide the next action.")
+    output_format = task_info.get("output_format", {"reasoning": "Step-by-step reasoning...", "decision": "The decision made."})
+
+    @llm_function(prompt_file="plan.md", is_chat=True, stop="---")
+    def plan_action(public_memory, time, context, persona_name, persona_iss, task):
+
+        return output_format
+
+    output = plan_action(pm, curr_time, retrieved_context, persona.name, init_iss, task_description)
+
+    return output.get("decision", "").lower()
+
+def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, verbose=False):
+    """
+    A function to interact with the LLM for executing agent actions based on the provided plan.
+    
+    Parameters:
+    - persona: The agent persona involved in the task.
+    - retrieved: The retrieved context related to the task.
+    - plan: The output generated from the plan stage (the decision/plan the agent made).
+    - test_input: Optional input for testing.
+    - verbose: Enable verbose logging for debugging purposes.
+    """
+    pm = ""
+    retrieved_context = ""
+    description1, description2 = set(), set()
+
+    for n, (key, vals) in enumerate(retrieved.items(), start=1):
+        pm += f"{n}. {vals['curr_event'].name} said, {vals['curr_event'].description}\n"
+
+        description1.update(c_node.description for c_node in vals["events"])
+        description2.update(c_node.description for c_node in vals["thoughts"])
+
+    for m, des in enumerate(description1 | description2, start=1):
+        retrieved_context += f"{m}. {des}\n"
+
+    curr_time = persona.scratch.curr_time.strftime("%B %d, %Y, %H:%M:%S %p")
+    init_iss = f"{persona.scratch.get_str_iss()}"
+
+    task_info = persona.get_workflow_stage_config()["execute"]
+    task_description = task_info.get("task", "Execute the agent's plan.")
+    output_format = task_info.get("output_format", {"reasoning": "Step-by-step reasoning...", "execution": "The action to take."})
+
+    @llm_function(prompt_file="execute.md", is_chat=True, stop="---")
+    def execute_action(public_memory, time, context, persona_name, persona_iss, task, plan):
+
+        # Include reasoning and execution details from the plan
+        return output_format
+
+    output = execute_action(pm, curr_time, retrieved_context, persona.name, init_iss, task_description, plan)
+
+    # Extract and return the execution result from the output
+    return output.get("execution", "").lower()

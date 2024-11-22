@@ -121,7 +121,30 @@ class DaiPersona(Persona):
         # <scratch> is the persona's scratch (short term memory) space.
         scratch_saved = f"{folder_mem_saved}/bootstrap_memory/scratch.json"
         self.scratch = Scratch(scratch_saved)
+        self.workflow_config = {
+            "plan": {
+                "task": "Decide whether the agent should vote on a policy proposal.",
+                "output_format": {
+                        "reasoning": "Step-by-step reasoning...",
+                        "decision": "Yes or No"
+                }
+            },
+            "execute": {
+                "task": "Decide whether the agent should vote on a policy proposal.",
+                "output_format": {
+                        "reasoning": "Step-by-step reasoning...",
+                        "decision": "Yes or No"
+                }
+            },
+        }
+        
+    def get_workflow_stage_config(self):
+        return self.workflow_config
 
+    # 设置新的工作流配置
+    def set_workflow_stage_config(self, workflow_config):
+        self.workflow_config = workflow_config
+        
     def single_workflow(self, maze, curr_time):
         self.workflow.work(self, maze, curr_time)
 

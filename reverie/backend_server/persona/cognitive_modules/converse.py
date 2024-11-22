@@ -448,3 +448,8 @@ def generate_one_utterance_for_comment(persona, retrieved, all_news, policy, web
                 persona, retrieved, all_news, policy, websearch
             )
     return x["comment"]
+
+def generate_one_utterance_for_comment_custom(persona, retrieved, plan):
+    print("正在执行环节")
+    x = run_gpt_generate_execute_custom(persona, retrieved, plan)
+    return x

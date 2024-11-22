@@ -67,9 +67,9 @@ class DaiWorkFlow(WorkFlow):
         L.debug(f"{persona.name} Retrieve end, Plan begin.")
         plan = self.plan.action(persona, retrieved)
         L.debug(f"{persona.name} Plan end, Execute begin. plan={plan}")
-        self.execute.action(persona, maze, retrieved, plan, all_news)
+        self.execute.action(persona, maze, retrieved, plan)
         L.debug(f"{persona.name} Execute end, Reflect begin")
-        self.reflect.action(persona)
-        L.debug(f"{persona.name} Reflect end")
+        # self.reflect.action(persona)
+        # L.debug(f"{persona.name} Reflect end")
 
         return

@@ -77,15 +77,15 @@ class DaiPlan(Action):
         pass
 
     def action(self, persona, retrieved):
-        return plan_dai(persona, retrieved)
+        return plan_dai_custom(persona, retrieved)
 
 
 class DaiExecute(Action):
     def __init__(self):
         pass
 
-    def action(self, persona, maze, retrieved, plan, all_news):
-        return execute_dai(persona, maze, retrieved, plan, all_news)
+    def action(self, persona, maze, retrieved, plan):
+        return execute_dai_custom(persona, maze, retrieved, plan)
 
 
 class DaiReflect(Action):
