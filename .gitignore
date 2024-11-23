@@ -5,6 +5,9 @@ static_dirs/*
 
 !**/storage/base_*
 
+!reverie/storage/legislative_council
+!reverie/storage/legislative_council/**
+
 bin/
 include/
 pip-selfcheck.json
