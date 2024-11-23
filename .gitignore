@@ -5,8 +5,8 @@ static_dirs/*
 
 !**/storage/base_*
 
-!reverie/backend_server/storage/legislative_council
-!reverie/backend_server/storage/legislative_council/**
+!reverie/storage/legislative_council
+!reverie/storage/legislative_council/**
 
 bin/
 include/
