@@ -1018,26 +1018,27 @@ class Reverie:
                     
                     self.custom_run(commands)
                     
-                    # self.workflow_config = {
-                    #     "plan": {
-                    #         "task": "Determine which factors are relevant for deciding whether to support a marriage waiting period policy.",
-                    #         "output_format": {
-                    #             "reasoning": "Step-by-step reasoning about the key factors to consider (e.g., societal benefits, individual rights, psychological effects).",
-                    #             "decision": "List of aspects to evaluate, such as societal benefits, legal implications, psychological impact, and fairness."
-                    #         }
-                    #     },
-                    #     "execute": {
-                    #         "task": "Decide whether to support the marriage waiting period policy based on the factors identified in the plan stage.",
-                    #         "output_format": {
-                    #             "reasoning": "Step-by-step reasoning explaining the decision to either support or oppose the marriage waiting period policy based on the identified factors.",
-                    #             "execution": "Yes (support) or No (oppose)"
-                    #         }
-                    #     }
-                    # }
+                    self.workflow_config = {
+                        "plan": {
+                            "task": "分析占领中环事件的各方面影响，并决定是否支持或反对该事件。",
+                            "output_format": {
+                                "reasoning": "逐步推理该事件的主要影响，包括政治、法律、经济、社会稳定和公民权利等方面。",
+                                "decision": "是否支持该事件的初步立场，例如支持或反对的原因列表（如支持民主表达、担忧经济影响等）。"
+                            }
+                        },
+                        "execute": {
+                            "task": "根据计划阶段的分析，请现在明确是否支持占领中环事件，回答支持或反对。",
+                            "output_format": {
+                                "reasoning": "（可选）进一步简述支持或反对的原因。",
+                                "execution": "明确表态：支持或反对。"
+                            }
+                        },
+                    }
 
 
-                    # commands = "custom-run 1"
-                    # self.custom_run(commands)
+
+                    commands = "custom-run 1"
+                    self.custom_run(commands)
                
                 elif sim_command.lower() == "start path tester mode":
                     # Starts the path tester and removes the currently forked sim files.
