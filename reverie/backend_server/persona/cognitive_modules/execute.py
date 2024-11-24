@@ -195,6 +195,7 @@ def execute_dai(persona, maze: OnlineMaze, retrived, plan, all_news):
 
 def execute_dai_custom(persona, maze: OnlineMaze, retrived, plan):
     ###如果plan返回yes，则进行评论，判断在reverie里
+    comments = dict()
     for event_name, plan in plan.items():
         sub_retrived = {}
         sub_retrived[event_name] = retrived[event_name]
@@ -209,4 +210,5 @@ def execute_dai_custom(persona, maze: OnlineMaze, retrived, plan):
         with open('comments.txt', 'a') as file:  # 'a' 模式可以让你把内容追加到文件末尾
             file.write(persona.name+":"+comment + "\n")  # 每个 comment 后加一个换行符，便于区分不同的 comment
         print(comment)
-    return comment
+        comments[event_name] = comment
+    return comments

@@ -998,17 +998,17 @@ class Reverie:
                 elif "custom-run" in sim_command.lower():
                     self.workflow_config = {
                         "plan": {
-                            "task": "Decide which aspects to consider when discussing whether there should be a waiting period before marriage.",
+                            "task": "决定在讨论婚前是否应有等待期时需要考虑哪些方面。",
                             "output_format": {
-                                "reasoning": "Step-by-step reasoning about which factors to take into account (e.g., legal, psychological, social, personal).",
-                                "decision": "List of aspects to consider, such as legality, psychological well-being, social impact, personal experience, etc."
+                                "reasoning": "逐步推理需要考虑哪些因素（例如法律、心理、社会、个人）。",
+                                "decision": "需要考虑的方面列表，例如合法性、心理健康、社会影响、个人经验等。"
                             }
                         },
                         "execute": {
-                            "task": "Decide and provide an opinion on whether there should be a waiting period before marriage based on the plan stage considerations.",
+                            "task": "根据计划阶段的考量，决定并提供关于婚前是否应设置等待期的意见。",
                             "output_format": {
-                                "reasoning": "Step-by-step reasoning explaining the stance taken, based on the considerations from the plan stage.",
-                                "execution": "The opinion or stance to be shared. A statement or speech that the agent would deliver regarding the topic (e.g., 'I believe a waiting period is necessary because...')."
+                                "reasoning": "逐步推理并解释所采取的立场，基于计划阶段的考量。",
+                                "execution": "需要分享的意见或立场。关于该主题智能体将发表的声明或演讲（例如：'我认为等待期是必要的，因为...'）。"
                             }
                         },
                     }

@@ -4352,7 +4352,7 @@ def run_gpt_prompt_decide_to_comment_custom(persona, retrieved,  test_input=None
     task_description = task_info.get("task", "Decide the next action.")
     output_format = task_info.get("output_format", {"reasoning": "Step-by-step reasoning...", "decision": "The decision made."})
 
-    @llm_function(prompt_file="plan.md", is_chat=True, stop="---")
+    @llm_function(prompt_file="plan_cn.md", is_chat=True, stop="---")
     def plan_action(public_memory, time, context, persona_name, persona_iss, task):
 
         return output_format
@@ -4392,7 +4392,7 @@ def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, v
     task_description = task_info.get("task", "Execute the agent's plan.")
     output_format = task_info.get("output_format", {"reasoning": "Step-by-step reasoning...", "execution": "The action to take."})
 
-    @llm_function(prompt_file="execute.md", is_chat=True, stop="---")
+    @llm_function(prompt_file="execute_cn.md", is_chat=True, stop="---")
     def execute_action(public_memory, time, context, persona_name, persona_iss, task, plan):
 
         # Include reasoning and execution details from the plan
