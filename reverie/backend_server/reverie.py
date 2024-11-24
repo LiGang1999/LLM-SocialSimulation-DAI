@@ -998,45 +998,46 @@ class Reverie:
                 elif "custom-run" in sim_command.lower():
                     self.workflow_config = {
                         "plan": {
-                            "task": "决定在讨论婚前是否应有等待期时需要考虑哪些方面。",
+                            "task": "决定在讨论占领中环事件时应考虑哪些方面。",
                             "output_format": {
-                                "reasoning": "逐步推理需要考虑哪些因素（例如法律、心理、社会、个人）。",
-                                "decision": "需要考虑的方面列表，例如合法性、心理健康、社会影响、个人经验等。"
+                                "reasoning": "逐步推理需要考虑哪些因素（例如政治、社会影响、法律、经济、民众情绪）。",
+                                "decision": "需要考虑的方面列表，例如社会稳定、经济影响、公民权利、法治等。"
                             }
                         },
                         "execute": {
-                            "task": "根据计划阶段的考量，决定并提供关于婚前是否应设置等待期的意见。",
+                            "task": "根据计划阶段的考量，决定并提供关于占领中环事件的立场和意见。",
                             "output_format": {
                                 "reasoning": "逐步推理并解释所采取的立场，基于计划阶段的考量。",
-                                "execution": "需要分享的意见或立场。关于该主题智能体将发表的声明或演讲（例如：'我认为等待期是必要的，因为...'）。"
+                                "execution": "需要分享的意见或立场。关于该主题智能体将发表的声明或演讲（例如：'我认为占领中环的行动是对香港民主诉求的合理表达，但应避免暴力冲突，以维护社会和谐'）。"
                             }
                         },
                     }
+
 
                     commands = "custom-run 1"
                     
                     self.custom_run(commands)
                     
-                    self.workflow_config = {
-                        "plan": {
-                            "task": "Determine which factors are relevant for deciding whether to support a marriage waiting period policy.",
-                            "output_format": {
-                                "reasoning": "Step-by-step reasoning about the key factors to consider (e.g., societal benefits, individual rights, psychological effects).",
-                                "decision": "List of aspects to evaluate, such as societal benefits, legal implications, psychological impact, and fairness."
-                            }
-                        },
-                        "execute": {
-                            "task": "Decide whether to support the marriage waiting period policy based on the factors identified in the plan stage.",
-                            "output_format": {
-                                "reasoning": "Step-by-step reasoning explaining the decision to either support or oppose the marriage waiting period policy based on the identified factors.",
-                                "execution": "Yes (support) or No (oppose)"
-                            }
-                        }
-                    }
+                    # self.workflow_config = {
+                    #     "plan": {
+                    #         "task": "Determine which factors are relevant for deciding whether to support a marriage waiting period policy.",
+                    #         "output_format": {
+                    #             "reasoning": "Step-by-step reasoning about the key factors to consider (e.g., societal benefits, individual rights, psychological effects).",
+                    #             "decision": "List of aspects to evaluate, such as societal benefits, legal implications, psychological impact, and fairness."
+                    #         }
+                    #     },
+                    #     "execute": {
+                    #         "task": "Decide whether to support the marriage waiting period policy based on the factors identified in the plan stage.",
+                    #         "output_format": {
+                    #             "reasoning": "Step-by-step reasoning explaining the decision to either support or oppose the marriage waiting period policy based on the identified factors.",
+                    #             "execution": "Yes (support) or No (oppose)"
+                    #         }
+                    #     }
+                    # }
 
 
-                    commands = "custom-run 1"
-                    self.custom_run(commands)
+                    # commands = "custom-run 1"
+                    # self.custom_run(commands)
                
                 elif sim_command.lower() == "start path tester mode":
                     # Starts the path tester and removes the currently forked sim files.
