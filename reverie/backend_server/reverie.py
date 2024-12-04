@@ -237,6 +237,7 @@ def bootstrap_persona(path: str, config: ScratchData):
             "kw_strength_thought": {},
         },
         "bootstrap_memory/associative_memory/nodes.json": {},
+        "bootstrap_memory/speech_memory.json": {},
         "bootstrap_memory/scratch.json": {
             "vision_r": 8,
             "att_bandwidth": 8,
