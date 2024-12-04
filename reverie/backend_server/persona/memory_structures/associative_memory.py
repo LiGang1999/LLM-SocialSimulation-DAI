@@ -7,6 +7,7 @@ from collections import deque
 import numpy as np
 import faiss
 
+from persona.memory_structures.memory import *
 
 @dataclass
 class ConceptNode:
@@ -41,7 +42,7 @@ class ConceptNode:
         return (self.subject, self.predicate, self.object)
 
 
-class FaissVectorStore:
+class VectorStore:
     def __init__(self):
         self.index = None
         self.key_to_id = {}
@@ -159,7 +160,7 @@ class AssociativeMemory(Memory):
         self.kw_strength: Dict[str, Dict[str, int]] = {'event': {}, 'thought': {}}
 
         # Embedding handling with Faiss vector store
-        self.vector_store = FaissVectorStore()
+        self.vector_store = VectorStore()
         self.vector_store.load(f_saved)
 
         # Load nodes and keyword strengths from files
