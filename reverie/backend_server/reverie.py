@@ -49,7 +49,6 @@ from vector_db import *
 rs_lock = threading.Lock()
 
 
-
 ##############################################################################
 #                                  REVERIE                                   #
 ##############################################################################
@@ -115,7 +114,7 @@ class ScratchData(BaseModel):
     relevance_w: int = 1
     importance_w: int = 1
     recency_decay: float = 0.99
-    importance_trigger_max: int = 30 # very low poig score to cause reflection every online round!
+    importance_trigger_max: int = 30  # very low poig score to cause reflection every online round!
     importance_trigger_curr: int = 30
     importance_ele_n: int = 0
     thought_count: int = 5
@@ -160,6 +159,7 @@ class ReverieConfig:
     initial_rounds: int | None = 0  # The number of initial rounds
     sec_per_step: int | None = 3600
 
+
 def load_config_from_files(path: str) -> ReverieConfig:
     meta_file_path = f"{path}/reverie/meta.json"
     event_file_path = f"{path}/reverie/events.json"
@@ -168,14 +168,14 @@ def load_config_from_files(path: str) -> ReverieConfig:
     # Load meta.json
     with open(meta_file_path, "r") as meta_file:
         meta_data = json.load(meta_file)
-    
+
     # Load events.json
     if os.path.exists(event_file_path):
         with open(event_file_path, "r") as event_file:
             events_data = json.load(event_file)
     else:
         events_data = []
-    
+
     # Initialize ReverieConfig
     cfg = ReverieConfig(
         sim_code=meta_data.get("template_sim_code", ""),
@@ -187,7 +187,7 @@ def load_config_from_files(path: str) -> ReverieConfig:
         public_events=events_data,
         direction=meta_data.get("description", ""),
         initial_rounds=0,  # You might want to add this to meta.json if needed
-        sec_per_step=meta_data.get("sec_per_step", 3600)
+        sec_per_step=meta_data.get("sec_per_step", 3600),
     )
 
     # Load LLMConfig if present in meta_data
@@ -200,13 +200,12 @@ def load_config_from_files(path: str) -> ReverieConfig:
         scratch_file_path = f"{personas_folder_path}/{persona_name}/bootstrap_memory/scratch.json"
         with open(scratch_file_path, "r") as scratch_file:
             scratch_data = json.load(scratch_file)
-        
+
         # Parse the JSON data into a ScratchData object
         persona_config = ScratchData.model_validate_json(json.dumps(scratch_data))
         cfg.persona_configs[persona_name] = persona_config
 
     return cfg
-
 
 
 def bootstrap_persona(path: str, config: ScratchData):
@@ -422,16 +421,16 @@ class Reverie:
                     "plan": {
                         "task": "Decide whether the agent should vote on a policy proposal.",
                         "output_format": {
-                                "reasoning": "Step-by-step reasoning...", 
-                                 "decision": "The decision made."
-                        }
+                            "reasoning": "Step-by-step reasoning...",
+                            "decision": "The decision made.",
+                        },
                     },
                     "execute": {
                         "task": "Execute the agent's plan.",
                         "output_format": {
-                                "reasoning": "Step-by-step reasoning...",
-                                "execution": "The action to take."
-                        }
+                            "reasoning": "Step-by-step reasoning...",
+                            "execution": "The action to take.",
+                        },
                     },
                 }
             # <personas_tile> is a dictionary that contains the tile location of
@@ -483,10 +482,10 @@ class Reverie:
                 for persona_name in self.personas:
                     initial_tile = self.personas_tile[persona_name]
                     self.personas_positions[persona_name] = {
-                        'x': initial_tile[0] ,
-                        'y': initial_tile[1] ,
-                        'pronunciatio': '',  # Initialize if needed
-                        'description': '',   # Initialize if needed
+                        "x": initial_tile[0],
+                        "y": initial_tile[1],
+                        "pronunciatio": "",  # Initialize if needed
+                        "description": "",  # Initialize if needed
                     }
 
             # REVERIE SETTINGS PARAMETERS:
@@ -518,7 +517,7 @@ class Reverie:
 
             self.command_queue.put(f"run {sim_config.initial_rounds}")
 
-            self.interested = False # Whether current run is interested. If calls to large language model is generated in current run ,then current run is 'interested'.
+            self.interested = False  # Whether current run is interested. If calls to large language model is generated in current run ,then current run is 'interested'.
         except Exception as e:
             L.error(f"Error during reverie initialization: {e}")
             if self.sim_code not in BASE_TEMPLATES:
@@ -654,8 +653,7 @@ class Reverie:
             except:
                 pass
 
-
-    def start_server(self, int_counter, do_skip = False):
+    def start_server(self, int_counter, do_skip=False):
         """
         The main backend server of Reverie.
         This function retrieves the environment file from the frontend to
@@ -708,7 +706,10 @@ class Reverie:
                     curr_tile = self.personas_tile[persona_name]
                     # <new_tile> is the tile that the persona will move to right now,
                     # during this cycle.
-                    new_tile = (self.personas_positions[persona_name]["x"], self.personas_positions[persona_name]["y"])
+                    new_tile = (
+                        self.personas_positions[persona_name]["x"],
+                        self.personas_positions[persona_name]["y"],
+                    )
 
                     # We actually move the persona on the backend tile map here.
                     self.personas_tile[persona_name] = new_tile
@@ -722,20 +723,13 @@ class Reverie:
                     if not persona.scratch.planned_path:
                         # We add that new object action event to the backend tile map.
                         # At its creation, it is stored in the persona's backend.
-                        game_obj_cleanup[persona.scratch.get_curr_obj_event_and_desc()] = (
-                            new_tile
-                        )
+                        game_obj_cleanup[persona.scratch.get_curr_obj_event_and_desc()] = new_tile
                         self.maze.add_event_from_tile(
                             persona.scratch.get_curr_obj_event_and_desc(), new_tile
                         )
                         # We also need to remove the temporary blank action for the
                         # object that is currently taking the action.
-                        blank = (
-                            persona.scratch.get_curr_obj_event_and_desc()[0],
-                            None,
-                            None,
-                            None,
-                        )
+                        blank = (persona.scratch.get_curr_obj_event_and_desc()[0], None, None, None)
                         self.maze.remove_event_from_tile(blank, new_tile)
 
                 # Then we need to actually have each of the personas perceive and
@@ -751,19 +745,16 @@ class Reverie:
                     #   @ double studio:double studio:common room:sofa
                     # next_tile, pronunciatio, description = persona.move(
                     next_tile, pronunciatio, description = persona.single_workflow(
-                        self.maze,
-                        self.personas,
-                        self.personas_tile[persona_name],
-                        self.curr_time,
+                        self.maze, self.personas, self.personas_tile[persona_name], self.curr_time
                     )
                     print(self.curr_time, next_tile, pronunciatio, description)
                     # move the persona position by one tile
                     self.personas_tile[persona_name] = next_tile
                     self.personas_positions[persona_name] = {
-                        'x': next_tile[0] ,
-                        'y': next_tile[1] ,
-                        'pronunciatio': pronunciatio,
-                        'description': description,
+                        "x": next_tile[0],
+                        "y": next_tile[1],
+                        "pronunciatio": pronunciatio,
+                        "description": description,
                     }
                     movements["persona"][persona_name] = {}
                     movements["persona"][persona_name]["movement"] = next_tile
@@ -773,9 +764,7 @@ class Reverie:
 
                 # Include the meta information about the current stage in the
                 # movements dictionary.
-                movements["meta"]["curr_time"] = self.curr_time.strftime(
-                    "%B %d, %Y, %H:%M:%S"
-                )
+                movements["meta"]["curr_time"] = self.curr_time.strftime("%B %d, %Y, %H:%M:%S")
 
                 # We then write the personas' movements to a file that will be sent
                 # to the frontend server.
@@ -794,7 +783,7 @@ class Reverie:
 
                 # Write positions to positions.json
                 positions_file = f"{self.storage_home}/positions.json"
-                with open(positions_file, 'w') as f:
+                with open(positions_file, "w") as f:
                     json.dump(self.personas_positions, f, indent=2)
 
                 # After this cycle, the world takes one step forward, and the
@@ -826,16 +815,16 @@ class Reverie:
                 if (not do_skip) or self.interested:
                     int_counter -= 1
 
-            # Sleep so we don't burn our machines.
+                # Sleep so we don't burn our machines.
                 plan_task_info = {}
             execute_task_info = {}
- 
-    def custom_start_server(self, int_counter, participating_agents=None,do_skip=False):
+
+    def custom_start_server(self, int_counter, participating_agents=None, do_skip=False):
         """
         The main backend server of Reverie, customized for selective agent participation in a simulation.
-        
-        This function retrieves the environment file from the frontend to understand the state of the world, 
-        calls on each participating persona to make decisions based on the world state, 
+
+        This function retrieves the environment file from the frontend to understand the state of the world,
+        calls on each participating persona to make decisions based on the world state,
         and saves their moves at certain step intervals.
 
         INPUT:
@@ -843,7 +832,7 @@ class Reverie:
         participating_agents: A dictionary of participating agents (personas) for this simulation.
                                 If None, all agents in self.personas will participate.
         do_skip: Boolean flag indicating whether to skip steps (default: False).
-        
+
         OUTPUT:
         None
         """
@@ -858,7 +847,7 @@ class Reverie:
         n = 1
         while True:
             self.interested = False
-            
+
             # Terminate the simulation if <int_counter> reaches 0.
             if int_counter == 0:
                 break
@@ -890,7 +879,7 @@ class Reverie:
                     int_counter -= 1
 
             # Sleep to prevent overloading the machine.
-           
+
     def load_online_event(self, event_desc="", policy="", websearch="", access_list=[]):
         s, p, o = generate_action_event_triple_new(event_desc)
         # TODO 只用spo来完整表示一个事件是远远不够的
@@ -906,20 +895,20 @@ class Reverie:
             self.maze.add_events_policy(event_id, policy)
         if websearch:
             self.maze.add_events_websearch(event_id, websearch)
-    
+
     def custom_run(self, sim_command):
-         # Parses the command to extract the number of steps and the included/excluded agents.
+        # Parses the command to extract the number of steps and the included/excluded agents.
         # Example: custom-run 1 lisa candy -> only 'lisa' and 'candy' participate in 1 step.
         # Example: custom-run 7 no candy -> everyone except 'candy' participates in 7 steps.
         # Example: custom-run 1 -> all agents participate in 1 step.
-        
+
         # Split the command into parts
         parts = sim_command.split()
         print("Parts of the command:", parts)
-        
+
         # Parse the number of steps
         int_count = int(parts[1])
-        
+
         # Determine participating agents
         if len(parts) == 2:  # No specific agents mentioned, include all agents
             participating_agents = self.personas
@@ -936,12 +925,12 @@ class Reverie:
                 persona_name: persona
                 for persona_name, persona in self.personas.items()
                 if persona_name.lower() in included_agents
-            } 
-        
+            }
+
         # set plan
         for persona_name, persona in participating_agents.items():
             persona.set_workflow_stage_config(self.workflow_config)
-            
+
         # Execute the simulation with the filtered agents
         self.custom_start_server(int_count, participating_agents)
 
@@ -994,30 +983,48 @@ class Reverie:
                     # Example: fin
                     self.save()
                     break
-               
+
                 elif "custom-run" in sim_command.lower():
+                    # self.workflow_config = {
+                    #     "plan": {
+                    #         "task": "决定在讨论占领中环事件时应考虑哪些方面。",
+                    #         "output_format": {
+                    #             "reasoning": "逐步推理需要考虑哪些因素（例如政治、社会影响、法律、经济、民众情绪）。",
+                    #             "decision": "需要考虑的方面列表，例如社会稳定、经济影响、公民权利、法治等。",
+                    #         },
+                    #     },
+                    #     "execute": {
+                    #         "task": "根据计划阶段的考量，决定并提供关于占领中环事件的立场和意见。",
+                    #         "output_format": {
+                    #             "reasoning": "逐步推理并解释所采取的立场，基于计划阶段的考量。",
+                    #             "execution": "需要分享的意见或立场。关于该主题智能体将发表的声明或演讲（例如：'我认为占领中环的行动是对香港民主诉求的合理表达，但应避免暴力冲突，以维护社会和谐'）。",
+                    #         },
+                    #     },
+                    # }
+
+                    # commands = "custom-run 1"
+
+                    # self.custom_run(commands)
+
                     self.workflow_config = {
                         "plan": {
-                            "task": "决定在讨论占领中环事件时应考虑哪些方面。",
+                            "task": "用第一人称分析并决定在讨论创新科技产业发展修订案时需要考量的关键方面。",
                             "output_format": {
-                                "reasoning": "逐步推理需要考虑哪些因素（例如政治、社会影响、法律、经济、民众情绪）。",
-                                "decision": "需要考虑的方面列表，例如社会稳定、经济影响、公民权利、法治等。"
-                            }
+                                "reasoning": "逐步推理需要考虑的因素，例如创科产业对经济增长的潜力、政策支持的力度、财政投入的可行性、区域合作的实际成效、科技人才的培养与吸引、政策执行力及可能的风险与挑战。",
+                                "decision": "需要关注的关键方面列表，例如创科政策的公平性和持续性、财政资源分配的合理性、区域合作机制的实效性、科技领域的优先级选择等。",
+                            },
                         },
                         "execute": {
-                            "task": "根据计划阶段的考量，决定并提供关于占领中环事件的立场和意见。",
+                            "task": "根据计划阶段的考量，用第一人称决定并提供关于创新科技产业发展修订案的立场和观点。",
                             "output_format": {
-                                "reasoning": "逐步推理并解释所采取的立场，基于计划阶段的考量。",
-                                "execution": "需要分享的意见或立场。关于该主题智能体将发表的声明或演讲（例如：'我认为占领中环的行动是对香港民主诉求的合理表达，但应避免暴力冲突，以维护社会和谐'）。"
-                            }
+                                "reasoning": "逐步推理并解释所采取的立场，基于计划阶段确定的关键方面，例如为何支持或反对特定的政策内容，或为何建议调整某些优先级。",
+                                "execution": "需要分享的意见或立场。关于修订案的声明或观点（例如：'我支持创科专项基金的设立，但建议进一步细化资金分配标准，以确保支持领域的多样性s'）。",
+                            },
                         },
                     }
-
-
                     commands = "custom-run 1"
-                    
                     self.custom_run(commands)
-                    
+
                     # self.workflow_config = {
                     #     "plan": {
                     #         "task": "Determine which factors are relevant for deciding whether to support a marriage waiting period policy.",
@@ -1035,10 +1042,9 @@ class Reverie:
                     #     }
                     # }
 
-
                     # commands = "custom-run 1"
                     # self.custom_run(commands)
-               
+
                 elif sim_command.lower() == "start path tester mode":
                     # Starts the path tester and removes the currently forked sim files.
                     # Note that once you start this mode, you need to exit out of the
@@ -1065,16 +1071,18 @@ class Reverie:
                     self.start_server(int_count)
 
                 elif sim_command[:10].lower() == "custom-run":
-                   self.custom_run(sim_command)
- 
+                    self.custom_run(sim_command)
+
                 elif sim_command[:4].lower() == "skip":  # base_the_ville_n25
                     # Runs the number of steps specified in the prompt.
                     # Example: run 1000
                     int_count = int(sim_command.split()[-1])
                     self.start_server(int_count, True)
-                
+
                 elif "print persona scratch" in sim_command[:21].lower():
-                    importance_trigger_curr = self.personas[" ".join(sim_command.split()[-2:])].scratch.get_str_summary()
+                    importance_trigger_curr = self.personas[
+                        " ".join(sim_command.split()[-2:])
+                    ].scratch.get_str_summary()
                     ret_str = f"importance_trigger_curr: {importance_trigger_curr}"
 
                 elif "print persona schedule" in sim_command[:22].lower():
@@ -1137,8 +1145,10 @@ class Reverie:
                     thoughts = self.personas[
                         " ".join(sim_command.split()[-2:])
                     ].a_mem.get_thoughts()
-                    for count , event in enumerate(thoughts):
-                        ret_str += f"Thought {count}: {event.spo_summary()} -- {event.description}\n"
+                    for count, event in enumerate(thoughts):
+                        ret_str += (
+                            f"Thought {count}: {event.spo_summary()} -- {event.description}\n"
+                        )
 
                 elif "print persona associative memory (chat)" in sim_command.lower():
                     # Print the associative memory (chat) of the persona specified in
@@ -1331,7 +1341,7 @@ class Reverie:
                     ]
                     for cmd in commands:
                         self.command_queue.put(cmd)
-              
+
                 elif "call -- load online event" in sim_command.lower():  # 将事件广播给每个智能体。
                     # tyn
                     word_command = self.command_queue.get().strip()
@@ -1422,9 +1432,7 @@ if __name__ == "__main__":
     cfg = load_config_from_files(f"{storage_path}/{template_sim_code}")
     cfg.sim_code = sim_code
     cfg.llm_config = LLMConfig(
-        base_url=openai_api_base,
-        api_key=openai_api_key,
-        engine=override_gpt_param["engine"]
+        base_url=openai_api_base, api_key=openai_api_key, engine=override_gpt_param["engine"]
     )
 
     rs = Reverie(template_sim_code, cfg)
