@@ -17,10 +17,12 @@ class VectorStore:
         if self.dim is None:
             self.dim = vector.shape[1]
             # Initialize HNSW index for inner product similarity
-            self.index = faiss.IndexHNSWFlat(self.dim, self.hnsw_m, faiss.METRIC_INNER_PRODUCT)
         elif vector.shape[1] != self.dim:
             raise ValueError(f"Expected vector of dimension {self.dim}, got {vector.shape[1]}")
 
+        if self.index is None:
+            self.index = faiss.IndexHNSWFlat(self.dim, self.hnsw_m)
+            
         # Normalize the vector for cosine similarity if needed
         faiss.normalize_L2(vector)
         self.index.add(vector)
