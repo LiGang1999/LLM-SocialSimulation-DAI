@@ -996,20 +996,42 @@ class Reverie:
                     self.save()
                     break
                
-                elif "custom-run" in sim_command.lower():
+                elif "custom-run1" in sim_command.lower():
                     self.workflow_config = {
                         "plan": {
-                            "task": "决定在讨论占领中环事件时应考虑哪些方面。",
+                            "task": "分析并决定在讨论房屋及土地开发修订案时需要考量的关键方面。",
                             "output_format": {
-                                "reasoning": "逐步推理需要考虑哪些因素（例如政治、社会影响、法律、经济、民众情绪）。",
-                                "decision": "需要考虑的方面列表，例如社会稳定、经济影响、公民权利、法治等。"
+                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如土地利用效率、居屋可负担性、生态环境保护、公共房屋供应的短期和长期目标、政策公平性、规划执行力等。",
+                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。"
                             }
                         },
                         "execute": {
-                            "task": "根据计划阶段的考量，决定并提供关于占领中环事件的立场和意见。",
+                            "task": "明确关于房屋及土地开发修订案的立场。",
                             "output_format": {
-                                "reasoning": "逐步推理并解释所采取的立场，基于计划阶段的考量。",
-                                "execution": "需要分享的意见或立场。关于该主题智能体将发表的声明或演讲（例如：'我认为占领中环的行动是对香港民主诉求的合理表达，但应避免暴力冲突，以维护社会和谐'）。"
+                                "reasoning": "首先，我会分析……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
+                                "execution": "支持/反对"
+                            }
+                        },
+                    }
+
+                    commands = "custom-run 1"
+                    
+                    self.custom_run(commands)
+                    
+                elif "custom-run2" in sim_command.lower():
+                    self.workflow_config = {
+                        "plan": {
+                            "task": "分析并决定在讨论推动创新科技产业发展的政策框架时需要考量的关键方面。",
+                            "output_format": {
+                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如政策支持的全面性与可行性、财政投入的效率与透明度、区域合作的深度与广度、科技产业发展的长期可持续性、政策实施的公平性等。",
+                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。"
+                            }
+                        },
+                        "execute": {
+                            "task": "明确关于推动创新科技产业发展的政策框架的立场。",
+                            "output_format": {
+                                "reasoning": "首先，我会分析……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
+                                "execution": "支持/反对"
                             }
                         },
                     }
@@ -1019,27 +1041,51 @@ class Reverie:
                     
                     self.custom_run(commands)
                     
+                elif "custom-run3" in sim_command.lower():
                     self.workflow_config = {
                         "plan": {
-                            "task": "分析占领中环事件的各方面影响，并决定是否支持或反对该事件。",
+                            "task": "分析并决定在讨论《野生动物保护及管理条例》修订方案时需要考量的关键方面。",
                             "output_format": {
-                                "reasoning": "逐步推理该事件的主要影响，包括政治、法律、经济、社会稳定和公民权利等方面。",
-                                "decision": "是否支持该事件的初步立场，例如支持或反对的原因列表（如支持民主表达、担忧经济影响等）。"
+                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如公共安全、生态平衡、野生动物保护的法律框架、执行政策的可行性、公众教育的影响以及政策公平性等。",
+                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。"
                             }
                         },
                         "execute": {
-                            "task": "根据计划阶段的分析，请现在明确是否支持占领中环事件，回答支持或反对。",
+                            "task": "明确关于《野生动物保护及管理条例》修订方案的立场。",
                             "output_format": {
-                                "reasoning": "（可选）进一步简述支持或反对的原因。",
-                                "execution": "明确表态：支持或反对。"
+                                "reasoning": "首先，我会分析……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
+                                "execution": "支持/反对"
+                            }
+                        },
+                    }
+                    commands = "custom-run 1"
+                    
+                    self.custom_run(commands)
+                    
+                elif "custom-run4" in sim_command.lower():
+                    
+                    self.workflow_config = {
+                        "plan": {
+                            "task": "分析并决定在讨论《防疫与公共卫生安全法案》修订案时需要考量的关键方面。",
+                            "output_format": {
+                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如疫苗推广覆盖率、防疫措施的科学性与可行性、公共卫生资源的分配、法案对社会经济的潜在影响、疫情应对的公平性与效率等。",
+                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。"
+                            }
+                        },
+                        "execute": {
+                            "task": "明确关于《防疫与公共卫生安全法案》修订案的立场。",
+                            "output_format": {
+                                "reasoning": "首先，我会分析……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
+                                "execution": "支持/反对"
                             }
                         },
                     }
 
 
-
                     commands = "custom-run 1"
+                    
                     self.custom_run(commands)
+                  
                
                 elif sim_command.lower() == "start path tester mode":
                     # Starts the path tester and removes the currently forked sim files.

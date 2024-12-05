@@ -207,8 +207,7 @@ def execute_dai_custom(persona, maze: OnlineMaze, retrived, plan):
         o = sub_retrived[event_name]["curr_event"].object
         memory_node = MemoryNode(persona.name, s, p, o, comment, True)
         maze.add_memory_to_event(event_name, memory_node)
-        with open('comments.txt', 'a') as file:  # 'a' 模式可以让你把内容追加到文件末尾
-            file.write(persona.name+":"+comment + "\n")  # 每个 comment 后加一个换行符，便于区分不同的 comment
+
         print(comment)
         comments[event_name] = comment
     return comments

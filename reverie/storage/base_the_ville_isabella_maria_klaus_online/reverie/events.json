@@ -1,16 +1,6 @@
 [
     {
-        "description": "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters.",
-        "websearch": "",
-        "policy": "",
-        "access_list": [
-            "Isabella Rodriguez",
-            "Klaus Mueller",
-            "Maria Lopez"
-        ]
-    },
-    {
-        "description": "Marine biologists at the Oceanic Institute of Marine Sciences made a groundbreaking discovery this week, uncovering a previously unknown species of bioluminescent jellyfish in the depths of the Pacific Ocean. The newly identified species, named Aurelia noctiluca, emits a mesmerizing blue-green glow, illuminating the dark ocean depths where it resides.",
+        "description": "In recent discussions, several countries have proposed the introduction of a marriage cooling-off period, where couples who are about to marry would have a mandatory waiting period to reflect on their decision before proceeding. Proponents argue that this could reduce impulsive decisions and allow individuals more time to ensure they are making the right choice, while critics believe it may infringe on personal freedom and delay the joy of marriage. The proposal has sparked debates across various social and political groups.",
         "websearch": "",
         "policy": "",
         "access_list": [
@@ -19,4 +9,5 @@
             "Maria Lopez"
         ]
     }
+    
 ]

@@ -231,21 +231,21 @@ def perceive_dai(persona, maze):
             keywords = set([s, p, o])
             event_poignancy = generate_poig_score(persona, "event", perceive_node.description)
             L.debug(f"正在存放：{s} {p} {o} score={event_poignancy}")
-            persona.a_mem.add_event(
-                created,
-                expiration,
-                s,
-                p,
-                o,
-                perceive_node.name + " said, " + perceive_node.description,
-                keywords,
-                event_poignancy,
-                (perceive_node.description, get_embedding(perceive_node.description)),
-                None,
-            )
-            L.debug(
-                f"Poig Score: Before: {persona.scratch.importance_trigger_curr} After:{persona.scratch.importance_trigger_curr - event_poignancy}"
-            )
+            # persona.a_mem.add_event(
+            #     created,
+            #     expiration,
+            #     s,
+            #     p,
+            #     o,
+            #     perceive_node.name + " said, " + perceive_node.description,
+            #     keywords,
+            #     event_poignancy,
+            #     (perceive_node.description, get_embedding(perceive_node.description)),
+            #     None,
+            # )
+            # L.debug(
+            #     f"Poig Score: Before: {persona.scratch.importance_trigger_curr} After:{persona.scratch.importance_trigger_curr - event_poignancy}"
+            # )
             persona.scratch.importance_trigger_curr -= event_poignancy
             persona.scratch.importance_ele_n += 1
 

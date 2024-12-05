@@ -50,7 +50,7 @@ class SpeechMemory:
     
     def query_similar(self, query_embedding: List[float], top_k: int) -> List[tuple[SpeechRecord, float]]:
         results = self.vector_store.query_vector(query_embedding, top_k)
-        return [(self.speeches[int(key)], score) for key, score in results]
+        return [self.speeches[int(key)] for key, score in results]
 
     def get_str_summary(self):
         # print first 1 embeddings and length of all speech

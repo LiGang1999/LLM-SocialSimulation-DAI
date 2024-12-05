@@ -1,8 +1,11 @@
 # Copy and paste your OpenAI API Key
-openai_api_base = "https://api.tao-shen.com/v1"
-openai_api_key = "sk-F9fSjwZavp3KAsMW9p9aGuw37pospbevKM3Zp4aEgyBFRW7Q"
+openai_api_base1 = "https://api.tao-shen.com/v1"
+openai_api_key1 = "sk-"
 
-override_model = "gpt-3.5-turbo"
+openai_api_base = "https://oneapi.hkgai.net/v1"
+openai_api_key = "sk-"
+
+override_model = "HKGAI-Moe-dev1111"
 override_gpt_param = {
     "engine": override_model,
     "temperature": 1.0,
