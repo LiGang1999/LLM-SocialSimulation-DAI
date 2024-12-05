@@ -1,68 +1,42 @@
-"""
-Author: Joon Sung Park (joonspk@stanford.edu)
-
-File: associative_memory.py
-Description: Defines the core long-term memory module for generative agents.
-
-Note (May 1, 2023) -- this class is the Memory Stream module in the generative
-agents paper. 
-"""
-
-import sys
-
-
 import json
-import datetime
+from datetime import datetime
+from dataclasses import dataclass
+from typing import List, Dict, Optional, Set
+from collections import deque
 
-from utils import *
+import numpy as np
 
 from persona.memory_structures.memory import *
+from persona.memory_structures.vector_store import VectorStore
 
-
+@dataclass
 class ConceptNode:
-    def __init__(
-        self,
-        node_id,
-        node_count,
-        type_count,
-        node_type,
-        depth,
-        created,
-        expiration,
-        s,
-        p,
-        o,
-        description,
-        embedding_key,
-        poignancy,
-        keywords,
-        filling,
-    ):
-        self.node_id = node_id
-        self.node_count = node_count
-        self.type_count = type_count
-        self.type = node_type  # thought / event / chat
-        self.depth = depth
+    node_id: str
+    node_count: int
+    type_count: int
+    node_type: str  # thought / event / chat
+    depth: int
 
-        self.created = created
-        self.expiration = expiration
-        self.last_accessed = self.created
+    created: datetime
+    expiration: Optional[datetime]
+    last_accessed: datetime
 
-        self.subject = s
-        self.predicate = p
-        self.object = o
+    subject: str
+    predicate: str
+    object: str
 
-        self.description = description
-        self.embedding_key = embedding_key
-        self.poignancy = poignancy
-        self.keywords = keywords
-        self.filling = filling
+    description: str
+    embedding_key: str
+    embedding_index: int  # Now maps to Faiss index ID
+    poignancy: float
+    keywords: Set[str]
+    filling: List[str]
 
     def __str__(self):
-        return f"ConceptNode({self.node_id}, {self.node_count}, {self.type_count}, {self.type}, {self.depth}, {self.created}, {self.expiration}, {self.subject}, {self.predicate}, {self.object}, {self.description}, {self.embedding_key}, {self.poignancy}, {self.keywords}, {self.filling})"
-
-    def __repr__(self):
-        return self.__str__()
+        return (f"ConceptNode({self.node_id}, {self.node_count}, {self.type_count}, "
+                f"{self.node_type}, {self.depth}, {self.created}, {self.expiration}, "
+                f"{self.subject}, {self.predicate}, {self.object}, {self.description}, "
+                f"{self.embedding_key}, {self.poignancy}, {self.keywords}, {self.filling})")
 
     def spo_summary(self):
         return (self.subject, self.predicate, self.object)
@@ -71,374 +45,224 @@ class ConceptNode:
 class AssociativeMemory(Memory):
     def __init__(self, f_saved):
         super().__init__()
-        self.id_to_node = dict()
+        self.id_to_node: Dict[str, ConceptNode] = {}
+        self.seq_nodes: Dict[str, deque] = {'event': deque(), 'thought': deque(), 'chat': deque()}
+        self.kw_to_nodes: Dict[str, Dict[str, deque]] = {'event': {}, 'thought': {}, 'chat': {}}
+        self.kw_strength: Dict[str, Dict[str, int]] = {'event': {}, 'thought': {}}
 
-        self.seq_event = []
-        self.seq_thought = []
-        self.seq_chat = []
+        # Initialize vector store
+        self.vector_store = VectorStore()
+        self.vector_store.load(f_saved)
 
-        self.kw_to_event = dict()
-        self.kw_to_thought = dict()
-        self.kw_to_chat = dict()
+        # Load nodes and keyword strengths from files
+        nodes_load = self._load_json(f_saved + "/nodes.json")
+        for node_id, node_details in nodes_load.items():
+            node = self._create_node_from_details(node_id, node_details)
+            self.id_to_node[node_id] = node
+            self._add_node_to_structures(node)
 
-        self.kw_strength_event = dict()
-        self.kw_strength_thought = dict()
+        kw_strength_load = self._load_json(f_saved + "/kw_strength.json")
+        self.kw_strength['event'] = kw_strength_load.get('kw_strength_event', {})
+        self.kw_strength['thought'] = kw_strength_load.get('kw_strength_thought', {})
 
-        self.embeddings = json.load(open(f_saved + "/embeddings.json"))
+    @staticmethod
+    def _load_json(filepath):
+        with open(filepath, 'r') as f:
+            return json.load(f)
 
-        nodes_load = json.load(open(f_saved + "/nodes.json"))
-        for count in range(len(nodes_load.keys())):
-            node_id = f"node_{str(count+1)}"
-            node_details = nodes_load[node_id]
+    def _save_json(self, filepath, data):
+        with open(filepath, 'w') as outfile:
+            json.dump(data, outfile)
 
-            node_count = node_details["node_count"]
-            type_count = node_details["type_count"]
-            node_type = node_details["type"]
-            depth = node_details["depth"]
+    def _create_node_from_details(self, node_id, node_details):
+        created = datetime.strptime(node_details["created"], "%Y-%m-%d %H:%M:%S")
+        expiration = (datetime.strptime(node_details["expiration"], "%Y-%m-%d %H:%M:%S")
+                     if node_details["expiration"] else None)
 
-            created = datetime.datetime.strptime(node_details["created"], "%Y-%m-%d %H:%M:%S")
-            expiration = None
-            if node_details["expiration"]:
-                expiration = datetime.datetime.strptime(
-                    node_details["expiration"], "%Y-%m-%d %H:%M:%S"
-                )
+        # Use embedding key directly since we no longer need to map to index ID
+        embedding_key = node_details["embedding_key"]
 
-            s = node_details["subject"]
-            p = node_details["predicate"]
-            o = node_details["object"]
+        return ConceptNode(
+            node_id=node_id,
+            node_count=node_details["node_count"],
+            type_count=node_details["type_count"],
+            node_type=node_details["type"],
+            depth=node_details["depth"],
+            created=created,
+            expiration=expiration,
+            last_accessed=created,
+            subject=node_details["subject"],
+            predicate=node_details["predicate"],
+            object=node_details["object"],
+            description=node_details["description"],
+            embedding_key=embedding_key,
+            embedding_index=-1,  # No longer used with new VectorStore
+            poignancy=node_details["poignancy"],
+            keywords=set(node_details["keywords"]),
+            filling=node_details["filling"]
+        )
 
-            description = node_details["description"]
-            embedding_pair = (
-                node_details["embedding_key"],
-                self.embeddings[node_details["embedding_key"]],
-            )
-            poignancy = node_details["poignancy"]
-            keywords = set(node_details["keywords"])
-            filling = node_details["filling"]
+    def _add_node_to_structures(self, node):
+        node_type = node.node_type
+        self.seq_nodes[node_type].appendleft(node)  # O(1)
 
-            if node_type == "event":
-                self.add_event(
-                    created,
-                    expiration,
-                    s,
-                    p,
-                    o,
-                    description,
-                    keywords,
-                    poignancy,
-                    embedding_pair,
-                    filling,
-                )
-            elif node_type == "chat":
-                self.add_chat(
-                    created,
-                    expiration,
-                    s,
-                    p,
-                    o,
-                    description,
-                    keywords,
-                    poignancy,
-                    embedding_pair,
-                    filling,
-                )
-            elif node_type == "thought":
-                self.add_thought(
-                    created,
-                    expiration,
-                    s,
-                    p,
-                    o,
-                    description,
-                    keywords,
-                    poignancy,
-                    embedding_pair,
-                    filling,
-                )
+        # Add to keyword mapping
+        keywords = {kw.lower() for kw in node.keywords}
+        for kw in keywords:
+            self.kw_to_nodes[node_type].setdefault(kw, deque()).appendleft(node)  # O(1)
 
-        kw_strength_load = json.load(open(f_saved + "/kw_strength.json"))
-        if kw_strength_load["kw_strength_event"]:
-            self.kw_strength_event = kw_strength_load["kw_strength_event"]
-        if kw_strength_load["kw_strength_thought"]:
-            self.kw_strength_thought = kw_strength_load["kw_strength_thought"]
+        # Update keyword strengths for events and thoughts
+        if node_type in {'event', 'thought'} and f"{node.predicate} {node.object}".strip().lower() != "is idle":
+            for kw in keywords:
+                self.kw_strength[node_type][kw] = self.kw_strength[node_type].get(kw, 0) + 1
 
     def save(self, out_json):
-        r = dict()
-        for count in range(len(self.id_to_node.keys()), 0, -1):
-            node_id = f"node_{str(count)}"
-            node = self.id_to_node[node_id]
+        # Save nodes
+        nodes_data = {}
+        for node_id, node in self.id_to_node.items():
+            nodes_data[node_id] = {
+                "node_count": node.node_count,
+                "type_count": node.type_count,
+                "type": node.node_type,
+                "depth": node.depth,
+                "created": node.created.strftime("%Y-%m-%d %H:%M:%S"),
+                "expiration": node.expiration.strftime("%Y-%m-%d %H:%M:%S") if node.expiration else None,
+                "subject": node.subject,
+                "predicate": node.predicate,
+                "object": node.object,
+                "description": node.description,
+                "embedding_key": node.embedding_key,
+                "poignancy": node.poignancy,
+                "keywords": list(node.keywords),
+                "filling": node.filling
+            }
+        self._save_json(out_json + "/nodes.json", nodes_data)
 
-            r[node_id] = dict()
-            r[node_id]["node_count"] = node.node_count
-            r[node_id]["type_count"] = node.type_count
-            r[node_id]["type"] = node.type
-            r[node_id]["depth"] = node.depth
+        # Save keyword strengths
+        kw_strength_data = {
+            'kw_strength_event': self.kw_strength['event'],
+            'kw_strength_thought': self.kw_strength['thought']
+        }
+        self._save_json(out_json + "/kw_strength.json", kw_strength_data)
 
-            r[node_id]["created"] = node.created.strftime("%Y-%m-%d %H:%M:%S")
-            r[node_id]["expiration"] = None
-            if node.expiration:
-                r[node_id]["expiration"] = node.expiration.strftime("%Y-%m-%d %H:%M:%S")
+        # Save embeddings via vector store
+        self.vector_store.save(out_json)
 
-            r[node_id]["subject"] = node.subject
-            r[node_id]["predicate"] = node.predicate
-            r[node_id]["object"] = node.object
-
-            r[node_id]["description"] = node.description
-            r[node_id]["embedding_key"] = node.embedding_key
-            r[node_id]["poignancy"] = node.poignancy
-            r[node_id]["keywords"] = list(node.keywords)
-            r[node_id]["filling"] = node.filling
-
-        with open(out_json + "/nodes.json", "w") as outfile:
-            json.dump(r, outfile)
-
-        r = dict()
-        r["kw_strength_event"] = self.kw_strength_event
-        r["kw_strength_thought"] = self.kw_strength_thought
-        with open(out_json + "/kw_strength.json", "w") as outfile:
-            json.dump(r, outfile)
-
-        with open(out_json + "/embeddings.json", "w") as outfile:
-            json.dump(self.embeddings, outfile)
-
-    def add_event(
-        self,
-        created,
-        expiration,
-        s,
-        p,
-        o,
-        description,
-        keywords,
-        poignancy,
-        embedding_pair,
-        filling,
-    ):
-        # Setting up the node ID and counts.
-        node_count = len(self.id_to_node.keys()) + 1
-        type_count = len(self.seq_event) + 1
-        node_type = "event"
-        node_id = f"node_{str(node_count)}"
+    def add_node(self, *, node_type, created, expiration, s, p, o, description,
+                 keywords, poignancy, embedding_pair, filling):
+        node_count = len(self.id_to_node) + 1
+        type_count = len(self.seq_nodes[node_type]) + 1
+        node_id = f"node_{node_count}"
         depth = 0
 
-        # Node type specific clean up.
-        if "(" in description:
-            description = " ".join(description.split()[:3]) + " " + description.split("(")[-1][:-1]
-
-        # Creating the <ConceptNode> object.
-        node = ConceptNode(
-            node_id,
-            node_count,
-            type_count,
-            node_type,
-            depth,
-            created,
-            expiration,
-            s,
-            p,
-            o,
-            description,
-            embedding_pair[0],
-            poignancy,
-            keywords,
-            filling,
-        )
-
-        # Creating various dictionary cache for fast access.
-        self.seq_event[0:0] = [node]
-        keywords = [i.lower() for i in keywords]
-        for kw in keywords:
-            if kw in self.kw_to_event:
-                self.kw_to_event[kw][0:0] = [node]
-            else:
-                self.kw_to_event[kw] = [node]
-        self.id_to_node[node_id] = node
-
-        # Adding in the kw_strength
-        if f"{p} {o}" != "is idle":
-            for kw in keywords:
-                if kw in self.kw_strength_event:
-                    self.kw_strength_event[kw] += 1
-                else:
-                    self.kw_strength_event[kw] = 1
-
-        self.embeddings[embedding_pair[0]] = embedding_pair[1]
-
-        return node
-
-    def add_thought(
-        self,
-        created,
-        expiration,
-        s,
-        p,
-        o,
-        description,
-        keywords,
-        poignancy,
-        embedding_pair,
-        filling,
-    ):
-        # Setting up the node ID and counts.
-        node_count = len(self.id_to_node.keys()) + 1
-        type_count = len(self.seq_thought) + 1
-        node_type = "thought"
-        node_id = f"node_{str(node_count)}"
-        depth = 1
-        try:
+        if node_type == 'thought':
+            depth = 1
             if filling:
-                depth += max([self.id_to_node[i].depth for i in filling])
-        except:
-            pass
+                depth += max((self.id_to_node[fill_id].depth for fill_id in filling if fill_id in self.id_to_node), default=0)
 
-        # Creating the <ConceptNode> object.
+        embedding_key, embedding_vector = embedding_pair
+        
+        # Add vector to vector store - no need to store index ID
+        self.vector_store.add_vector(embedding_key, embedding_vector)
+
         node = ConceptNode(
-            node_id,
-            node_count,
-            type_count,
-            node_type,
-            depth,
-            created,
-            expiration,
-            s,
-            p,
-            o,
-            description,
-            embedding_pair[0],
-            poignancy,
-            keywords,
-            filling,
+            node_id=node_id,
+            node_count=node_count,
+            type_count=type_count,
+            node_type=node_type,
+            depth=depth,
+            created=created,
+            expiration=expiration,
+            last_accessed=created,
+            subject=s,
+            predicate=p,
+            object=o,
+            description=description,
+            embedding_key=embedding_key,
+            embedding_index=-1,  # No longer used with new VectorStore
+            poignancy=poignancy,
+            keywords=set(keywords),
+            filling=filling
         )
 
-        # Creating various dictionary cache for fast access.
-        self.seq_thought[0:0] = [node]
-        keywords = [i.lower() for i in keywords]
-        for kw in keywords:
-            if kw in self.kw_to_thought:
-                self.kw_to_thought[kw][0:0] = [node]
-            else:
-                self.kw_to_thought[kw] = [node]
         self.id_to_node[node_id] = node
-
-        # Adding in the kw_strength
-        if f"{p} {o}" != "is idle":
-            for kw in keywords:
-                if kw in self.kw_strength_thought:
-                    self.kw_strength_thought[kw] += 1
-                else:
-                    self.kw_strength_thought[kw] = 1
-
-        self.embeddings[embedding_pair[0]] = embedding_pair[1]
-
+        self._add_node_to_structures(node)
         return node
 
-    def add_chat(
-        self,
-        created,
-        expiration,
-        s,
-        p,
-        o,
-        description,
-        keywords,
-        poignancy,
-        embedding_pair,
-        filling,
-    ):
-        # Setting up the node ID and counts.
-        node_count = len(self.id_to_node.keys()) + 1
-        type_count = len(self.seq_chat) + 1
-        node_type = "chat"
-        node_id = f"node_{str(node_count)}"
-        depth = 0
 
-        # Creating the <ConceptNode> object.
-        node = ConceptNode(
-            node_id,
-            node_count,
-            type_count,
-            node_type,
-            depth,
-            created,
-            expiration,
-            s,
-            p,
-            o,
-            description,
-            embedding_pair[0],
-            poignancy,
-            keywords,
-            filling,
-        )
 
-        # Creating various dictionary cache for fast access.
-        self.seq_chat[0:0] = [node]
-        keywords = [i.lower() for i in keywords]
-        for kw in keywords:
-            if kw in self.kw_to_chat:
-                self.kw_to_chat[kw][0:0] = [node]
-            else:
-                self.kw_to_chat[kw] = [node]
-        self.id_to_node[node_id] = node
+    def add_event(self, **kwargs):
+        return self.add_node(node_type='event', **kwargs)
 
-        self.embeddings[embedding_pair[0]] = embedding_pair[1]
+    def add_thought(self, **kwargs):
+        return self.add_node(node_type='thought', **kwargs)
 
-        return node
+    def add_chat(self, **kwargs):
+        return self.add_node(node_type='chat', **kwargs)
 
     def get_summarized_latest_events(self, retention):
-        ret_set = set()
-        for e_node in self.seq_event[:retention]:
-            ret_set.add(e_node.spo_summary())
-        return ret_set
+        return {node.spo_summary() for node in list(self.seq_nodes['event'])[:retention]}
+
+    def get_seq_events(self):
+        return list(self.seq_nodes['event'])
+
+    def get_seq_chats(self):
+        return list(self.seq_nodes['chat'])
+
+    def get_seq_thoughts(self):
+        return list(self.seq_nodes['thought'])
 
     def get_str_seq_events(self):
-        ret_str = ""
-        for count, event in enumerate(self.seq_event):
-            ret_str += f'{"Event", len(self.seq_event) - count, ": ", event.spo_summary(), " -- ", event.description}\n'
-        return ret_str
-
-    def get_thoughts(self):
-        return self.seq_thought
+        lines = [
+            f"Event {len(self.seq_nodes['event']) - idx}: {node.spo_summary()} -- {node.description}\n"
+            for idx, node in enumerate(self.seq_nodes['event'])
+        ]
+        return ''.join(lines)
 
     def get_str_seq_thoughts(self):
-        ret_str = ""
-        for count, event in enumerate(self.seq_thought):
-            ret_str += f'{"Thought", len(self.seq_thought) - count, ": ", event.spo_summary(), " -- ", event.description}'
-        return ret_str
+        lines = [
+            f"Thought {len(self.seq_nodes['thought']) - idx}: {node.spo_summary()} -- {node.description}\n"
+            for idx, node in enumerate(self.seq_nodes['thought'])
+        ]
+        return ''.join(lines)
 
     def get_str_seq_chats(self):
-        ret_str = ""
-        for count, event in enumerate(self.seq_chat):
-            ret_str += f"with {event.object.content} ({event.description})\n"
-            ret_str += f'{event.created.strftime("%B %d, %Y, %H:%M:%S")}\n'
-            for row in event.filling:
-                ret_str += f"{row[0]}: {row[1]}\n"
-        return ret_str
+        lines = []
+        for chat in self.seq_nodes['chat']:
+            lines.append(f"with {chat.object} ({chat.description})\n")
+            lines.append(f"{chat.created.strftime('%B %d, %Y, %H:%M:%S')}\n")
+            for speaker, message in chat.filling:
+                lines.append(f"{speaker}: {message}\n")
+        return ''.join(lines)
+
+    def retrieve_relevant_nodes(self, node_type, s_content, p_content, o_content):
+        contents = {s_content.lower(), p_content.lower(), o_content.lower()}
+        ret = set()
+        kw_to_nodes = self.kw_to_nodes[node_type]
+        for content in contents:
+            ret.update(kw_to_nodes.get(content, []))
+        return ret
 
     def retrieve_relevant_thoughts(self, s_content, p_content, o_content):
-        contents = [s_content, p_content, o_content]
-
-        ret = []
-        for i in contents:
-            if i in self.kw_to_thought:
-                ret += self.kw_to_thought[i.lower()]
-
-        ret = set(ret)
-        return ret
+        return self.retrieve_relevant_nodes('thought', s_content, p_content, o_content)
 
     def retrieve_relevant_events(self, s_content, p_content, o_content):
-        contents = [s_content, p_content, o_content]
-
-        ret = []
-        for i in contents:
-            if i in self.kw_to_event:
-                ret += self.kw_to_event[i]
-
-        ret = set(ret)
-        return ret
+        return self.retrieve_relevant_nodes('event', s_content, p_content, o_content)
 
     def get_last_chat(self, target_persona_name):
-        if target_persona_name.lower() in self.kw_to_chat:
-            return self.kw_to_chat[target_persona_name.lower()][0]
-        else:
-            return False
+        kw = target_persona_name.lower()
+        return self.kw_to_nodes['chat'].get(kw, deque([None]))[0]
+
+    def query_by_relevance(self, query_embedding, top_k):
+        """
+        Returns a dictionary mapping node_ids to similarity scores for the top_k most similar embeddings.
+        """
+        results = self.vector_store.query_vector(query_embedding, top_k)
+        top_nodes = {}
+        for embedding_key, score in results:
+            # Find node_id(s) with this embedding_key
+            node_ids = [node_id for node_id, node in self.id_to_node.items() 
+                       if node.embedding_key == embedding_key]
+            for node_id in node_ids:
+                top_nodes[node_id] = score
+        return top_nodes

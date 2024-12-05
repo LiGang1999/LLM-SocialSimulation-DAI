@@ -25,6 +25,7 @@ from persona.cognitive_modules.retrieve import *
 from persona.memory_structures.associative_memory import *
 from persona.memory_structures.scratch import *
 from persona.memory_structures.spatial_memory import *
+from persona.memory_structures.speech_memory import *
 from persona.workflow import *
 from utils import *
 from utils.logs import L
@@ -54,6 +55,7 @@ class GaPersona(Persona):
         # <s_mem> is the persona's spatial memory.
         f_s_mem_saved = f"{folder_mem_saved}/bootstrap_memory/spatial_memory.json"
         self.s_mem = MemoryTree(f_s_mem_saved)
+
         # <s_mem> is the persona's associative memory.
         f_a_mem_saved = f"{folder_mem_saved}/bootstrap_memory/associative_memory"
         self.a_mem = AssociativeMemory(f_a_mem_saved)
@@ -118,6 +120,8 @@ class DaiPersona(Persona):
         # <s_mem> is the persona's associative memory.
         f_a_mem_saved = f"{folder_mem_saved}/bootstrap_memory/associative_memory"
         self.a_mem = AssociativeMemory(f_a_mem_saved)
+        f_sph_mem_saved = f"{folder_mem_saved}/bootstrap_memory/speech_memory.json"
+        self.sph_mem = SpeechMemory(f_sph_mem_saved)
         # <scratch> is the persona's scratch (short term memory) space.
         scratch_saved = f"{folder_mem_saved}/bootstrap_memory/scratch.json"
         self.scratch = Scratch(scratch_saved)
