@@ -1176,6 +1176,14 @@ class Reverie:
                 elif "print llm stats" in sim_command.lower():
                     # Print the LLM stats
                     L.print_stats()
+                elif "print speech memory" in sim_command.lower():
+                    # Print the speech memory of the persona specified in the prompt
+                    # get the first persona
+                    persona = list(self.personas.values())[0]
+                    # print the speech memory of the first persona
+                    m = persona.sph_mem
+                    ret_str += m.get_str_summary()
+                
 
                 elif "call -- analysis" in sim_command.lower():
                     # Starts a stateless chat session with the agent. It does not save
