@@ -1,8 +1,8 @@
 # Copy and paste your OpenAI API Key
-openai_api_base = "https://api.bianxie.ai/v1"
-openai_api_key = "sk-Mc0h6rJZ1dvmnZiRD3B8F117B65d437c8a1a38D6E26c8585"
+openai_api_base = "https://api.tao-shen.com/v1"
+openai_api_key = "sk-89MCCzur02bckkA4YBCFejU7KV7FNjzcGWkyT94kBftuD9oX"
 
-override_model = "gpt-3.5-turbo"
+override_model = "gpt-4o"
 override_gpt_param = {
     "engine": override_model,
     "temperature": 1.0,
@@ -37,5 +37,5 @@ BASE_TEMPLATES = [
     # "base_the_villie_isabella_maria_klaus",
     "base_the_villie_isabella_maria_klaus_online",
     # "base_the_villie_n25",
-    "base_the_villie_n25_info"
+    "base_the_villie_n25_info",
 ]

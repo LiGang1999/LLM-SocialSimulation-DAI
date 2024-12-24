@@ -9,26 +9,7 @@ Variables:
 !<INPUT 5>! -- persona name
 !<INPUT 6>! -- persona name
 <commentblockmarker>###</commentblockmarker>
-Task -- As a Weibo user, please provide a comprehensive response that includes:
-
-1. Your detailed analysis of the AI city vs traditional city, considering:
-   - Impact on daily life and work
-   - Safety and privacy concerns
-   - Economic opportunities
-   - Social relationships
-   - Future development potential
-
-2. Your personal experience and background that influences your choice
-
-3. Your specific concerns and expectations about living in each type of city
-
-4. A clear final decision with detailed reasoning (minimum 200 words)
-
-The response should:
-- Reflect your personality and background
-- Include specific examples and scenarios
-- Consider both advantages and disadvantages
-- Provide clear reasoning for your final choice
+Task -- As a Weibo user, given the public event commentary orientation, combined with the subject's personal memory and personality, please determine what the subject would say about the above case and related comments?
 
 PART 1.
 Here is a brief description of !<INPUT 2>!.

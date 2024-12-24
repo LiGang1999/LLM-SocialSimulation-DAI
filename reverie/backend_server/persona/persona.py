@@ -28,6 +28,7 @@ from persona.memory_structures.spatial_memory import *
 from persona.workflow import *
 from utils import *
 from utils.logs import L
+from persona.cognitive_modules.converse import open_convo_session
 
 
 class Persona:
@@ -125,26 +126,26 @@ class DaiPersona(Persona):
             "plan": {
                 "task": "Decide whether the agent should vote on a policy proposal.",
                 "output_format": {
-                        "reasoning": "Step-by-step reasoning...",
-                        "decision": "Yes or No"
-                }
+                    "reasoning": "Step-by-step reasoning...",
+                    "decision": "Yes or No",
+                },
             },
             "execute": {
                 "task": "Decide whether the agent should vote on a policy proposal.",
                 "output_format": {
-                        "reasoning": "Step-by-step reasoning...",
-                        "decision": "Yes or No"
-                }
+                    "reasoning": "Step-by-step reasoning...",
+                    "decision": "Yes or No",
+                },
             },
         }
-        
+
     def get_workflow_stage_config(self):
         return self.workflow_config
 
     # 设置新的工作流配置
     def set_workflow_stage_config(self, workflow_config):
         self.workflow_config = workflow_config
-        
+
     def single_workflow(self, maze, curr_time):
         self.workflow.work(self, maze, curr_time)
 
@@ -171,3 +172,18 @@ class DaiPersona(Persona):
 
     def chat_to_persona(self, mode, vbase, prev_msgs, msg):
         return chat_to_persona(self, mode, vbase, prev_msgs, msg)
+
+    def open_convo_session(self, convo_mode, vbase, input_queue):
+        """
+        打开一个会话session
+
+        Args:
+            convo_mode: 会话模式(interview/whisper等)
+            vbase: 向量数据库
+            input_queue: 命令队列
+        """
+        # from reverie.backend_server.persona.cognitive_modules.converse import open_convo_session
+
+        from persona.cognitive_modules.converse import open_convo_session
+
+        open_convo_session(self, convo_mode, vbase, input_queue)
