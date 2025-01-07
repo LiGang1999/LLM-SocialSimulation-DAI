@@ -8,7 +8,7 @@ from datetime import datetime
 from queue import Queue
 from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ValidationError
 from utils import *
@@ -221,7 +221,9 @@ from typing import Dict
 from fastapi import HTTPException
 
 
-@app.post("/start")
+router = APIRouter(prefix="/css/socialsim/api")
+
+@router.post("/start")
 async def start(sim_data: StartReq):
     try:
         sim_code = sim_data.simCode
@@ -268,7 +270,7 @@ async def start(sim_data: StartReq):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/publish_events")
+@router.post("/publish_events")
 async def publish_event(event: EventPublishReq, sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
     if not reverie_instance:
@@ -291,7 +293,7 @@ async def publish_event(event: EventPublishReq, sim_code: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/status")
+@router.get("/status")
 async def query_status(sim_code: str):
     instance = reverie_pool.get(sim_code)
     if not instance:
@@ -302,7 +304,7 @@ async def query_status(sim_code: str):
     }
 
 
-@app.get("/command")
+@router.get("/command")
 async def add_command(sim_code: str, command: str):
     reverie_instance = get_reverie_instance(sim_code)
     if not command:
@@ -315,7 +317,7 @@ async def add_command(sim_code: str, command: str):
     return {"status": "success"}
 
 
-@app.get("/run")
+@router.get("/run")
 async def run(sim_code: str, count: int):
     reverie_instance = get_reverie_instance(sim_code)
     if not count:
@@ -331,7 +333,7 @@ async def run(sim_code: str, count: int):
 
 
 # This is a legacy endpoint from the original project
-@app.get("/get_persona/{sim_code}")
+@router.get("/get_persona/{sim_code}")
 async def get_persona(sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
     if not reverie_instance:
@@ -347,7 +349,7 @@ async def get_persona(sim_code: str):
     return {"personas": list(persona_names)}
 
 
-@app.get("/personas_info")
+@router.get("/personas_info")
 async def personas_info(sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
     r = reverie_instance.reverie
@@ -397,7 +399,7 @@ async def personas_info(sim_code: str):
     return {"personas": persona_info}
 
 
-@app.post("/chat")
+@router.post("/chat")
 async def chat(chat_request: ChatReq, sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
     if not reverie_instance:
@@ -421,7 +423,7 @@ async def chat(chat_request: ChatReq, sim_code: str):
         raise HTTPException(status_code=404, detail="Invalid simulation or persona")
 
 
-@app.get("/persona_detail")
+@router.get("/persona_detail")
 async def persona_detail(sim_code: str, agent_name: str):
     r = get_reverie_instance(sim_code)
     if not r:
@@ -445,7 +447,7 @@ async def persona_detail(sim_code: str, agent_name: str):
     return {"scratch": persona_detail, "a_mem": {}, "s_mem": {}}
 
 
-@app.get("/fetch_templates")
+@router.get("/fetch_templates")
 async def fetch_templates():
     envs = [
         dir for dir in os.listdir(STORAGE_PATH) if os.path.isdir(os.path.join(STORAGE_PATH, dir))
@@ -476,7 +478,7 @@ async def fetch_templates():
     return {"envs": result_envs, "all_templates": envs}
 
 
-@app.get("/fetch_template")
+@router.get("/fetch_template")
 async def fetch_template(sim_code: str):
     if not sim_code:
         raise HTTPException(status_code=400, detail="Missing sim_code parameter")
@@ -515,7 +517,7 @@ async def fetch_template(sim_code: str):
     return {"meta": env_meta, "personas": persona_info, "events": events}
 
 
-@app.websocket("/ws")
+@router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
     if not reverie_instance:
@@ -539,6 +541,8 @@ async def websocket_endpoint(websocket: WebSocket, sim_code: str):
     finally:
         with threading.Lock():
             reverie_instance.active_websockets.pop(websocket_id, None)
+
+app.include_router(router)
 
 
 if __name__ == "__main__":

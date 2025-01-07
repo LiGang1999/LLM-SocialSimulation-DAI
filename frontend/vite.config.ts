@@ -25,10 +25,17 @@ export default defineConfig({
   define: {
     'process.env': process.env
   },
+  base: "https://mo.zju.edu.cn/css/socialsim/",
   plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    port: 9080
+  },
+  preview: {
+    port: 9080
+  }
 })

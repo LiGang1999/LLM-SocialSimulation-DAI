@@ -5,7 +5,7 @@ export const apiBaseUrl = import.meta.env.VITE_SERVER_IP;
 export const apiPort = import.meta.env.VITE_BACK_PORT;
 
 export const api = axios.create({
-    baseURL: `http://${apiBaseUrl}:${apiPort}`,
+    baseURL: `https://${apiBaseUrl}`,
 });
 
 
@@ -350,7 +350,7 @@ export namespace apis {
     }
 
     export const messageSocket = (simCode: string) => {
-        return new WebSocket(`ws://${apiBaseUrl}:${apiPort}/ws?sim_code=${simCode}`);
+        return new WebSocket(`wss://${apiBaseUrl}/ws?sim_code=${simCode}`);
     }
 
 

@@ -16,7 +16,7 @@ import { SimContextProvider } from './SimContext.tsx';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SimContextProvider>
-      <BrowserRouter>
+      <BrowserRouter basename='/css/socialsim'>
         <Routes>
           <Route path="/" element={
             <Navigate to="/welcome" replace />

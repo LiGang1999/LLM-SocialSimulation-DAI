@@ -11,6 +11,15 @@ interface Step {
     link: string;
 }
 
+const prefixPath = (path: string) => {
+    // Only add prefix to internal routes (not external links or anchor tags)
+    if (path.startsWith('http') || path.startsWith('#')) {
+      return path;
+    }
+    return `/css/socialsim${path}`;
+  };
+
+
 export const ProgressBar: React.FC<ProgressBarProps> = ({
     currentStep,
     orientation = 'horizontal',
@@ -53,7 +62,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
                 </div>
                 <div className={`flex ${isVertical ? 'flex-col justify-between h-full' : 'justify-between'}`}>
                     {steps.map((step, index) => (
-                        <a key={index} href={step.link} className='flex flex-col items-center'>
+                        <a key={index} href={prefixPath(step.link)} className='flex flex-col items-center'>
                             <div className='relative'>
                                 <div
                                     className={`w-6 h-6 rounded-full

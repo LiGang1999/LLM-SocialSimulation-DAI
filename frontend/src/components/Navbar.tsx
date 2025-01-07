@@ -47,6 +47,15 @@ const routeList: RouteProps[] = [
     },
 ];
 
+const prefixPath = (path: string) => {
+    // Only add prefix to internal routes (not external links or anchor tags)
+    if (path.startsWith('http') || path.startsWith('#')) {
+      return path;
+    }
+    return `/css/socialsim${path}`;
+  };
+
+
 export const Navbar = () => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     return (
@@ -56,7 +65,7 @@ export const Navbar = () => {
                     <NavigationMenuItem className="font-bold flex">
                         <a
                             rel="noreferrer noopener"
-                            href="/"
+                            href={prefixPath("/")}
                             className="ml-2 font-bold text-xl flex"
                         >
                             <LogoIcon />
@@ -91,7 +100,7 @@ export const Navbar = () => {
                                         <a
                                             rel="noreferrer noopener"
                                             key={label}
-                                            href={href}
+                                            href={prefixPath(href)}
                                             onClick={() => setIsOpen(false)}
                                             className={buttonVariants({ variant: "ghost" })}
                                         >
@@ -116,7 +125,7 @@ export const Navbar = () => {
                         {routeList.map((route: RouteProps, i) => (
                             <a
                                 rel="noreferrer noopener"
-                                href={route.href}
+                                href={prefixPath(route.href)}
                                 key={i}
                                 className={`text-[17px] ${buttonVariants({
                                     variant: "ghost",

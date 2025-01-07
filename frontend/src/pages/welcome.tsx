@@ -72,7 +72,7 @@ export const WelcomePage = () => {
                         </div>
 
                         <div className="flex flex-wrap items-center space-x-6 mb-12">
-                            <a href={'/templates'}>
+                            <a href={'/css/socialsim/templates'}>
                                 <Button className="text-2xl h-16 px-8 font-bold text-white bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg transform transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center justify-center">
                                     <Play size={20} className='mr-2' /> 立即开始
                                 </Button>
@@ -185,7 +185,7 @@ export const WelcomePage = () => {
             </div>
 
 
-        //     </div >
+        </div >
         // </div >
 
 

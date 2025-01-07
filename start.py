@@ -134,7 +134,7 @@ if __name__ == "__main__":
         "--save", action="store_true", help="Log output to files instead of console."
     )
     parser.add_argument(
-        "--dev", action="store_true", help="Run servers in development mode.", default=True
+        "--dev", action="store_true", help="Run servers in development mode.", default=False
     )
     args = parser.parse_args()
     main(args.save, args.dev)

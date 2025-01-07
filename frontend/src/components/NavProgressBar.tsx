@@ -24,6 +24,14 @@ interface RouteProps {
     label: string;
 }
 
+const prefixPath = (path: string) => {
+    // Only add prefix to internal routes (not external links or anchor tags)
+    if (path.startsWith('http') || path.startsWith('#')) {
+      return path;
+    }
+    return `/css/socialsim${path}`;
+  };
+
 const routeList: RouteProps[] = [
     {
         href: "/welcome",
@@ -91,7 +99,7 @@ export const NavProgressBar = () => {
                                         <a
                                             rel="noreferrer noopener"
                                             key={label}
-                                            href={href}
+                                            href={prefixPath(href)}
                                             onClick={() => setIsOpen(false)}
                                             className={buttonVariants({ variant: "ghost" })}
                                         >

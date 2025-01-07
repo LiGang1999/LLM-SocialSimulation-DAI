@@ -13,6 +13,15 @@ interface BottomNavProps extends HTMLAttributes<HTMLDivElement> {
     variant?: 'default' | 'final';
 }
 
+
+const prefixPath = (path: string) => {
+    // Only add prefix to internal routes (not external links or anchor tags)
+    if (path.startsWith('http') || path.startsWith('#')) {
+      return path;
+    }
+    return `/css/socialsim${path}`;
+  };
+
 export const BottomNav: React.FC<BottomNavProps> = ({
     prevLink,
     nextLink,
@@ -27,7 +36,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         if (onClickPrev) {
             onClickPrev();
         } else if (prevLink) {
-            window.location.href = prevLink;
+            window.location.href = prefixPath(prevLink);
         }
     };
 
@@ -35,7 +44,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         if (onClickNext && !disabled) {
             onClickNext();
         } else if (nextLink && !disabled) {
-            window.location.href = nextLink;
+            window.location.href = prefixPath(nextLink);
         }
     };
 
