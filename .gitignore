@@ -9,6 +9,8 @@ static_dirs/*
 !reverie/storage/legislative_council/**
 !reverie/storage/demo
 !reverie/storage/demo/**
+!reverie/storage/legislative_council_life
+!reverie/storage/legislative_council_life/**
 
 bin/
 include/
