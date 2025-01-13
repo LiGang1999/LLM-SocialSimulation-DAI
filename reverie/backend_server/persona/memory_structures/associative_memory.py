@@ -22,7 +22,6 @@ class ConceptNode:
         self,
         node_id,
         node_type,
-        depth,
         created,
         expiration,
         s,

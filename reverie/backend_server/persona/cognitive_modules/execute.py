@@ -9,7 +9,7 @@ import random
 import sys
 
 from maze import OnlineMaze
-from memorynode import *
+from persona.memory_structures.memory_node import *
 from path_finder import *
 from persona.cognitive_modules.converse import *
 from utils import *

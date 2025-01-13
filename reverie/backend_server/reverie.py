@@ -37,17 +37,13 @@ from typing import List, Optional, Tuple
 
 import numpy
 from pydantic import BaseModel, Field, parse_obj_as
-from selenium import webdriver
 
 # 然后是其他的导入语句
-from institution import *
 from maze import *
-from memorynode import *
 from persona.persona import *
 from utils import *
 from utils import config
 from utils.config import *
-from vector_db import *
 
 
 # 获取当前文件所在的目录（backend_server）

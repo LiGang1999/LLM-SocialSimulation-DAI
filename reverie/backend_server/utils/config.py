@@ -1,6 +1,6 @@
 # Copy and paste your OpenAI API Key
 openai_api_base = "https://api.tao-shen.com/v1"
-openai_api_key = "sk-89MCCzur02bckkA4YBCFejU7KV7FNjzcGWkyT94kBftuD9oX"
+openai_api_key = "sk-h7J3rf05Gw8GnpYvWMH6ybFjThfgtuqReB3WEXVLsw0iV4mh"
 
 override_model = "gpt-4o"
 override_gpt_param = {
