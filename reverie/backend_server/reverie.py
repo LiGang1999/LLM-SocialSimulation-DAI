@@ -89,7 +89,7 @@ class EventInfo:
 class LLMConfig:
     base_url: str = config.openai_api_base
     api_key: str = config.openai_api_key
-    engine: str = ""
+    model: str = ""
     tempreature: float = 1.0
     max_tokens: int = 512
     top_p: float = 0.7
@@ -1283,7 +1283,7 @@ class Reverie:
                     #     args['gpt_config'] = gpt_configs[model_name] # our configs
                     # else:
                     #     args['gpt_config'] = default_gpt_config
-                    #     args['gpt_config']['engine'] = model_name
+                    #     args['gpt_config']['model'] = model_name
 
                     # # overwrite temperature and top_p
                     # args['gpt_config']['temperature'] = args['temperature']
@@ -1467,7 +1467,7 @@ if __name__ == "__main__":
     cfg = load_config_from_files(f"{storage_path}/{template_sim_code}")
     cfg.sim_code = sim_code
     cfg.llm_config = LLMConfig(
-        base_url=openai_api_base, api_key=openai_api_key, engine=override_gpt_param["engine"]
+        base_url=openai_api_base, api_key=openai_api_key, model=override_gpt_param["model"]
     )
 
     rs = Reverie(template_sim_code, cfg)

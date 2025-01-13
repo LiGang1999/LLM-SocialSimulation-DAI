@@ -76,7 +76,7 @@ def run_gpt_prompt_wake_up_hour(persona, test_input=None, verbose=False):
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-002",
+        "model": "text-davinci-002",
         "max_tokens": 5,
         "temperature": 0.8,
         "top_p": 1,
@@ -155,7 +155,7 @@ def run_gpt_prompt_daily_plan(persona, wake_up_hour, test_input=None, verbose=Fa
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 500,
         "temperature": 1,
         "top_p": 1,
@@ -256,7 +256,7 @@ def run_gpt_prompt_generate_hourly_schedule(
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 50,
         "temperature": 0.5,
         "top_p": 1,
@@ -413,7 +413,7 @@ def run_gpt_prompt_task_decomp(persona, task, duration, test_input=None, verbose
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 1000,
         "temperature": 0,
         "top_p": 1,
@@ -532,7 +532,7 @@ def run_gpt_prompt_action_sector(action_description, persona, maze, test_input=N
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-002",
+        "model": "text-davinci-002",
         "max_tokens": 15,
         "temperature": 0,
         "top_p": 1,
@@ -615,7 +615,7 @@ def run_gpt_prompt_action_arena(
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 15,
         "temperature": 0,
         "top_p": 1,
@@ -669,7 +669,7 @@ def run_gpt_prompt_action_game_object(
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 15,
         "temperature": 0,
         "top_p": 1,
@@ -727,7 +727,7 @@ def run_gpt_prompt_pronunciatio(action_description, persona, verbose=False):
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 15,
         "temperature": 0,
         "top_p": 1,
@@ -778,7 +778,7 @@ def run_gpt_prompt_event_triple(action_description, persona, verbose=False):
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 30,
         "temperature": 0,
         "top_p": 1,
@@ -825,7 +825,7 @@ def run_gpt_prompt_act_obj_desc(act_game_object, act_desp, persona, verbose=Fals
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 30,
         "temperature": 0,
         "top_p": 1,
@@ -872,7 +872,7 @@ def run_gpt_prompt_act_obj_event_triple(act_game_object, act_obj_desc, persona, 
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 30,
         "temperature": 0,
         "top_p": 1,
@@ -1032,7 +1032,7 @@ def run_gpt_prompt_new_decomp_schedule(
         return ret
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 1000,
         "temperature": 0,
         "top_p": 1,
@@ -1145,7 +1145,7 @@ def run_gpt_prompt_decide_to_talk(
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 20,
         "temperature": 0,
         "top_p": 1,
@@ -1259,7 +1259,7 @@ def run_gpt_prompt_decide_to_react(
         return fs
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 20,
         "temperature": 0,
         "top_p": 1,
@@ -1410,7 +1410,7 @@ def run_gpt_prompt_create_conversation(
         return convo
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 1000,
         "temperature": 0.7,
         "top_p": 1,
@@ -1458,7 +1458,7 @@ def run_gpt_prompt_summarize_conversation(persona, conversation, test_input=None
         return "conversing with a housemate about morning greetings"
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 50,
         "temperature": 0,
         "top_p": 1,
@@ -1517,7 +1517,7 @@ def run_gpt_prompt_extract_keywords(persona, description, test_input=None, verbo
         return []
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 50,
         "temperature": 0,
         "top_p": 1,
@@ -1563,7 +1563,7 @@ def run_gpt_prompt_keyword_to_thoughts(
         return ""
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 40,
         "temperature": 0.7,
         "top_p": 1,
@@ -1623,7 +1623,7 @@ def run_gpt_prompt_convo_to_thoughts(
         return ""
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 40,
         "temperature": 0.7,
         "top_p": 1,
@@ -1674,7 +1674,7 @@ def run_gpt_prompt_event_poignancy(persona, event_description, test_input=None, 
         return 4
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 3,
         "temperature": 0,
         "top_p": 1,
@@ -1723,7 +1723,7 @@ def run_gpt_prompt_thought_poignancy(persona, event_description, test_input=None
         return 4
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 3,
         "temperature": 0,
         "top_p": 1,
@@ -1772,7 +1772,7 @@ def run_gpt_prompt_chat_poignancy(persona, event_description, test_input=None, v
         return 4
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 3,
         "temperature": 0,
         "top_p": 1,
@@ -1819,7 +1819,7 @@ def run_gpt_prompt_focal_pt(persona, statements, n, test_input=None, verbose=Fal
         return ["Who am I"] * n
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 150,
         "temperature": 0,
         "top_p": 1,
@@ -1871,7 +1871,7 @@ def run_gpt_prompt_insight_and_guidance(persona, statements, n, test_input=None,
         return ["I am hungry"] * n
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 150,
         "temperature": 0.5,
         "top_p": 1,
@@ -1923,7 +1923,7 @@ def run_gpt_prompt_agent_chat_summarize_ideas(
         return "..."
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 150,
         "temperature": 0.5,
         "top_p": 1,
@@ -1968,7 +1968,7 @@ def run_gpt_prompt_agent_chat_summarize_relationship(
         return "..."
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 150,
         "temperature": 0.5,
         "top_p": 1,
@@ -2064,7 +2064,7 @@ def run_gpt_prompt_agent_chat(
         return "..."
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 2000,
         "temperature": 0.7,
         "top_p": 1,
@@ -2109,7 +2109,7 @@ def run_gpt_prompt_summarize_ideas(persona, statements, question, test_input=Non
         return "..."
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 150,
         "temperature": 0.5,
         "top_p": 1,
@@ -2164,7 +2164,7 @@ def run_gpt_prompt_generate_next_convo_line(
         return "..."
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 250,
         "temperature": 1,
         "top_p": 1,
@@ -2207,7 +2207,7 @@ def run_gpt_prompt_generate_whisper_inner_thought(persona, whisper, test_input=N
         return "..."
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 50,
         "temperature": 0,
         "top_p": 1,
@@ -2250,7 +2250,7 @@ def run_gpt_prompt_planning_thought_on_convo(persona, all_utt, test_input=None, 
         return "..."
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 50,
         "temperature": 0,
         "top_p": 1,
@@ -2293,7 +2293,7 @@ def run_gpt_prompt_memo_on_convo(persona, all_utt, test_input=None, verbose=Fals
         return "..."
 
     gpt_param = {
-        "engine": "text-davinci-003",
+        "model": "text-davinci-003",
         "max_tokens": 50,
         "temperature": 0,
         "top_p": 1,

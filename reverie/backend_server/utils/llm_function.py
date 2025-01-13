@@ -120,7 +120,7 @@ def llm_request(
 ):
     """
     Send a LLM request with error handling and logging. The llm_config dictionary consists of the following fields:
-    - engine: str                the model name, e.g. "gpt-4",
+    - model: str                the model name, e.g. "gpt-4",
     - chat: bool                whether to use chat mode or not,
     - temperature: float
     - max_tokens: int
@@ -135,8 +135,8 @@ def llm_request(
     """
 
     # Validate the necessary fields
-    if "engine" not in llm_config or "chat" not in llm_config:
-        raise ValueError("The 'engine' and 'chat' fields are required in llm_config.")
+    if "model" not in llm_config or "chat" not in llm_config:
+        raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
 
     r = thread_local.reverie_local
     r.interested = True
@@ -148,7 +148,7 @@ def llm_request(
     frequency_penalty = llm_config.get("frequency_penalty", 0.0)  # Default frequency penalty
     presence_penalty = llm_config.get("presence_penalty", 0.0)  # Default presence penalty
     stop = llm_config.get("stop", None)  # Default stop sequence
-    model = override_model if override_model else llm_config["engine"]
+    model = override_model if override_model else llm_config["model"]
     is_chat = llm_config["chat"]
     if not is_chat and not model.endswith("-instruct"):
         model += "-instruct"
@@ -161,6 +161,7 @@ def llm_request(
     else:
         client = default_client
 
+    print(client.api_key, client.base_url)
     attempt = 0
     L.debug(
         f"[{func_name}] LLM REQUEST; KIND: {'chat' if llm_config['chat'] else 'completion'}; USER_PROMPT:{llm_logging_repr(usr_prompt)}; SYSTEM_PROMPT:{llm_logging_repr(sys_prompt)}"
@@ -169,7 +170,7 @@ def llm_request(
         try:
             result = ""
             L.debug(
-                f"[{func_name}] Attempt {attempt + 1}: Sending LLM request. Model: {llm_config['engine']}, Chat: {llm_config['chat']}"
+                f"[{func_name}] Attempt {attempt + 1}: Sending LLM request. Model: {llm_config['model']}, Chat: {llm_config['chat']}"
             )
             start_time = time.time()
             if llm_config["chat"]:

@@ -21,7 +21,7 @@ class DaiInstitution(Institution):
         # TODO: add your custom model config here:
         self.gpt_configs = {
             "gpt4-32k": {
-                "engine": "gpt-4-32k",  # 《可以自己命名》
+                "model": "gpt-4-32k",  # 《可以自己命名》
                 "temperature": 0.0,
                 "max_tokens": 5000,
                 "top_p": 1.0,
@@ -30,7 +30,7 @@ class DaiInstitution(Institution):
                 "stop": None,
             },
             "gpt3.5": {
-                # "engine": "gpt-35-turbo",#《可以自己命名》
+                # "model": "gpt-35-turbo",#《可以自己命名》
                 "model": "gpt-3.5-turbo",  # 《可以自己命名》
                 "temperature": 0.0,
                 "max_tokens": 2000,
@@ -40,7 +40,7 @@ class DaiInstitution(Institution):
                 "stop": None,
             },
             "llama2": {
-                # "engine": "gpt-35-turbo",#《可以自己命名》
+                # "model": "gpt-35-turbo",#《可以自己命名》
                 "model": "Llama-2-7b-chat-hf",  # 《可以自己命名》
                 # "model": "gpt-3.5-turbo",#《可以自己命名》
                 "temperature": 0.0,
@@ -51,7 +51,7 @@ class DaiInstitution(Institution):
                 "stop": None,
             },
             "vicuna": {
-                # "engine": "gpt-35-turbo",#《可以自己命名》
+                # "model": "gpt-35-turbo",#《可以自己命名》
                 "model": "vicuna-13b-v1.5",  # 《可以自己命名》
                 # "model": "vicuna-13b-v1.5-16k",#《可以自己命名》
                 # "model": "vicuna-33b-v1.3",#《可以自己命名》
@@ -65,7 +65,7 @@ class DaiInstitution(Institution):
             },
         }
         self.default_gpt_config = {
-            "engine": None,
+            "model": None,
             "temperature": 0.0,
             "max_tokens": 5000,
             "top_p": 1.0,
@@ -79,7 +79,7 @@ class DaiInstitution(Institution):
             self.args["gpt_config"] = self.gpt_configs[model_name]  # our configs
         else:
             self.args["gpt_config"] = self.default_gpt_config
-            self.args["gpt_config"]["engine"] = model_name
+            self.args["gpt_config"]["model"] = model_name
 
         # overwrite temperature and top_p
         self.args["gpt_config"]["temperature"] = self.args["temperature"]
@@ -231,9 +231,9 @@ class DaiInstitution(Institution):
         else:
             log_file = f"logs/{task_name}/{task_data_file}__method-{method}_model-{gpt_config['model']}_temp-{gpt_config['temperature']}_topp-{gpt_config['top_p']}_start{start_idx}-end{end_idx}{additional_output_note}__with_sys_mes.jsonl"
         # if system_message == "":
-        #     log_file = f"logs/{task_name}/{task_data_file}__method-{method}_engine-{gpt_config['engine']}_temp-{gpt_config['temperature']}_topp-{gpt_config['top_p']}_start{start_idx}-end{end_idx}{additional_output_note}__without_sys_mes.jsonl"
+        #     log_file = f"logs/{task_name}/{task_data_file}__method-{method}_engine-{gpt_config['model']}_temp-{gpt_config['temperature']}_topp-{gpt_config['top_p']}_start{start_idx}-end{end_idx}{additional_output_note}__without_sys_mes.jsonl"
         # else:
-        #     log_file = f"logs/{task_name}/{task_data_file}__method-{method}_engine-{gpt_config['engine']}_temp-{gpt_config['temperature']}_topp-{gpt_config['top_p']}_start{start_idx}-end{end_idx}{additional_output_note}__with_sys_mes.jsonl"
+        #     log_file = f"logs/{task_name}/{task_data_file}__method-{method}_engine-{gpt_config['model']}_temp-{gpt_config['temperature']}_topp-{gpt_config['top_p']}_start{start_idx}-end{end_idx}{additional_output_note}__with_sys_mes.jsonl"
 
         os.makedirs(os.path.dirname(log_file), exist_ok=True)
 

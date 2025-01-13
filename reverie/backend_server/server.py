@@ -56,7 +56,7 @@ def parse_llm_config(llm_config_data: Dict[str, Any]) -> LLMConfig:
     return LLMConfig(
         base_url=llm_config_data.get("base_url", config.openai_api_base),
         api_key=llm_config_data.get("api_key", config.openai_api_key),
-        engine=llm_config_data.get("engine", ""),
+        model=llm_config_data.get("model", ""),
         tempreature=float(llm_config_data.get("temperature", 1.0)),
         max_tokens=int(llm_config_data.get("max_tokens", 512)),
         top_p=float(llm_config_data.get("top_p", 0.7)),

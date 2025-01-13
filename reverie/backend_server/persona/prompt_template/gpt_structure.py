@@ -119,10 +119,10 @@ def generate_gpt_response(
     if override_gpt_param:
         gpt_parameters.update(override_gpt_param)
 
-    engine = gpt_parameters["engine"]
+    model = gpt_parameters["model"]
 
     llm_config = {
-        "engine": engine,
+        "model": model,
         "temperature": gpt_parameters["temperature"],
         "top_p": gpt_parameters["top_p"],
         "max_tokens": gpt_parameters["max_tokens"],
@@ -269,7 +269,7 @@ def get_embedding(text, model="text-embedding-ada-002"):
 
 if __name__ == "__main__":
     gpt_parameter = {
-        "engine": "gpt-3.5-turbo-instruct",
+        "model": "gpt-3.5-turbo-instruct",
         "max_tokens": 50,
         "temperature": 0,
         "top_p": 1,
