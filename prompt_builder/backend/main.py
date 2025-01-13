@@ -117,7 +117,7 @@ async def generate_response(data: GenerateResponseRequest):
 
     config = override_gpt_param
     config["chat"] = True
-    config["engine"] = data.llm_params["model"]
+    config["model"] = data.llm_params["model"]
     config["base_url"] = data.llm_params["base_url"]
     config["api_key"] = data.llm_params["api_key"]
 
