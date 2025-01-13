@@ -8,8 +8,6 @@ Note (May 1, 2023) -- this class is the Memory Stream module in the generative
 agents paper. 
 """
 
-import sys
-
 
 import json
 import datetime
@@ -23,8 +21,6 @@ class ConceptNode:
     def __init__(
         self,
         node_id,
-        node_count,
-        type_count,
         node_type,
         depth,
         created,
@@ -39,10 +35,7 @@ class ConceptNode:
         filling,
     ):
         self.node_id = node_id
-        self.node_count = node_count
-        self.type_count = type_count
         self.type = node_type  # thought / event / chat
-        self.depth = depth
 
         self.created = created
         self.expiration = expiration
@@ -59,7 +52,7 @@ class ConceptNode:
         self.filling = filling
 
     def __str__(self):
-        return f"ConceptNode({self.node_id}, {self.node_count}, {self.type_count}, {self.type}, {self.depth}, {self.created}, {self.expiration}, {self.subject}, {self.predicate}, {self.object}, {self.description}, {self.embedding_key}, {self.poignancy}, {self.keywords}, {self.filling})"
+        return f"ConceptNode({self.node_id}, {self.type}, {self.created}, {self.expiration}, {self.subject}, {self.predicate}, {self.object}, {self.description}, {self.embedding_key}, {self.poignancy}, {self.keywords}, {self.filling})"
 
     def __repr__(self):
         return self.__str__()
@@ -91,10 +84,7 @@ class AssociativeMemory(Memory):
             node_id = f"node_{str(count+1)}"
             node_details = nodes_load[node_id]
 
-            node_count = node_details["node_count"]
-            type_count = node_details["type_count"]
             node_type = node_details["type"]
-            depth = node_details["depth"]
 
             created = datetime.datetime.strptime(node_details["created"], "%Y-%m-%d %H:%M:%S")
             expiration = None
@@ -169,10 +159,7 @@ class AssociativeMemory(Memory):
             node = self.id_to_node[node_id]
 
             r[node_id] = dict()
-            r[node_id]["node_count"] = node.node_count
-            r[node_id]["type_count"] = node.type_count
             r[node_id]["type"] = node.type
-            r[node_id]["depth"] = node.depth
 
             r[node_id]["created"] = node.created.strftime("%Y-%m-%d %H:%M:%S")
             r[node_id]["expiration"] = None
@@ -216,10 +203,8 @@ class AssociativeMemory(Memory):
     ):
         # Setting up the node ID and counts.
         node_count = len(self.id_to_node.keys()) + 1
-        type_count = len(self.seq_event) + 1
         node_type = "event"
         node_id = f"node_{str(node_count)}"
-        depth = 0
 
         # Node type specific clean up.
         if "(" in description:
@@ -228,10 +213,7 @@ class AssociativeMemory(Memory):
         # Creating the <ConceptNode> object.
         node = ConceptNode(
             node_id,
-            node_count,
-            type_count,
             node_type,
-            depth,
             created,
             expiration,
             s,
@@ -281,7 +263,6 @@ class AssociativeMemory(Memory):
     ):
         # Setting up the node ID and counts.
         node_count = len(self.id_to_node.keys()) + 1
-        type_count = len(self.seq_thought) + 1
         node_type = "thought"
         node_id = f"node_{str(node_count)}"
         depth = 1
@@ -294,10 +275,7 @@ class AssociativeMemory(Memory):
         # Creating the <ConceptNode> object.
         node = ConceptNode(
             node_id,
-            node_count,
-            type_count,
             node_type,
-            depth,
             created,
             expiration,
             s,
@@ -347,18 +325,13 @@ class AssociativeMemory(Memory):
     ):
         # Setting up the node ID and counts.
         node_count = len(self.id_to_node.keys()) + 1
-        type_count = len(self.seq_chat) + 1
         node_type = "chat"
         node_id = f"node_{str(node_count)}"
-        depth = 0
 
         # Creating the <ConceptNode> object.
         node = ConceptNode(
             node_id,
-            node_count,
-            type_count,
             node_type,
-            depth,
             created,
             expiration,
             s,
