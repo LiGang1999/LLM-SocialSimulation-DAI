@@ -13,9 +13,7 @@ import datetime
 from enum import Enum
 import numpy as np
 
-from utils import *
-
-from persona.memory_structures.memory import *
+from persona.memory_structures.memory import Memory
 
 
 class ConceptNode:
@@ -65,12 +63,14 @@ class MemoryType(Enum):
     EVENT = 0
     THOUGHT = 1
     CHAT = 2
+    ARCHIVE = 3
 
 
 MAPPING = {
     "event": MemoryType.EVENT,
     "chat": MemoryType.CHAT,
     "thought": MemoryType.THOUGHT,
+    "archive": MemoryType.ARCHIVE,
 }
 
 
@@ -78,8 +78,8 @@ class AssociativeMemory(Memory):
     def __init__(self, f_saved):
         super().__init__()
         self.count = 0
-        self.nodes = ([], [], [])
-        self.kw_mappings = ({}, {}, {})
+        self.nodes = ([], [], [], [])
+        self.kw_mappings = ({}, {}, {}, {})
         self.embeddings = []
         self.embedding_keys = []
 
@@ -96,7 +96,9 @@ class AssociativeMemory(Memory):
             self.add_node(
                 node_details["type"],
                 datetime.datetime.strptime(node_details["created"], "%Y-%m-%d %H:%M:%S"),
-                datetime.datetime.strptime(node_details["expiration"], "%Y-%m-%d %H:%M:%S") if node_details["expiration"] else None,
+                datetime.datetime.strptime(node_details["expiration"], "%Y-%m-%d %H:%M:%S")
+                if node_details["expiration"]
+                else None,
                 node_details["subject"],
                 node_details["predicate"],
                 node_details["object"],
@@ -105,7 +107,7 @@ class AssociativeMemory(Memory):
                 node_details["poignancy"],
                 node_details["embedding_key"],
                 self.embeddings[node_details["embedding_key"]],
-                node_details["filling"]
+                node_details["filling"],
             )
 
     def save(self, out_json):
@@ -121,7 +123,7 @@ class AssociativeMemory(Memory):
                 "embedding_key": node.embedding_key,
                 "poignancy": node.poignancy,
                 "keywords": list(node.keywords),
-                "filling": node.filling
+                "filling": node.filling,
             }
             for node_type in self.nodes
             for node in node_type
@@ -182,7 +184,7 @@ class AssociativeMemory(Memory):
                 self.kw_mappings[idx][kw] = [node]
 
         self.embeddings.append(embedding_vec)
-        self.embedding_keys.append(embedding_key)
+        np.append(self.embeddings, [embedding_vec], axis=0)
 
         return node
 
@@ -201,8 +203,18 @@ class AssociativeMemory(Memory):
         filling,
     ):
         return self.add_node(
-            "event", created, expiration, s, p, o, description, keywords, poignancy, embedding_key, embedding_vec,
-            filling
+            "event",
+            created,
+            expiration,
+            s,
+            p,
+            o,
+            description,
+            keywords,
+            poignancy,
+            embedding_key,
+            embedding_vec,
+            filling,
         )
 
     def add_thought(
@@ -220,14 +232,24 @@ class AssociativeMemory(Memory):
         filling,
     ):
         return self.add_node(
-            "thought", created, expiration, s, p, o, description, keywords, poignancy, embedding_key, embedding_vec,
-            filling
+            "thought",
+            created,
+            expiration,
+            s,
+            p,
+            o,
+            description,
+            keywords,
+            poignancy,
+            embedding_key,
+            embedding_vec,
+            filling,
         )
 
     def add_chat(
         self,
         created,
-        expiration, 
+        expiration,
         s,
         p,
         o,
@@ -239,8 +261,18 @@ class AssociativeMemory(Memory):
         filling,
     ):
         return self.add_node(
-            "chat", created, expiration, s, p, o, description, keywords, poignancy, embedding_key, embedding_vec,
-            filling
+            "chat",
+            created,
+            expiration,
+            s,
+            p,
+            o,
+            description,
+            keywords,
+            poignancy,
+            embedding_key,
+            embedding_vec,
+            filling,
         )
 
     def add_simple(self, node_type, description, embedding_vec, keywords):
@@ -252,7 +284,7 @@ class AssociativeMemory(Memory):
         for e_node in self.seq_event[:retention]:
             ret_set.add(e_node.spo_summary())
         return ret_set
-    
+
     def get_str_node(self, node_type):
         ret_str = ""
         m = MAPPING[node_type]
@@ -279,7 +311,7 @@ class AssociativeMemory(Memory):
             for row in event.filling:
                 ret_str += f"{row[0]}: {row[1]}\n"
         return ret_str
-    
+
     def retrieve_relevant_nodes(self, node_type, s, p, o):
         t = MAPPING[node_type]
         contents = [s, p, o]
@@ -289,7 +321,7 @@ class AssociativeMemory(Memory):
                 ret += self.kw_mappings[t][i.lower()]
         ret = set(ret)
         return ret
-    
+
     def retrieve_relevant_thoughts(self, s_content, p_content, o_content):
         return self.retrieve_relevant_nodes("thoughts", s_content, p_content, o_content)
 
@@ -299,46 +331,45 @@ class AssociativeMemory(Memory):
     def retrieve_by_keywords(self, type, keywords):
         """
         Retrieve nodes of given type that match any of the keywords
-        
+
         Args:
-            type (str): Node type ("event", "thought", "chat")
+            type (str): Node type ("event", "thought", "chat", "archive")
             keywords (list): List of keywords to match
-            
+
         Returns:
             list: Matching nodes sorted by creation date (newest first)
         """
         idx = MAPPING[type]
         matches = set()
         keywords = [k.lower() for k in keywords]
-        
+
         for kw in keywords:
             if kw in self.kw_mappings[idx]:
                 matches.update(self.kw_mappings[idx][kw])
-        
+
         return sorted(matches, key=lambda x: x.created, reverse=True)
 
     def retrieve_by_sim(self, type, sentence, count):
         """
         Retrieve most similar nodes using embedding similarity
-        
+
         Args:
-            type (str): Node type ("event", "thought", "chat") 
+            type (str): Node type ("event", "thought", "chat", "archive")
             sentence (np.array): Query embedding vector
             count (int): Number of results to return
-            
+
         Returns:
             list: Top matching nodes sorted by similarity
         """
         idx = MAPPING[type]
         nodes = self.nodes[idx]
-        
+
         node_embeddings = np.array([self.embeddings[node.embedding_key] for node in nodes])
         similarities = np.dot(node_embeddings, sentence) / (
             np.linalg.norm(node_embeddings, axis=1) * np.linalg.norm(sentence)
         )
         top_indices = np.argsort(similarities)[-count:][::-1]
         return [nodes[i] for i in top_indices]
-
 
     def get_last_chat(self, target_persona_name):
         if target_persona_name.lower() in self.kw_to_chat:
