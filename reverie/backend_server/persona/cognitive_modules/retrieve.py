@@ -49,6 +49,7 @@ def retrieve(persona, perceived):
     return retrieved
 
 
+
 def cos_sim(a, b):
     """
     This function calculates the cosine similarity between two input vectors
@@ -323,6 +324,52 @@ def retrieve_dai(persona, perceived):
 
     return retrieved
 
+def retrieve_dai_custom(persona, perceived):
+    """
+    This function takes the events that are perceived by the persona as input
+    and returns a set of related events and thoughts that the persona would
+    need to consider as context when planning.
+    此函数将角色感知到的事件作为输入，并返回一组相关事件和想法，角色在计划时需要将其作为上下文考虑。
+    INPUT:
+       perceived: a list of event <ConceptNode>s that represent any of the events
+       `         that are happening around the persona. What is included in here
+                 are controlled by the att_bandwidth and retention
+                 hyper-parameters.
+    OUTPUT:
+       retrieved: a dictionary of dictionary. The first layer specifies an event,
+                  while the latter layer specifies the "curr_event", "events",
+                  and "thoughts" that are relevant.
+    """
+    # We rerieve events and thoughts separately.
+    retrieved = dict()
+    for event_name, perceived in perceived.items():
+        for event in perceived:
+            retrieved[event_name] = dict()
+            retrieved[event_name]["curr_event"] = event
+
+            relevant_events = persona.a_mem.retrieve_relevant_events(
+                event.subject, event.predicate, event.object
+            )
+            # print("pig-------------------------------")
+            # print(len(relevant_events))
+            # retrieved[event.description]["events"] = list(relevant_events)
+
+            relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(
+                event.subject, event.predicate, event.object
+            )
+            retrieved[event_name]["events"] = list(relevant_events) + list(relevant_thoughts)
+            retrieved[event_name]["thoughts"] = list()
+            
+            task_info = persona.get_workflow_stage_config()["plan"]
+            task_description = task_info.get("task", "Decide the next action.")
+            task_query_embedding = get_embedding(task_description) #task_description嵌入
+            
+            relevant_speeches = persona.sph_mem.query_similar(task_query_embedding, 2)
+            retrieved[event_name]["speeches"] = list(relevant_speeches)
+            
+            
+
+    return retrieved
 
 # tyn
 # We should improve this function further and further - zjy.

@@ -69,7 +69,7 @@ class DaiRetrieve(Action):
         pass
 
     def action(self, persona, perceived):
-        return retrieve_dai(persona, perceived)
+        return retrieve_dai_custom(persona, perceived)
 
 
 class DaiPlan(Action):

@@ -166,6 +166,7 @@ class ReverieConfig:
     direction: str | None = ""  # The instruction of what the agents should do with each other
     initial_rounds: int | None = 0  # The number of initial rounds
     sec_per_step: int | None = 3600
+    start_order: str | None = ""
 
 
 def load_config_from_files(path: str) -> ReverieConfig:
@@ -196,6 +197,7 @@ def load_config_from_files(path: str) -> ReverieConfig:
         direction=meta_data.get("description", ""),
         initial_rounds=0,  # You might want to add this to meta.json if needed
         sec_per_step=meta_data.get("sec_per_step", 3600),
+        start_order=meta_data.get("start_order", "")
     )
 
     # Load LLMConfig if present in meta_data
@@ -244,6 +246,7 @@ def bootstrap_persona(path: str, config: ScratchData):
             "kw_strength_thought": {},
         },
         "bootstrap_memory/associative_memory/nodes.json": {},
+        "bootstrap_memory/speech_memory.json": {},
         "bootstrap_memory/scratch.json": {
             "vision_r": 8,
             "att_bandwidth": 8,
@@ -523,7 +526,7 @@ class Reverie:
             )  # extend planning cycle
             self.maze.need_stagely_planning = True  # extend planning cycle
 
-            self.command_queue.put(f"run {sim_config.initial_rounds}")
+            self.command_queue.put(f"{sim_config.start_order} {sim_config.initial_rounds}")
 
             self.interested = False  # Whether current run is interested. If calls to large language model is generated in current run ,then current run is 'interested'.
         except Exception as e:
@@ -992,27 +995,48 @@ class Reverie:
                     self.save()
                     break
 
-                elif "custom-run" in sim_command.lower():
+                elif "custom-run legislative_council" in sim_command.lower():
+                    int_count = int(sim_command.split()[-1])
                     self.workflow_config = {
                         "plan": {
-                            "task": "基于你的背景(年龄、职业、性格、生活现状、生活经历等)分析你对讨论的事件的态度和认知。请考虑:1)你对这个事件的看法2)你的工作/学习是否需要用到AI 3)你是否有使用AI的经验 4)你对新技术的接受程度 5)你的生活方式是否适合AI城市",
+                            "task": "分析并决定在讨论推动创新科技产业发展的政策框架时需要考量的关键方面。",
                             "output_format": {
-                                "reasoning": "从个人背景、AI接触经验、生活需求等方面逐步分析对所讨论的事件的看法，AI城市与传统城市两种环境。AI城市全面整合了先进的人工智能技术，在交通、城市建筑设施、教育、医疗等方面都深度融入了人工智能技术，清洁能源与核能为主要能源供给方式，城市自动化程度高。传统城市仅有少量的工智能技术，实际应用很少。在交通、城市建筑设施、教育、医疗等方面都以人工和机械为主，化石能源与少量清洁能源为主要能源供给方式，城市自动化程度低。",
-                                "decision": "发表对正在讨论的事件的看法，描述个人使用AI的经历和体验",
-                            },
+                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如政策支持的全面性与可行性、财政投入的效率与透明度、区域合作的深度与广度、科技产业发展的长期可持续性、政策实施的公平性等。",
+                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。"
+                            }
                         },
                         "execute": {
-                            "task": "从自身的角度，用符合你的口吻详细说明你对这个事件、以及其中AI和传统的操作模式的看法(200字以上)，",
+                            "task": "明确关于推动创新科技产业发展的政策框架的立场。",
                             "output_format": {
-                                "reasoning": "基于计划阶段的分析,发表对事件的看法",
-                                "execution": "用符合你的语气发表你对正在讨论的事件的看法",
-                            },
+                                "reasoning": "首先，我会分析……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
+                                "execution": "支持/反对"
+                            }
                         },
                     }
 
-                    commands = "custom-run 1"
 
+                    commands = "custom-run " + str(int_count)
+                    
                     self.custom_run(commands)
+                    
+                elif "custom-run legislative_council_life" in sim_command.lower():
+                    int_count = int(sim_command.split()[-1])
+                    self.workflow_config = {
+                        "plan": {
+                            "task": "分析并决定在讨论维持生命治疗预作决定条例草案时需要考量的关键方面。",
+                            "output_format": {
+                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如条文是否明确、政策目标的达成可能性、法律保障的可操作性、电子化的实现风险与益处、公众教育的充分性等。",
+                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。"
+                            }
+                        },
+                        "execute": {
+                            "task": "针对维持生命治疗预作决定条例草案提出意见和问题，第一人称对话口吻，简体，每一个问题内的字数要多（充分描述问题），分点明确。",
+                            "output_format": {
+                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
+                                "execution": "说出具体的修改建议或意见，例如问题1的详细内容和对为什么提这个问题的解释、问题2的详细内容和对为什么提这个问题的解释等。"
+                            }
+                        },
+                    }
 
                     # self.workflow_config = {
                     #     "plan": {
@@ -1031,9 +1055,58 @@ class Reverie:
                     #     },
                     # }
 
-                    # commands = "custom-run 1"
-                    # self.custom_run(commands)
+                    commands = "custom-run " + str(int_count)
+                    
+                    self.custom_run(commands)
+                
+                elif "custom-run base_the_ville_isabella_maria_klaus_online" in sim_command.lower():
+                    int_count = int(sim_command.split()[-1])
+                    self.workflow_config = {
+                        "plan": {
+                            "task": "分析并决定在讨论该新闻时需要考量的关键方面。",
+                            "output_format": {
+                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如条文是否明确、政策目标的达成可能性、法律保障的可操作性、电子化的实现风险与益处、公众教育的充分性等。",
+                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。"
+                            }
+                        },
+                        "execute": {
+                            "task": "针对该新闻你将发表什么言论，第一人称对话口吻，简体。",
+                            "output_format": {
+                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
+                                "execution": "说出具体的修改建议或意见，例如问题1的详细内容和对为什么提这个问题的解释、问题2的详细内容和对为什么提这个问题的解释等。"
+                            }
+                        },
+                    }
 
+
+                    commands = "custom-run " + str(int_count)
+                    
+                    self.custom_run(commands)
+                    
+                elif "custom-run dragon_tv_demo" in sim_command.lower():
+                    int_count = int(sim_command.split()[-1])
+                    self.workflow_config = {
+                        "plan": {
+                            "task": "基于你的背景(年龄、职业、性格、生活现状、生活经历等)分析你对讨论的事件的态度和认知。请考虑:1)你对这个事件的看法2)你的工作/学习是否需要用到AI 3)你是否有使用AI的经验 4)你对新技术的接受程度 5)你的生活方式是否适合AI城市",
+                            "output_format": {
+                                "reasoning": "从个人背景、AI接触经验、生活需求等方面逐步分析对所讨论的事件的看法，AI城市与传统城市两种环境。AI城市全面整合了先进的人工智能技术，在交通、城市建筑设施、教育、医疗等方面都深度融入了人工智能技术，清洁能源与核能为主要能源供给方式，城市自动化程度高。传统城市仅有少量的工智能技术，实际应用很少。在交通、城市建筑设施、教育、医疗等方面都以人工和机械为主，化石能源与少量清洁能源为主要能源供给方式，城市自动化程度低。",
+                                "decision": "发表对正在讨论的事件的看法，描述个人使用AI的经历和体验",
+                            },
+                        },
+                        "execute": {
+                            "task": "从自身的角度，用符合你的口吻详细说明你对这个事件、以及其中AI和传统的操作模式的看法(200字以上)，",
+                            "output_format": {
+                                "reasoning": "基于计划阶段的分析,发表对事件的看法",
+                                "execution": "用符合你的语气发表你对正在讨论的事件的看法",
+                            },
+                        },
+                    }
+
+
+                    commands = "custom-run " + str(int_count)
+                    
+                    self.custom_run(commands)
+                
                 elif sim_command.lower() == "start path tester mode":
                     # Starts the path tester and removes the currently forked sim files.
                     # Note that once you start this mode, you need to exit out of the
@@ -1175,6 +1248,14 @@ class Reverie:
                 elif "print llm stats" in sim_command.lower():
                     # Print the LLM stats
                     L.print_stats()
+                elif "print speech memory" in sim_command.lower():
+                    # Print the speech memory of the persona specified in the prompt
+                    # get the first persona
+                    persona = list(self.personas.values())[0]
+                    # print the speech memory of the first persona
+                    m = persona.sph_mem
+                    ret_str += m.get_str_summary()
+                
 
                 # elif "call -- analysis" in sim_command.lower():
                 #     # Starts a stateless chat session with the agent. It does not save

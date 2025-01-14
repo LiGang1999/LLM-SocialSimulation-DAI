@@ -24,7 +24,7 @@ def generate_focal_points(persona, n=3):
 
     nodes = [
         [i.last_accessed, i]
-        for i in persona.a_mem.seq_event + persona.a_mem.seq_thought
+        for i in persona.a_mem.get_seq_events() + persona.a_mem.get_seq_thoughts()
         if "idle" not in i.embedding_key
     ]
 
@@ -44,7 +44,7 @@ def generate_focal_points_new(persona, n=3):
 
     nodes = [
         [i.last_accessed, i]
-        for i in persona.a_mem.seq_event + persona.a_mem.seq_thought
+        for i in persona.a_mem.get_seq_events() + persona.a_mem.get_seq_thoughts()
         if "idle" not in i.embedding_key
     ]
 
@@ -247,7 +247,7 @@ def reflection_trigger(persona):
     """
     if (
         persona.scratch.importance_trigger_curr <= 0
-        and [] != persona.a_mem.seq_event + persona.a_mem.seq_thought
+        and [] != persona.a_mem.get_seq_events() + persona.a_mem.get_seq_thoughts()
     ):
         return True
     return False

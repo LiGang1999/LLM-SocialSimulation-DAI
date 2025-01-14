@@ -18,5 +18,6 @@
     "Klaus Mueller"
   ],
   "step": 0,
-  "sim_mode": "online"
+  "sim_mode": "online",
+  "start_order": "custom-run base_the_ville_isabella_maria_klaus_online"
 }

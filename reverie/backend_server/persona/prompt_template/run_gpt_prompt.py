@@ -2112,8 +2112,8 @@ def run_gpt_prompt_create_conversation(
     def create_prompt_input(init_persona, target_persona, curr_loc, test_input=None):
 
         prev_convo_insert = "\n"
-        if init_persona.a_mem.seq_chat:
-            for i in init_persona.a_mem.seq_chat:
+        if init_persona.a_mem.get_seq_chats():
+            for i in init_persona.a_mem.get_seq_chats():
                 if i.object == target_persona.scratch.name:
                     v1 = int((init_persona.scratch.curr_time - i.created).total_seconds() / 60)
                     prev_convo_insert += (
@@ -2124,11 +2124,11 @@ def run_gpt_prompt_create_conversation(
                     break
         if prev_convo_insert == "\n":
             prev_convo_insert = ""
-        if init_persona.a_mem.seq_chat:
+        if init_persona.a_mem.get_seq_chats():
             if (
                 int(
                     (
-                        init_persona.scratch.curr_time - init_persona.a_mem.seq_chat[-1].created
+                        init_persona.scratch.curr_time - init_persona.a_mem.get_seq_chats()[-1].created
                     ).total_seconds()
                     / 60
                 )
@@ -3190,18 +3190,18 @@ def run_gpt_prompt_agent_chat(
         persona, target_persona, curr_context, init_summ_idea, target_summ_idea, test_input=None
     ):
         prev_convo_insert = "\n"
-        if persona.a_mem.seq_chat:
-            for i in persona.a_mem.seq_chat:
+        if persona.a_mem.get_seq_chats():
+            for i in persona.a_mem.get_seq_chats():
                 if i.object == target_persona.scratch.name:
                     v1 = int((persona.scratch.curr_time - i.created).total_seconds() / 60)
                     prev_convo_insert += f"{str(v1)} minutes ago, {persona.scratch.name} and {target_persona.scratch.name} were already {i.description} This context takes place after that conversation."
                     break
         if prev_convo_insert == "\n":
             prev_convo_insert = ""
-        if persona.a_mem.seq_chat:
+        if persona.a_mem.get_seq_chats():
             if (
                 int(
-                    (persona.scratch.curr_time - persona.a_mem.seq_chat[-1].created).total_seconds()
+                    (persona.scratch.curr_time - persona.a_mem.get_seq_chats()[-1].created).total_seconds()
                     / 60
                 )
                 > 480
@@ -3773,18 +3773,18 @@ def run_gpt_generate_iterative_chat_utt(
     ):
         persona = init_persona
         prev_convo_insert = "\n"
-        if persona.a_mem.seq_chat:
-            for i in persona.a_mem.seq_chat:
+        if persona.a_mem.get_seq_chats():
+            for i in persona.a_mem.get_seq_chats():
                 if i.object == target_persona.scratch.name:
                     v1 = int((persona.scratch.curr_time - i.created).total_seconds() / 60)
                     prev_convo_insert += f"{str(v1)} minutes ago, {persona.scratch.name} and {target_persona.scratch.name} were already {i.description} This context takes place after that conversation."
                     break
         if prev_convo_insert == "\n":
             prev_convo_insert = ""
-        if persona.a_mem.seq_chat:
+        if persona.a_mem.get_seq_chats():
             if (
                 int(
-                    (persona.scratch.curr_time - persona.a_mem.seq_chat[-1].created).total_seconds()
+                    (persona.scratch.curr_time - persona.a_mem.get_seq_chats()[-1].created).total_seconds()
                     / 60
                 )
                 > 480
@@ -4334,7 +4334,7 @@ def run_gpt_prompt_decide_to_comment_custom(persona, retrieved,  test_input=None
     """
     pm = ""
     retrieved_context = ""
-    description1, description2 = set(), set()
+    description1, description2= set(), set()
 
     for n, (key, vals) in enumerate(retrieved.items(), start=1):
         pm += f"{n}. {vals['curr_event'].name} said, {vals['curr_event'].description}\n"
@@ -4344,6 +4344,11 @@ def run_gpt_prompt_decide_to_comment_custom(persona, retrieved,  test_input=None
 
     for m, des in enumerate(description1 | description2, start=1):
         retrieved_context += f"{m}. {des}\n"
+        
+    for n, (key, vals) in enumerate(retrieved.items(), start=1):
+        retrieved_context += f"议员曾经发言：\n"
+        for c_node in vals["speeches"]:
+            retrieved_context += f"{c_node.speech}\n"
 
     curr_time = persona.scratch.curr_time.strftime("%B %d, %Y, %H:%M:%S %p")
     init_iss = f"{persona.scratch.get_str_iss()}"
@@ -4357,6 +4362,7 @@ def run_gpt_prompt_decide_to_comment_custom(persona, retrieved,  test_input=None
 
         return output_format
 
+    print(retrieved_context)
     output = plan_action(pm, curr_time, retrieved_context, persona.name, init_iss, task_description)
 
     return output.get("decision", "").lower()
@@ -4384,6 +4390,12 @@ def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, v
 
     for m, des in enumerate(description1 | description2, start=1):
         retrieved_context += f"{m}. {des}\n"
+    
+    for n, (key, vals) in enumerate(retrieved.items(), start=1):
+        retrieved_context += f"议员曾经发言：\n"
+        for c_node in vals["speeches"]:
+            print(c_node.speech)
+            retrieved_context += f"{c_node.speech}\n"
 
     curr_time = persona.scratch.curr_time.strftime("%B %d, %Y, %H:%M:%S %p")
     init_iss = f"{persona.scratch.get_str_iss()}"
@@ -4399,6 +4411,9 @@ def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, v
         return output_format
 
     output = execute_action(pm, curr_time, retrieved_context, persona.name, init_iss, task_description, plan)
-
+    p1 = output.get("reasoning", "").lower()
+    p2 =output.get("execution", "").lower()
     # Extract and return the execution result from the output
+    with open('comments.txt', 'a') as file:  # 'a' 模式可以让你把内容追加到文件末尾
+        file.write(persona.name+":"+p1 + "\n"+p2 + "\n")  # 每个 comment 后加一个换行符，便于区分不同的 comment
     return output.get("execution", "").lower()

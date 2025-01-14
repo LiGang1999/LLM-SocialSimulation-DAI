@@ -134,9 +134,10 @@ def perceive(persona, maze):
             desc_embedding_in = desc
             if "(" in desc:
                 desc_embedding_in = desc_embedding_in.split("(")[1].split(")")[0].strip()
-            if desc_embedding_in in persona.a_mem.embeddings:
-                event_embedding = persona.a_mem.embeddings[desc_embedding_in]
-            else:
+            
+            # Get embedding vector - either from memory or generate new one
+            event_embedding = persona.a_mem.get_embedding(desc_embedding_in)
+            if event_embedding is None:
                 event_embedding = get_embedding(desc_embedding_in)
             event_embedding_pair = (desc_embedding_in, event_embedding)
 
@@ -148,11 +149,13 @@ def perceive(persona, maze):
             chat_node_ids = []
             if p_event[0] == f"{persona.name}" and p_event[1] == "chat with":
                 curr_event = persona.scratch.act_event
-                if persona.scratch.act_description in persona.a_mem.embeddings:
-                    chat_embedding = persona.a_mem.embeddings[persona.scratch.act_description]
-                else:
+                
+                # Get chat embedding - either from memory or generate new one
+                chat_embedding = persona.a_mem.get_embedding(persona.scratch.act_description)
+                if chat_embedding is None:
                     chat_embedding = get_embedding(persona.scratch.act_description)
                 chat_embedding_pair = (persona.scratch.act_description, chat_embedding)
+                
                 chat_poignancy = generate_poig_score(
                     persona, "chat", persona.scratch.act_description
                 )
@@ -228,21 +231,21 @@ def perceive_dai(persona, maze):
             keywords = set([s, p, o])
             event_poignancy = generate_poig_score(persona, "event", perceive_node.description)
             L.debug(f"正在存放：{s} {p} {o} score={event_poignancy}")
-            persona.a_mem.add_event(
-                created,
-                expiration,
-                s,
-                p,
-                o,
-                perceive_node.name + " said, " + perceive_node.description,
-                keywords,
-                event_poignancy,
-                (perceive_node.description, get_embedding(perceive_node.description)),
-                None,
-            )
-            L.debug(
-                f"Poig Score: Before: {persona.scratch.importance_trigger_curr} After:{persona.scratch.importance_trigger_curr - event_poignancy}"
-            )
+            # persona.a_mem.add_event(
+            #     created,
+            #     expiration,
+            #     s,
+            #     p,
+            #     o,
+            #     perceive_node.name + " said, " + perceive_node.description,
+            #     keywords,
+            #     event_poignancy,
+            #     (perceive_node.description, get_embedding(perceive_node.description)),
+            #     None,
+            # )
+            # L.debug(
+            #     f"Poig Score: Before: {persona.scratch.importance_trigger_curr} After:{persona.scratch.importance_trigger_curr - event_poignancy}"
+            # )
             persona.scratch.importance_trigger_curr -= event_poignancy
             persona.scratch.importance_ele_n += 1
 

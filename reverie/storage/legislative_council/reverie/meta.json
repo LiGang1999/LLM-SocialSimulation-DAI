@@ -29,5 +29,6 @@
     "陳永光"
   ],
   "step": 0,
-  "sim_mode": "online"
+  "sim_mode": "online",
+  "start_order": "custom-run legislative_council"
 }

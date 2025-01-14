@@ -1289,8 +1289,8 @@ def run_gpt_prompt_create_conversation(
     def create_prompt_input(init_persona, target_persona, curr_loc, test_input=None):
 
         prev_convo_insert = "\n"
-        if init_persona.a_mem.seq_chat:
-            for i in init_persona.a_mem.seq_chat:
+        if init_persona.a_mem.get_seq_chats():
+            for i in init_persona.a_mem.get_seq_chats():
                 if i.object == target_persona.scratch.name:
                     v1 = int((init_persona.scratch.curr_time - i.created).total_seconds() / 60)
                     prev_convo_insert += (
@@ -1301,11 +1301,11 @@ def run_gpt_prompt_create_conversation(
                     break
         if prev_convo_insert == "\n":
             prev_convo_insert = ""
-        if init_persona.a_mem.seq_chat:
+        if init_persona.a_mem.get_seq_chats():
             if (
                 int(
                     (
-                        init_persona.scratch.curr_time - init_persona.a_mem.seq_chat[-1].created
+                        init_persona.scratch.curr_time - init_persona.a_mem.get_seq_chats()[-1].created
                     ).total_seconds()
                     / 60
                 )
@@ -2005,18 +2005,18 @@ def run_gpt_prompt_agent_chat(
         persona, target_persona, curr_context, init_summ_idea, target_summ_idea, test_input=None
     ):
         prev_convo_insert = "\n"
-        if persona.a_mem.seq_chat:
-            for i in persona.a_mem.seq_chat:
+        if persona.a_mem.get_seq_chats():
+            for i in persona.a_mem.get_seq_chats():
                 if i.object == target_persona.scratch.name:
                     v1 = int((persona.scratch.curr_time - i.created).total_seconds() / 60)
                     prev_convo_insert += f"{str(v1)} minutes ago, {persona.scratch.name} and {target_persona.scratch.name} were already {i.description} This context takes place after that conversation."
                     break
         if prev_convo_insert == "\n":
             prev_convo_insert = ""
-        if persona.a_mem.seq_chat:
+        if persona.a_mem.get_seq_chats():
             if (
                 int(
-                    (persona.scratch.curr_time - persona.a_mem.seq_chat[-1].created).total_seconds()
+                    (persona.scratch.curr_time - persona.a_mem.get_seq_chats()[-1].created).total_seconds()
                     / 60
                 )
                 > 480
