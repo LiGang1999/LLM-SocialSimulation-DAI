@@ -88,15 +88,15 @@ class AssociativeMemory(Memory):
             os.mkdir(str(f_path))
 
         if (f_path / "embeddings.npy").exists():
-            self.embeddings = np.load(f"{f_saved}/embeddings.npy")
-        
+            embeddings = np.load(f"{f_saved}/embeddings.npy")
+
         if (f_path / "embedding_keys.json").exists():
-            self.embedding_keys = json.load(open(f"{f_saved}/embedding_keys.json"))
+            embedding_keys = json.load(open(f"{f_saved}/embedding_keys.json"))
         
         if (f_path / "nodes.json").exists():
             nodes_load = json.load(open(f"{f_saved}/nodes.json"))
-        
-        for node in nodes_load:
+
+        for idx, node in enumerate(nodes_load):
             self.add_node(
                 node["type"],
                 datetime.datetime.strptime(node["created"], "%Y-%m-%d %H:%M:%S"),
@@ -109,8 +109,8 @@ class AssociativeMemory(Memory):
                 node["description"],
                 set(node["keywords"]),
                 node["poignancy"],
-                node["embedding_key"],
-                self.embeddings[node["embedding_key"]],
+                embedding_keys[idx],
+                embeddings[idx],
                 node["filling"],
             )
 
