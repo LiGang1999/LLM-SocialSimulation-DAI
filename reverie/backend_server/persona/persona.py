@@ -86,8 +86,7 @@ class GaPersona(Persona):
         # Associative memory contains a csv with the following rows:
         # [event.type, event.created, event.expiration, s, p, o]
         # e.g., event,2022-10-23 00:00:00,,Isabella Rodriguez,is,idle
-        f_a_mem = f"{save_folder}/associative_memory"
-        self.a_mem.save(f_a_mem)
+        self.a_mem.save(save_folder)
 
         # Scratch contains non-permanent data associated with the persona. When
         # it is saved, it takes a json form. When we load it, we move the values
@@ -162,8 +161,7 @@ class DaiPersona(Persona):
         # Associative memory contains a csv with the following rows:
         # [event.type, event.created, event.expiration, s, p, o]
         # e.g., event,2022-10-23 00:00:00,,Isabella Rodriguez,is,idle
-        f_a_mem = f"{save_folder}/associative_memory"
-        self.a_mem.save(f_a_mem)
+        self.a_mem.save(save_folder)
 
         # Scratch contains non-permanent data associated with the persona. When
         # it is saved, it takes a json form. When we load it, we move the values
