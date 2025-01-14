@@ -242,13 +242,13 @@ def bootstrap_persona(path: str, config: ScratchData):
 
     # Define the required files with their default content
     files = {
-        "bootstrap_memory/associative_memory/embeddings.json": {},
-        "bootstrap_memory/associative_memory/kw_strength.json": {
-            "kw_strength_event": {},
-            "kw_strength_thought": {},
-        },
-        "bootstrap_memory/associative_memory/nodes.json": {},
-        "bootstrap_memory/speech_memory.json": {},
+        # "bootstrap_memory/associative_memory/embeddings.json": {},
+        # "bootstrap_memory/associative_memory/kw_strength.json": {
+        #     "kw_strength_event": {},
+        #     "kw_strength_thought": {},
+        # },
+        # "bootstrap_memory/associative_memory/nodes.json": {},
+        # "bootstrap_memory/speech_memory.json": {},
         "bootstrap_memory/scratch.json": {
             "vision_r": 8,
             "att_bandwidth": 8,
