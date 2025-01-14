@@ -4346,7 +4346,7 @@ def run_gpt_prompt_decide_to_comment_custom(persona, retrieved,  test_input=None
         retrieved_context += f"{m}. {des}\n"
         
     for n, (key, vals) in enumerate(retrieved.items(), start=1):
-        retrieved_context += f"议员曾经发言：\n"
+        retrieved_context += f"过去其他场合的发言：\n"
         for c_node in vals["speeches"]:
             print(c_node.description)
             retrieved_context += f"{c_node.description}\n"
@@ -4393,7 +4393,7 @@ def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, v
         retrieved_context += f"{m}. {des}\n"
     
     for n, (key, vals) in enumerate(retrieved.items(), start=1):
-        retrieved_context += f"议员曾经发言：\n"
+        retrieved_context += f"过去其他场合的发言：\n"
         for c_node in vals["speeches"]:
             print(c_node.description)
             retrieved_context += f"{c_node.description}\n"
