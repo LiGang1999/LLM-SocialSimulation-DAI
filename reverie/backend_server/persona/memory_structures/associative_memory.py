@@ -86,7 +86,7 @@ class AssociativeMemory(Memory):
         f_path = Path(f_saved)
         if not f_path.exists():
             os.mkdir(str(f_path))
-            
+
         if (f_path / "embeddings.npy").exists():
             self.embeddings = np.load(f"{f_saved}/embeddings.npy")
         
@@ -115,8 +115,8 @@ class AssociativeMemory(Memory):
             )
 
     def save(self, out_json):
-        nodes_dict = {
-            str(node.node_id): {
+        nodes = [
+            {
                 "type": node.type,
                 "created": node.created.strftime("%Y-%m-%d %H:%M:%S"),
                 "expiration": node.expiration.strftime("%Y-%m-%d %H:%M:%S") if node.expiration else None,
@@ -131,10 +131,10 @@ class AssociativeMemory(Memory):
             }
             for node_type in self.nodes
             for node in node_type
-        }
+        ]
 
         with open(f"{out_json}/nodes.json", "w") as f:
-            json.dump(nodes_dict, f)
+            json.dump(nodes, f)
 
         np.save(f"{out_json}/embeddings.npy", self.embeddings)
         
