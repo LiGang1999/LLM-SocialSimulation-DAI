@@ -89,12 +89,18 @@ class AssociativeMemory(Memory):
 
         if (f_path / "embeddings.npy").exists():
             embeddings = np.load(f"{f_saved}/embeddings.npy")
+        else:
+            embeddings = np.zeros((0,1536))
 
         if (f_path / "embedding_keys.json").exists():
             embedding_keys = json.load(open(f"{f_saved}/embedding_keys.json"))
+        else:
+            embedding_keys = []
         
         if (f_path / "nodes.json").exists():
             nodes_load = json.load(open(f"{f_saved}/nodes.json"))
+        else:
+            nodes_load = []
 
         for idx, node in enumerate(nodes_load):
             self.add_node(
