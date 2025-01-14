@@ -183,7 +183,7 @@ class AssociativeMemory(Memory):
         self.id_mappings[idx].append(node_id)
         self.embedding_keys.append(embedding_key)
         self.nodes.append(node)
-        np.append(self.embeddings, [embedding_vec], axis=0)
+        self.embeddings = np.append(self.embeddings, [embedding_vec], axis=0)
         keywords = [i.lower() for i in keywords]
         for kw in keywords:
             if kw in self.kw_mappings[idx]:
@@ -369,14 +369,13 @@ class AssociativeMemory(Memory):
             list: Top matching nodes sorted by similarity
         """
         idx = MAPPING[type]
-        nodes = self.nodes[idx]
 
         embedding_vec = np.array(sentence)
         similarities = np.dot(self.embeddings, embedding_vec) / (
             np.linalg.norm(self.embeddings, axis=1) * np.linalg.norm(embedding_vec)
         )
         top_indices = np.argsort(similarities)[-count:][::-1]
-        return [nodes[i] for i in top_indices if i in self.id_mappings[idx]]
+        return [self.nodes[i] for i in top_indices if i in self.id_mappings[idx]]
 
     def get_last_chat(self, target_persona_name):
         if target_persona_name.lower() in self.kw_mappings[CHAT]:

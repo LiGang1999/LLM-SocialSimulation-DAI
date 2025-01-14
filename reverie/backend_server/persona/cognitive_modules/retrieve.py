@@ -261,20 +261,20 @@ def new_retrieve(persona, focal_points, n_count=30):
             )
 
         master_out = top_highest_x_values(master_out, len(master_out.keys()))
-        for key, val in master_out.items():
-            print(persona.a_mem.id_to_node[key].embedding_key, val)
-            print(
-                persona.scratch.recency_w * recency_out[key] * 1,
-                persona.scratch.relevance_w * relevance_out[key] * 1,
-                persona.scratch.importance_w * importance_out[key] * 1,
-            )
+        # for key, val in master_out.items():
+        #     print(persona.a_mem.id_to_node[key].embedding_key, val)
+        #     print(
+        #         persona.scratch.recency_w * recency_out[key] * 1,
+        #         persona.scratch.relevance_w * relevance_out[key] * 1,
+        #         persona.scratch.importance_w * importance_out[key] * 1,
+        #     )
 
         # Extracting the highest x values.
         # <master_out> has the key of node.id and value of float. Once we get the
         # highest x values, we want to translate the node.id into nodes and return
         # the list of nodes.
         master_out = top_highest_x_values(master_out, n_count)
-        master_nodes = [persona.a_mem.id_to_node[key] for key in list(master_out.keys())]
+        master_nodes = [persona.a_mem.nodes[key] for key in list(master_out.keys())]
 
         for n in master_nodes:
             n.last_accessed = persona.scratch.curr_time
@@ -367,6 +367,7 @@ def retrieve_dai_custom(persona, perceived):
             relevant_speeches = persona.a_mem.retrieve_by_sim(
                 "archive", task_embedding, 10
             )
+
             retrieved[event_name]["speeches"] = list(relevant_speeches)
             
             
@@ -443,7 +444,7 @@ for i in ... if "idle" not in i.embedding_key：在遍历这个混合列表时�
 
         master_out = top_highest_x_values(master_out, len(master_out.keys()))
         for key, val in master_out.items():
-            print(persona.a_mem.id_to_node[key].embedding_key, val)
+            print(persona.a_mem.nodes[key].embedding_key, val)
             print(
                 persona.scratch.recency_w * recency_out[key] * 1,
                 persona.scratch.importance_w * importance_out[key] * 1,
@@ -454,7 +455,7 @@ for i in ... if "idle" not in i.embedding_key：在遍历这个混合列表时�
         # highest x values, we want to translate the node.id into nodes and return
         # the list of nodes.
         master_out = top_highest_x_values(master_out, n_count)
-        master_nodes = [persona.a_mem.id_to_node[key] for key in list(master_out.keys())]
+        master_nodes = [persona.a_mem.nodes[key] for key in list(master_out.keys())]
 
         for n in master_nodes:
             n.last_accessed = persona.scratch.curr_time
