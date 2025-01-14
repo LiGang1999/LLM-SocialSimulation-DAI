@@ -57,7 +57,7 @@ class GaPersona(Persona):
         self.s_mem = MemoryTree(f_s_mem_saved)
 
         # <s_mem> is the persona's associative memory.
-        f_a_mem_saved = f"{folder_mem_saved}/bootstrap_memory/associative_memory"
+        f_a_mem_saved = f"{folder_mem_saved}/bootstrap_memory"
         self.a_mem = AssociativeMemory(f_a_mem_saved)
         # <scratch> is the persona's scratch (short term memory) space.
         scratch_saved = f"{folder_mem_saved}/bootstrap_memory/scratch.json"

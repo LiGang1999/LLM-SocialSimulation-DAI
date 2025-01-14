@@ -12,6 +12,7 @@ import json
 import datetime
 from pathlib import Path
 import numpy as np
+import os
 
 from persona.memory_structures.memory import Memory
 
@@ -83,6 +84,9 @@ class AssociativeMemory(Memory):
         self.embedding_keys = []
 
         f_path = Path(f_saved)
+        if not f_path.exists():
+            os.mkdir(str(f_path))
+            
         if (f_path / "embeddings.npy").exists():
             self.embeddings = np.load(f"{f_saved}/embeddings.npy")
         
