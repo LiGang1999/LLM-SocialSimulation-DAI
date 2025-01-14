@@ -8,6 +8,9 @@ static_dirs/*
 !reverie/storage/legislative_council
 !reverie/storage/legislative_council/**
 
+!reverie/storage/dragon_tv_demo
+!reverie/storage/dragon_tv_demo/**
+
 bin/
 include/
 pip-selfcheck.json
