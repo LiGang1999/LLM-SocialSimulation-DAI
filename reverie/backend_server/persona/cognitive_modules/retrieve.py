@@ -346,25 +346,27 @@ def retrieve_dai_custom(persona, perceived):
         for event in perceived:
             retrieved[event_name] = dict()
             retrieved[event_name]["curr_event"] = event
-
-            relevant_events = persona.a_mem.retrieve_relevant_events(
-                event.subject, event.predicate, event.object
-            )
-            # print("pig-------------------------------")
-            # print(len(relevant_events))
-            # retrieved[event.description]["events"] = list(relevant_events)
-
-            relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(
-                event.subject, event.predicate, event.object
-            )
-            retrieved[event_name]["events"] = list(relevant_events) + list(relevant_thoughts)
-            retrieved[event_name]["thoughts"] = list()
             
             task_info = persona.get_workflow_stage_config()["plan"]
             task_description = task_info.get("task", "Decide the next action.")
-            task_query_embedding = get_embedding(task_description) #task_description嵌入
+
+            desc_embedding = get_embedding(event.description)
+            task_embedding = get_embedding(task_description)
+            relevant_events = persona.a_mem.retrieve_by_sim(
+                "event", desc_embedding, 10
+            )
+
+            relevant_thoughts = persona.a_mem.retrieve_by_sim(
+                "thought", desc_embedding, 10
+            )
+
+            retrieved[event_name]["events"] = list(relevant_events) + list(relevant_thoughts)
+            retrieved[event_name]["thoughts"] = list()
             
-            relevant_speeches = persona.sph_mem.query_similar(task_query_embedding, 2)
+            
+            relevant_speeches = persona.a_mem.retrieve_by_sim(
+                "archive", task_embedding, 10
+            )
             retrieved[event_name]["speeches"] = list(relevant_speeches)
             
             

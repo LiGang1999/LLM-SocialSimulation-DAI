@@ -58,19 +58,18 @@ class ConceptNode:
     def spo_summary(self):
         return (self.subject, self.predicate, self.object)
 
-
-class MemoryType(Enum):
-    EVENT = 0
-    THOUGHT = 1
-    CHAT = 2
-    ARCHIVE = 3
+# memory types
+EVENT = 0
+THOUGHT = 1
+CHAT = 2
+ARCHIVE = 3
 
 
 MAPPING = {
-    "event": MemoryType.EVENT,
-    "chat": MemoryType.CHAT,
-    "thought": MemoryType.THOUGHT,
-    "archive": MemoryType.ARCHIVE,
+    "event": EVENT,
+    "chat": CHAT,
+    "thought": THOUGHT,
+    "archive": ARCHIVE,
 }
 
 
@@ -80,13 +79,13 @@ class AssociativeMemory(Memory):
         self.count = 0
         self.nodes = ([], [], [], [])
         self.kw_mappings = ({}, {}, {}, {})
-        self.embeddings = []
+        self.embeddings = np.zeros((0,1536))
         self.embedding_keys = []
 
         # Load embeddings
         embedding_dict = json.load(open(f"{f_saved}/embeddings.json"))
         self.embedding_keys = list(embedding_dict.keys())
-        self.embeddings = np.array(list(embedding_dict.values()))
+        self.embeddings = np.array(list(embedding_dict.values())).reshape((-1,1536))
 
         # Load nodes
         nodes_load = json.load(open(f"{f_saved}/nodes.json"))
@@ -183,7 +182,6 @@ class AssociativeMemory(Memory):
             else:
                 self.kw_mappings[idx][kw] = [node]
 
-        self.embeddings.append(embedding_vec)
         np.append(self.embeddings, [embedding_vec], axis=0)
 
         return node
@@ -294,13 +292,13 @@ class AssociativeMemory(Memory):
         return ret_str
 
     def get_str_seq_events(self):
-        return self.get_str_node("events")
+        return self.get_str_node("event")
 
     def get_thoughts(self):
         return self.seq_thought
 
     def get_str_seq_thoughts(self):
-        return self.get_str_node("thoughts")
+        return self.get_str_node("thought")
 
     def get_str_seq_chats(self):
         ret_str = ""
@@ -323,10 +321,10 @@ class AssociativeMemory(Memory):
         return ret
 
     def retrieve_relevant_thoughts(self, s_content, p_content, o_content):
-        return self.retrieve_relevant_nodes("thoughts", s_content, p_content, o_content)
+        return self.retrieve_relevant_nodes("thought", s_content, p_content, o_content)
 
     def retrieve_relevant_events(self, s_content, p_content, o_content):
-        return self.retrieve_relevant_nodes("events", s_content, p_content, o_content)
+        return self.retrieve_relevant_nodes("event", s_content, p_content, o_content)
 
     def retrieve_by_keywords(self, type, keywords):
         """
@@ -349,7 +347,7 @@ class AssociativeMemory(Memory):
 
         return sorted(matches, key=lambda x: x.created, reverse=True)
 
-    def retrieve_by_sim(self, type, sentence, count):
+    def retrieve_by_sim(self, type, sentence, count=10):
         """
         Retrieve most similar nodes using embedding similarity
 
@@ -364,9 +362,9 @@ class AssociativeMemory(Memory):
         idx = MAPPING[type]
         nodes = self.nodes[idx]
 
-        node_embeddings = np.array([self.embeddings[node.embedding_key] for node in nodes])
-        similarities = np.dot(node_embeddings, sentence) / (
-            np.linalg.norm(node_embeddings, axis=1) * np.linalg.norm(sentence)
+        embedding_vec = np.array(sentence)
+        similarities = np.dot(self.embeddings, embedding_vec) / (
+            np.linalg.norm(self.embeddings, axis=1) * np.linalg.norm(embedding_vec)
         )
         top_indices = np.argsort(similarities)[-count:][::-1]
         return [nodes[i] for i in top_indices]

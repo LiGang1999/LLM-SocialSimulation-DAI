@@ -11,12 +11,11 @@ import re
 import time
 
 from openai import OpenAI
-from utils.config import openai_api_base, openai_api_key, openai_api_base1, openai_api_key1, override_gpt_param, override_model
+from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model
 from utils.logs import L, get_outer_caller
 from utils.llm_function import llm_request
 
 client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
-client1 = OpenAI(api_key=openai_api_key1, base_url=openai_api_base1)
 
 print_raw_log = False
 print_short_log = True
@@ -266,7 +265,7 @@ def get_embedding(text, model="text-embedding-ada-002"):
     text = text.replace("\n", " ")
     if not text:
         text = "this is blank"
-    return client1.embeddings.create(input=[text], model=model).data[0].embedding
+    return client.embeddings.create(input=[text], model=model).data[0].embedding
 
 
 if __name__ == "__main__":

@@ -161,7 +161,6 @@ def llm_request(
     else:
         client = default_client
 
-    print(client.api_key, client.base_url)
     attempt = 0
     L.debug(
         f"[{func_name}] LLM REQUEST; KIND: {'chat' if llm_config['chat'] else 'completion'}; USER_PROMPT:{llm_logging_repr(usr_prompt)}; SYSTEM_PROMPT:{llm_logging_repr(sys_prompt)}"
