@@ -3,19 +3,19 @@ Author: Joon Sung Park (joonspk@stanford.edu)
 
 File: reverie.py
 Description: This is the main program for running generative agent simulations
-that defines the Reverie class. This class maintains and records all  
-states related to the simulation. The primary mode of interaction for those  
-running the simulation should be through the open_server function, which  
-enables the simulator to input command-line prompts for running and saving  
+that defines the Reverie class. This class maintains and records all
+states related to the simulation. The primary mode of interaction for those
+running the simulation should be through the open_server function, which
+enables the simulator to input command-line prompts for running and saving
 the simulation, among other tasks.
 
-Release note (June 14, 2023) -- Reverie implements the core simulation 
-mechanism described in my paper entitled "Generative Agents: Interactive 
-Simulacra of Human Behavior." If you are reading through these lines after 
-having read the paper, you might notice that I use older terms to describe 
-generative agents and their cognitive modules here. Most notably, I use the 
-term "personas" to refer to generative agents, "associative memory" to refer 
-to the memory stream, and "reverie" to refer to the overarching simulation 
+Release note (June 14, 2023) -- Reverie implements the core simulation
+mechanism described in my paper entitled "Generative Agents: Interactive
+Simulacra of Human Behavior." If you are reading through these lines after
+having read the paper, you might notice that I use older terms to describe
+generative agents and their cognitive modules here. Most notably, I use the
+term "personas" to refer to generative agents, "associative memory" to refer
+to the memory stream, and "reverie" to refer to the overarching simulation
 framework.
 """
 
@@ -199,7 +199,7 @@ def load_config_from_files(path: str) -> ReverieConfig:
         direction=meta_data.get("description", ""),
         initial_rounds=0,  # You might want to add this to meta.json if needed
         sec_per_step=meta_data.get("sec_per_step", 3600),
-        start_order=meta_data.get("start_order", "")
+        start_order=meta_data.get("start_order", ""),
     )
 
     # Load LLMConfig if present in meta_data
@@ -221,7 +221,6 @@ def load_config_from_files(path: str) -> ReverieConfig:
 
 
 def bootstrap_persona(path: str, config: ScratchData):
-
     def update_scratch_json(path: str, config: ScratchData):
         scratch_file_path = os.path.join(path, "bootstrap_memory/scratch.json")
         # Load the existing scratch.json
@@ -333,13 +332,9 @@ class Reverie:
 
         if check_if_dir_exists(sim_folder):
             if self.sim_code in BASE_TEMPLATES:
-                L.error(
-                    f"Cannot overwrite base template {self.template_sim_code}. Operation aborted."
-                )
+                L.error(f"Cannot overwrite base template {self.template_sim_code}. Operation aborted.")
             else:
-                L.warning(
-                    f"Simulation {sim_folder} exists. It will be overwritten by the new environment."
-                )
+                L.warning(f"Simulation {sim_folder} exists. It will be overwritten by the new environment.")
                 removeanything(sim_folder)
 
         copyanything(template_folder, sim_folder)
@@ -354,9 +349,7 @@ class Reverie:
                 reverie_meta = json.load(infile)
             reverie_meta["curr_time"] = sim_config.curr_time
             reverie_meta["step"] = sim_config.step
-            reverie_meta["persona_names"] = [
-                persona.name for persona in sim_config.persona_configs.values()
-            ]
+            reverie_meta["persona_names"] = [persona.name for persona in sim_config.persona_configs.values()]
             reverie_meta["maze_name"] = sim_config.maze_name
             reverie_meta["sim_mode"] = sim_config.sim_mode
             reverie_meta["start_date"] = sim_config.start_date
@@ -394,9 +387,7 @@ class Reverie:
             # <curr_time> is the datetime instance that indicates the game's current
             # time. This gets incremented by <sec_per_step> amount everytime the world
             # progresses (that is, everytime curr_env_file is recieved).
-            self.curr_time = datetime.datetime.strptime(
-                reverie_meta["curr_time"], "%B %d, %Y, %H:%M:%S"
-            )
+            self.curr_time = datetime.datetime.strptime(reverie_meta["curr_time"], "%B %d, %Y, %H:%M:%S")
             # <sec_per_step> denotes the number of seconds in game time that each
             # step moves foward.
             self.sec_per_step = reverie_meta["sec_per_step"]  # 不能大于最大计划周期！！！
@@ -476,9 +467,7 @@ class Reverie:
 
                     self.personas[persona_name] = curr_persona
                     self.personas_tile[persona_name] = (p_x, p_y)
-                    self.maze.tiles[p_y][p_x]["events"].add(
-                        curr_persona.scratch.get_curr_event_and_desc()
-                    )
+                    self.maze.tiles[p_y][p_x]["events"].add(curr_persona.scratch.get_curr_event_and_desc())
                 else:
                     curr_persona = DaiPersona(persona_name, persona_folder)
                     self.personas[persona_name] = curr_persona
@@ -516,9 +505,7 @@ class Reverie:
 
             self.tag = False  # case
             self.maze.planning_cycle = 1  # extend planning cycle
-            self.maze.last_planning_day = self.curr_time + datetime.timedelta(
-                days=-1
-            )  # extend planning cycle
+            self.maze.last_planning_day = self.curr_time + datetime.timedelta(days=-1)  # extend planning cycle
             self.maze.need_stagely_planning = True  # extend planning cycle
 
             self.command_queue.put(f"{sim_config.start_order} {sim_config.initial_rounds}")
@@ -630,10 +617,7 @@ class Reverie:
                     nearby_tiles = self.maze.get_nearby_tiles(curr_camera, curr_vision)
                     for i in nearby_tiles:
                         i_det = self.maze.access_tile(i)
-                        if (
-                            curr_tile_det["sector"] == i_det["sector"]
-                            and curr_tile_det["arena"] == i_det["arena"]
-                        ):
+                        if curr_tile_det["sector"] == i_det["sector"] and curr_tile_det["arena"] == i_det["arena"]:
                             if i_det["sector"] != "":
                                 if i_det["sector"] not in s_mem[world]:
                                     s_mem[world][i_det["sector"]] = dict()
@@ -641,13 +625,8 @@ class Reverie:
                                 if i_det["arena"] not in s_mem[world][i_det["sector"]]:
                                     s_mem[world][i_det["sector"]][i_det["arena"]] = list()
                             if i_det["game_object"] != "":
-                                if (
-                                    i_det["game_object"]
-                                    not in s_mem[world][i_det["sector"]][i_det["arena"]]
-                                ):
-                                    s_mem[world][i_det["sector"]][i_det["arena"]] += [
-                                        i_det["game_object"]
-                                    ]
+                                if i_det["game_object"] not in s_mem[world][i_det["sector"]][i_det["arena"]]:
+                                    s_mem[world][i_det["sector"]][i_det["arena"]] += [i_det["game_object"]]
 
                 # Incrementally outputting the s_mem and saving the json file.
                 print("= " * 15)
@@ -659,7 +638,7 @@ class Reverie:
             except:
                 pass
 
-    def start_server(self, int_counter, do_skip=False):
+    def start_server(self, int_counter, agents=None, do_skip=False):
         """
         The main backend server of Reverie.
         This function retrieves the environment file from the frontend to
@@ -674,6 +653,7 @@ class Reverie:
         """
         # <sim_folder> points to the current simulation folder.
         sim_folder = f"{self.storage_path}/{self.sim_code}"
+
         self.is_running = True
 
         # When a persona arrives at a game object, we give a unique event
@@ -689,14 +669,12 @@ class Reverie:
         # The main while loop of Reverie.
         n = 1
         while True:
-
             self.interested = False
             # Done with this iteration if <int_counter> reaches 0.
             if int_counter == 0:
                 break
 
             if self.is_offline_mode:
-
                 # This is where we go through <game_obj_cleanup> to clean up all
                 # object actions that were used in this cylce.
                 for key, val in game_obj_cleanup.items():
@@ -720,9 +698,7 @@ class Reverie:
                     # We actually move the persona on the backend tile map here.
                     self.personas_tile[persona_name] = new_tile
                     self.maze.remove_subject_events_from_tile(persona.name, curr_tile)
-                    self.maze.add_event_from_tile(
-                        persona.scratch.get_curr_event_and_desc(), new_tile
-                    )
+                    self.maze.add_event_from_tile(persona.scratch.get_curr_event_and_desc(), new_tile)
 
                     # Now, the persona will travel to get to their destination. *Once*
                     # the persona gets there, we activate the object action.
@@ -730,9 +706,7 @@ class Reverie:
                         # We add that new object action event to the backend tile map.
                         # At its creation, it is stored in the persona's backend.
                         game_obj_cleanup[persona.scratch.get_curr_obj_event_and_desc()] = new_tile
-                        self.maze.add_event_from_tile(
-                            persona.scratch.get_curr_obj_event_and_desc(), new_tile
-                        )
+                        self.maze.add_event_from_tile(persona.scratch.get_curr_obj_event_and_desc(), new_tile)
                         # We also need to remove the temporary blank action for the
                         # object that is currently taking the action.
                         blank = (persona.scratch.get_curr_obj_event_and_desc()[0], None, None, None)
@@ -799,74 +773,17 @@ class Reverie:
                 if (not do_skip) or self.interested:
                     int_counter -= 1
 
-            else:  # online
-                for persona_name, persona in self.personas.items():
-                    # for node in self.maze.get_memories():
-                    #   if node.name == persona_name:
-                    #     node.new_or_old = False
-                    print(
-                        "\n\n\n★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ "
-                        + persona_name
-                        + " 第"
-                        + str(n)
-                        + "轮"
-                        + " ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★"
-                    )
-                    persona.single_workflow(self.maze, self.curr_time)
-
-                n += 1
-                self.step += 1
-                self.curr_time += datetime.timedelta(seconds=self.sec_per_step)
-                print("❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ next step ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤")
-                if (not do_skip) or self.interested:
-                    int_counter -= 1
-
-                # Sleep so we don't burn our machines.
-                plan_task_info = {}
-            execute_task_info = {}
-
-    def custom_start_server(self, int_counter, participating_agents=None, do_skip=False):
-        """
-        The main backend server of Reverie, customized for selective agent participation in a simulation.
-
-        This function retrieves the environment file from the frontend to understand the state of the world,
-        calls on each participating persona to make decisions based on the world state,
-        and saves their moves at certain step intervals.
-
-        INPUT:
-        int_counter: Integer value for the number of steps left for us to take in this iteration.
-        participating_agents: A dictionary of participating agents (personas) for this simulation.
-                                If None, all agents in self.personas will participate.
-        do_skip: Boolean flag indicating whether to skip steps (default: False).
-
-        OUTPUT:
-        None
-        """
-        # <sim_folder> points to the current simulation folder.
-        sim_folder = f"{self.storage_path}/{self.sim_code}"
-        self.is_running = True
-
-        # Cleanup for any game object events that need to be reset after the simulation.
-        game_obj_cleanup = dict()
-
-        # The main while loop of Reverie.
-        n = 1
-        while True:
-            self.interested = False
-
-            # Terminate the simulation if <int_counter> reaches 0.
-            if int_counter == 0:
-                break
-
-            if self.is_offline_mode:
-                return
             else:  # online mode
                 # If participating_agents is not provided, default to all personas.
-                if participating_agents is None:
-                    participating_agents = self.personas
+                if agents is None:
+                    agents = self.personas
+
+                # set plan
+                for persona_name, persona in agents.items():
+                    persona.set_workflow_stage_config(self.workflow_config)
 
                 # Iterate over the participating agents
-                for persona_name, persona in participating_agents.items():
+                for persona_name, persona in agents.items():
                     print(
                         "\n\n\n★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ "
                         + persona_name
@@ -883,8 +800,6 @@ class Reverie:
                 print("❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ next step ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤")
                 if (not do_skip) or self.interested:
                     int_counter -= 1
-
-            # Sleep to prevent overloading the machine.
 
     def load_online_event(self, event_desc="", policy="", websearch="", access_list=[]):
         s, p, o = generate_action_event_triple_new(event_desc)
@@ -933,12 +848,8 @@ class Reverie:
                 if persona_name.lower() in included_agents
             }
 
-        # set plan
-        for persona_name, persona in participating_agents.items():
-            persona.set_workflow_stage_config(self.workflow_config)
-
         # Execute the simulation with the filtered agents
-        self.custom_start_server(int_count, participating_agents)
+        self.start_server(int_count, participating_agents)
 
     def open_server(self, reverie_instance):
         """
@@ -997,23 +908,22 @@ class Reverie:
                             "task": "分析并决定在讨论推动创新科技产业发展的政策框架时需要考量的关键方面。",
                             "output_format": {
                                 "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如政策支持的全面性与可行性、财政投入的效率与透明度、区域合作的深度与广度、科技产业发展的长期可持续性、政策实施的公平性等。",
-                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。"
-                            }
+                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。",
+                            },
                         },
                         "execute": {
                             "task": "明确关于推动创新科技产业发展的政策框架的立场。",
                             "output_format": {
                                 "reasoning": "首先，我会分析……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
-                                "execution": "支持/反对"
-                            }
+                                "execution": "支持/反对",
+                            },
                         },
                     }
 
-
                     commands = "custom-run " + str(int_count)
-                    
+
                     self.custom_run(commands)
-                    
+
                 elif "custom-run legislative_council_life" in sim_command.lower():
                     int_count = int(sim_command.split()[-1])
                     self.workflow_config = {
@@ -1021,39 +931,22 @@ class Reverie:
                             "task": "分析并决定在讨论维持生命治疗预作决定条例草案时需要考量的关键方面。",
                             "output_format": {
                                 "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如条文是否明确、政策目标的达成可能性、法律保障的可操作性、电子化的实现风险与益处、公众教育的充分性等。",
-                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。"
-                            }
+                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。",
+                            },
                         },
                         "execute": {
                             "task": "针对维持生命治疗预作决定条例草案提出意见和问题，第一人称对话口吻，简体，每一个问题内的字数要多（充分描述问题），分点明确。",
                             "output_format": {
                                 "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
-                                "execution": "说出具体的修改建议或意见，例如问题1的详细内容和对为什么提这个问题的解释、问题2的详细内容和对为什么提这个问题的解释等。"
-                            }
+                                "execution": "说出具体的修改建议或意见，例如问题1的详细内容和对为什么提这个问题的解释、问题2的详细内容和对为什么提这个问题的解释等。",
+                            },
                         },
                     }
 
-                    # self.workflow_config = {
-                    #     "plan": {
-                    #         "task": "分析事件的各方面影响，并决定选择在AI城市居住还是到传统城市（没有AI）居住，给出明确选择。",
-                    #         "output_format": {
-                    #             "reasoning": "逐步推理该事件的主要影响，包括政治、法律、经济、社会稳定和公民权利等方面。",
-                    #             "decision": "是否支持该事件的初步立场，例如支持或反对的原因列表。",
-                    #         },
-                    #     },
-                    #     "execute": {
-                    #         "task": "根据计划阶段的分析，请回答在AI城市居住还是传统城市（没有AI）居住。",
-                    #         "output_format": {
-                    #             "reasoning": "（可选）进一步简述支持或反对的原因。",
-                    #             "execution": "明确表态：支持或反对。",
-                    #         },
-                    #     },
-                    # }
-
                     commands = "custom-run " + str(int_count)
-                    
+
                     self.custom_run(commands)
-                
+
                 elif "custom-run base_the_ville_isabella_maria_klaus_online" in sim_command.lower():
                     int_count = int(sim_command.split()[-1])
                     self.workflow_config = {
@@ -1061,23 +954,22 @@ class Reverie:
                             "task": "分析并决定在讨论该新闻时需要考量的关键方面。",
                             "output_format": {
                                 "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如条文是否明确、政策目标的达成可能性、法律保障的可操作性、电子化的实现风险与益处、公众教育的充分性等。",
-                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。"
-                            }
+                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。",
+                            },
                         },
                         "execute": {
                             "task": "针对该新闻你将发表什么言论，第一人称对话口吻，简体。",
                             "output_format": {
                                 "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
-                                "execution": "说出具体的修改建议或意见，例如问题1的详细内容和对为什么提这个问题的解释、问题2的详细内容和对为什么提这个问题的解释等。"
-                            }
+                                "execution": "说出具体的修改建议或意见，例如问题1的详细内容和对为什么提这个问题的解释、问题2的详细内容和对为什么提这个问题的解释等。",
+                            },
                         },
                     }
 
-
                     commands = "custom-run " + str(int_count)
-                    
+
                     self.custom_run(commands)
-                    
+
                 elif "custom-run dragon_tv_demo" in sim_command.lower():
                     int_count = int(sim_command.split()[-1])
                     self.workflow_config = {
@@ -1097,11 +989,10 @@ class Reverie:
                         },
                     }
 
-
                     commands = "custom-run " + str(int_count)
-                    
+
                     self.custom_run(commands)
-                
+
                 elif sim_command.lower() == "start path tester mode":
                     # Starts the path tester and removes the currently forked sim files.
                     # Note that once you start this mode, you need to exit out of the
@@ -1134,7 +1025,7 @@ class Reverie:
                     # Runs the number of steps specified in the prompt.
                     # Example: run 1000
                     int_count = int(sim_command.split()[-1])
-                    self.start_server(int_count, True)
+                    self.start_server(int_count, None, True)
 
                 elif "print persona scratch" in sim_command[:21].lower():
                     importance_trigger_curr = self.personas[
@@ -1173,9 +1064,7 @@ class Reverie:
                     # Ex: print persona current tile Isabella Rodriguez
                     persona = self.personas[" ".join(sim_command.split()[-2:])]
                     ret_str += str(persona.scratch.curr_tile)
-                    ret_str += "\n" + repr(
-                        self.maze.access_tile(persona.scratch.curr_tile)["sector"]
-                    )
+                    ret_str += "\n" + repr(self.maze.access_tile(persona.scratch.curr_tile)["sector"])
 
                 elif "print persona chatting with buffer" in sim_command.lower():
                     # Print the chatting with buffer of the persona specified in the
@@ -1189,32 +1078,24 @@ class Reverie:
                     # Print the associative memory (event) of the persona specified in
                     # the prompt
                     # Ex: print persona associative memory (event) Isabella Rodriguez
-                    ret_str += f'{self.personas[" ".join(sim_command.split()[-2:])]}\n'
-                    ret_str += self.personas[
-                        " ".join(sim_command.split()[-2:])
-                    ].a_mem.get_str_seq_events()
+                    ret_str += f"{self.personas[' '.join(sim_command.split()[-2:])]}\n"
+                    ret_str += self.personas[" ".join(sim_command.split()[-2:])].a_mem.get_str_seq_events()
 
                 elif "print persona associative memory (thought)" in sim_command.lower():
                     # Print the associative memory (thought) of the persona specified in
                     # the prompt
                     # Ex: print persona associative memory (thought) Isabella Rodriguez
-                    ret_str += f'{self.personas[" ".join(sim_command.split()[-2:])]}\n'
-                    thoughts = self.personas[
-                        " ".join(sim_command.split()[-2:])
-                    ].a_mem.get_thoughts()
+                    ret_str += f"{self.personas[' '.join(sim_command.split()[-2:])]}\n"
+                    thoughts = self.personas[" ".join(sim_command.split()[-2:])].a_mem.get_thoughts()
                     for count, event in enumerate(thoughts):
-                        ret_str += (
-                            f"Thought {count}: {event.spo_summary()} -- {event.description}\n"
-                        )
+                        ret_str += f"Thought {count}: {event.spo_summary()} -- {event.description}\n"
 
                 elif "print persona associative memory (chat)" in sim_command.lower():
                     # Print the associative memory (chat) of the persona specified in
                     # the prompt
                     # Ex: print persona associative memory (chat) Isabella Rodriguez
-                    ret_str += f'{self.personas[" ".join(sim_command.split()[-2:])]}\n'
-                    ret_str += self.personas[
-                        " ".join(sim_command.split()[-2:])
-                    ].a_mem.get_str_seq_chats()
+                    ret_str += f"{self.personas[' '.join(sim_command.split()[-2:])]}\n"
+                    ret_str += self.personas[" ".join(sim_command.split()[-2:])].a_mem.get_str_seq_chats()
 
                 elif "print persona spatial memory" in sim_command.lower():
                     # Print the spatial memory of the persona specified in the prompt
@@ -1224,7 +1105,7 @@ class Reverie:
                 elif "print current time" in sim_command[:18].lower():
                     # Print the current time of the world.
                     # Ex: print current time
-                    ret_str += f'{self.curr_time.strftime("%B %d, %Y, %H:%M:%S")}\n'
+                    ret_str += f"{self.curr_time.strftime('%B %d, %Y, %H:%M:%S')}\n"
                     ret_str += f"steps: {self.step}"
 
                 elif "print tile event" in sim_command[:16].lower():
@@ -1304,23 +1185,17 @@ class Reverie:
                     retval = self.personas[persona_name].chat_to_persona(
                         mode, None if self.sim_mode == "online" else self.maze.vbase, prev_msgs, msg
                     )
-                    event_trigger(
-                        "chat_to_persona", {"mode": mode, "persona": persona_name, "reply": retval}
-                    )
+                    event_trigger("chat_to_persona", {"mode": mode, "persona": persona_name, "reply": retval})
 
                 elif "call -- whisper" in sim_command.lower():
                     # Starts a stateless chat session with the agent. It does not save
                     # anything to the agent's memory.
                     # Ex: call -- whisper Isabella Rodriguez
                     persona_name = sim_command[len("call -- whisper") :].strip()
-                    self.personas[persona_name].open_convo_session(
-                        "whisper", self.maze.vbase, self.command_queue
-                    )
+                    self.personas[persona_name].open_convo_session("whisper", self.maze.vbase, self.command_queue)
 
                 elif "call -- load history" in sim_command.lower():
-                    curr_file = (
-                        maze_assets_loc + "/" + sim_command[len("call -- load history") :].strip()
-                    )
+                    curr_file = maze_assets_loc + "/" + sim_command[len("call -- load history") :].strip()
                     # call -- load history the_ville/agent_history_init_n3.csv #必须要在run之后执行
 
                     rows = read_file_to_list(curr_file, header=True, strip_trail=True)[1]
@@ -1375,9 +1250,7 @@ class Reverie:
                     print("################################")
 
                 elif "call -- load case" in sim_command.lower():  # 将事件广播给每个智能体。
-                    curr_file = (
-                        maze_assets_loc + "/" + sim_command[len("call -- load case") :].strip()
-                    )
+                    curr_file = maze_assets_loc + "/" + sim_command[len("call -- load case") :].strip()
                     # call -- load case the_ville/agent_history_init_n3.csv
 
                     rows = read_file_to_list(curr_file, header=True, strip_trail=True)[1]
@@ -1402,11 +1275,7 @@ class Reverie:
 
                 elif "call -- release policy" in sim_command.lower():  # 将政策发布到所有智能体。
                     if self.tag == True:
-                        curr_file = (
-                            maze_assets_loc
-                            + "/"
-                            + sim_command[len("call -- release policy") :].strip()
-                        )
+                        curr_file = maze_assets_loc + "/" + sim_command[len("call -- release policy") :].strip()
                         # call -- release policy the_ville/agent_history_init_n3.csv
 
                         rows = read_file_to_list(curr_file, header=True, strip_trail=True)[1]
@@ -1447,9 +1316,7 @@ class Reverie:
                         access_list=[name.strip() for name in names.split(",")],
                     )
 
-                elif (
-                    "call -- with policy load online event" in sim_command.lower()
-                ):  # 将事件广播给每个智能体。
+                elif "call -- with policy load online event" in sim_command.lower():  # 将事件广播给每个智能体。
                     # tyn
                     # truth = input("Input your content: ")
                     # truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
@@ -1463,9 +1330,7 @@ class Reverie:
                         policy=policy,
                     )
 
-                elif (
-                    "call -- with websearch load online event" in sim_command.lower()
-                ):  # 将事件广播给每个智能体。
+                elif "call -- with websearch load online event" in sim_command.lower():  # 将事件广播给每个智能体。
                     word_command = self.command_queue.get().strip()
                     names = self.command_queue.get().strip()
                     websearch = self.command_queue.get().strip()
@@ -1526,9 +1391,7 @@ if __name__ == "__main__":
     # Create a default ReverieConfig
     cfg = load_config_from_files(f"{storage_path}/{template_sim_code}")
     cfg.sim_code = sim_code
-    cfg.llm_config = LLMConfig(
-        base_url=openai_api_base, api_key=openai_api_key, model=override_gpt_param["model"]
-    )
+    cfg.llm_config = LLMConfig(base_url=openai_api_base, api_key=openai_api_key, model=override_gpt_param["model"])
 
     rs = Reverie(template_sim_code, cfg)
 

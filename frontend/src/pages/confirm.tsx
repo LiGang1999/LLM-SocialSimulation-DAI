@@ -67,6 +67,15 @@ export const ConfirmPage = () => {
                 case 'base_the_ville_n25':
                     setTemplateImage(stf);
                     break;
+                case 'dragon_tv_demo':
+                    setTemplateImage(start1);
+                    break;
+                case 'legislative_council':
+                    setTemplateImage(chat);
+                    break;
+                case 'legislative_council_life':
+                    setTemplateImage(chat);
+                    break;
                 default:
                     setTemplateImage(stf);
             }

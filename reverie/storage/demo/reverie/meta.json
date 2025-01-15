@@ -1,12 +1,12 @@
 {
-  "template_sim_code": "legislative_council",
-  "name": "立法会",
+  "template_sim_code": "demo",
+  "name": "未来城市",
   "bullets": [
-    "5 个 智能体",
-    "基于web搜索的决策制定",
+    "8 个 智能体",
+    "选择想居住的城市",
     "在线多人讨论"
   ],
-  "description": "通过基于网络搜索的决策机制，共同参与重要公共事务的讨论。每10秒一个时间步长，参与者可以观察智能体如何实时获取和分析网络信息，权衡不同观点，处理分歧，并最终达成共识。",
+  "description": "观察不同年龄、职业、收入、经历的人物对未来城市的满意度，追踪其对AI技术的信任度变化。",
   "start_date": "February 13, 2023",
   "curr_time": "February 13, 2023, 00:00:00",
   "sec_per_step": 10,

@@ -20,5 +20,6 @@
   ],
   "step": 0,
   "sim_mode": "online",
+  "hidden": false,
   "start_order": "custom-run legislative_council"
 }

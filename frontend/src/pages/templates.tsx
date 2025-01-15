@@ -26,6 +26,15 @@ const getTemplateImage = (template: apis.TemplateListItem) => {
     else if (template.template_sim_code === 'base_the_ville_n25_info') {
         return stf;
     }
+    else if (template.template_sim_code === 'dragon_tv_demo') {
+        return start1;
+    }
+    else if (template.template_sim_code === 'legislative_council') {
+        return chat;
+    }
+    else if (template.template_sim_code === 'legislative_council_life') {
+        return chat;
+    }
 }
 
 const mockTemplates: apis.TemplateListItem[] = [

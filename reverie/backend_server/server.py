@@ -70,9 +70,7 @@ def parse_persona_configs(personas_data: List[Dict[str, Any]]) -> Dict[str, Scra
     return {persona["name"]: ScratchData(**persona) for persona in personas_data}
 
 
-def parse_public_events(
-    events_data: List[Dict[str, Any]], personas: List[str]
-) -> List[Dict[str, Any]]:
+def parse_public_events(events_data: List[Dict[str, Any]], personas: List[str]) -> List[Dict[str, Any]]:
     return [
         {
             "name": event.get("name", ""),
@@ -148,9 +146,7 @@ class ReveriePool:
         self.pool: OrderedDict[str, ReverieInstance] = OrderedDict()
         self.lock = threading.Lock()
 
-    def get_or_create(
-        self, session_id: str, template_sim_code: str, sim_config: ReverieConfig
-    ) -> ReverieInstance:
+    def get_or_create(self, session_id: str, template_sim_code: str, sim_config: ReverieConfig) -> ReverieInstance:
         with self.lock:
             if session_id in self.pool:
                 reverie = self.pool.pop(session_id)
@@ -252,14 +248,10 @@ async def start(sim_data: StartReq):
             direction=template.get("meta", {}).get("direction", ""),
             initial_rounds=initial_rounds or 0,
         )
-        reverie_instance = reverie_pool.get_or_create(
-            sim_code, template.get("simCode"), reverie_config
-        )
+        reverie_instance = reverie_pool.get_or_create(sim_code, template.get("simCode"), reverie_config)
 
         # Start a new thread to run the open_server method
-        thread = threading.Thread(
-            target=reverie_instance.reverie.open_server, args=(reverie_instance,)
-        )
+        thread = threading.Thread(target=reverie_instance.reverie.open_server, args=(reverie_instance,))
         thread.start()
 
         return {"status": "success", "message": "Simulation started"}
@@ -447,15 +439,11 @@ async def persona_detail(sim_code: str, agent_name: str):
 
 @app.get("/fetch_templates")
 async def fetch_templates():
-    envs = [
-        dir for dir in os.listdir(STORAGE_PATH) if os.path.isdir(os.path.join(STORAGE_PATH, dir))
-    ]
-    filtered_envs = [
-        env for env in envs if "test" not in env and "sim" not in env and "July" not in env
-    ]
+    envs = [dir for dir in os.listdir(STORAGE_PATH) if os.path.isdir(os.path.join(STORAGE_PATH, dir))]
+    filtered_envs = [env for env in envs if "test" not in env and "sim" not in env and "July" not in env]
     # 暂时不显示这个
     # if "base_the_ville_n25" in filtered_envs:
-        # filtered_envs.remove("base_the_ville_n25")
+    # filtered_envs.remove("base_the_ville_n25")
     result_envs = []
     for dir in filtered_envs:
         template_meta_file = os.path.join(STORAGE_PATH, dir, "reverie", "meta.json")
@@ -491,9 +479,7 @@ async def fetch_template(sim_code: str):
     persona_names = env_meta.get("persona_names", [])
     persona_info = {}
     for persona in persona_names:
-        scratch_file = os.path.join(
-            env_path, "personas", persona, "bootstrap_memory", "scratch.json"
-        )
+        scratch_file = os.path.join(env_path, "personas", persona, "bootstrap_memory", "scratch.json")
         scratch_data = load_json_file(scratch_file)
         persona_info[persona] = {
             "name": scratch_data.get("name", ""),

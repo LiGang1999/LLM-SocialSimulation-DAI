@@ -27,7 +27,11 @@ export const EventsPage = () => {
     const [experimentName, setExperimentName] = useState(ctx.data.currSimCode || '');
     const [replicateCount, setReplicateCount] = useState(ctx.data.initialRounds?.toString() || '');
     const [events, setEvents] = useState<(Event & { id: number })[] | undefined>(
-        ctx.data.currentTemplate?.events.map((event, index) => ({ ...event, id: index + 1 }))
+        ctx.data.currentTemplate?.events.map((event, index) => ({
+            ...event,
+            id: index + 1,
+            name: event.description ? event.description.slice(0, 28) : `事件 ${index + 1}`
+        }))
     );
 
     const [selectedEvent, setSelectedEvent] = useState<(Event & { id: number }) | null>(null);
@@ -155,6 +159,12 @@ export const EventsPage = () => {
     const updateEvent = (field: keyof Event, value: string) => {
         if (selectedEvent) {
             const updatedEvent = { ...selectedEvent, [field]: value };
+
+            // 当description更新时,同步更新name
+            if (field === 'description') {
+                updatedEvent.name = value ? value.slice(0, 10) : `事件 ${selectedEvent.id}`;
+            }
+
             setSelectedEvent(updatedEvent);
             setEvents(events?.map(e => e.id === selectedEvent.id ? updatedEvent : e));
 
@@ -184,7 +194,7 @@ export const EventsPage = () => {
                     const events = templateData.events.map((value, index) => ({
                         ...value,
                         id: index + 1,
-                        name: value.description ? value.description.split(' ').slice(0, 6).join(' ') : `事件 ${index + 1}`
+                        name: value.description ? value.description.slice(0, 28) : `事件 ${index + 1}`
                     }));
                     ctx.setData({
                         ...ctx.data,

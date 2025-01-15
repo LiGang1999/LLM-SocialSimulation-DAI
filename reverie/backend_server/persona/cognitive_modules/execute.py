@@ -2,7 +2,7 @@
 Author: Joon Sung Park (joonspk@stanford.edu)
 
 File: execute.py
-Description: This defines the "Act" module for generative agents. 
+Description: This defines the "Act" module for generative agents.
 """
 
 import random
@@ -55,7 +55,10 @@ def execute(persona, maze, personas, plan):
             # Executing persona-persona interaction.
             target_p_tile = personas[plan.split("<persona>")[-1].strip()].scratch.curr_tile
             potential_path = path_finder(
-                maze.collision_maze, persona.scratch.curr_tile, target_p_tile, collision_block_id
+                maze.collision_maze,
+                persona.scratch.curr_tile,
+                target_p_tile,
+                collision_block_id,
             )
             if len(potential_path) <= 2:
                 target_tiles = [potential_path[0]]
@@ -178,9 +181,7 @@ def execute_dai(persona, maze: OnlineMaze, retrived, plan, all_news):
             sub_retrived[event_name] = retrived[event_name]
             policy = maze.get_events_policy(event_name)
             websearch = maze.get_events_websearch(event_name)
-            comment = generate_one_utterance_for_comment(
-                persona, sub_retrived, all_news, policy, websearch
-            )
+            comment = generate_one_utterance_for_comment(persona, sub_retrived, all_news, policy, websearch)
 
             s = sub_retrived[event_name]["curr_event"].subject
             p = sub_retrived[event_name]["curr_event"].predicate
@@ -199,12 +200,14 @@ def execute_dai_custom(persona, maze: OnlineMaze, retrived, plan):
     for event_name, plan in plan.items():
         sub_retrived = {}
         sub_retrived[event_name] = retrived[event_name]
-        comment = run_gpt_generate_execute_custom(
-            persona, sub_retrived, plan
-        )
+        comment = run_gpt_generate_execute_custom(persona, sub_retrived, plan)
+
         s = sub_retrived[event_name]["curr_event"].subject
         p = sub_retrived[event_name]["curr_event"].predicate
         o = sub_retrived[event_name]["curr_event"].object
+
+        event_trigger("agent_comment", {"name": persona.name, "content": comment, "subject": s})
+
         memory_node = MemoryNode(persona.name, s, p, o, comment, True)
         maze.add_memory_to_event(event_name, memory_node)
 
