@@ -4253,8 +4253,8 @@ def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, v
     p1 = output.get("reasoning", "").lower()
     p2 = output.get("execution", "").lower()
     # Extract and return the execution result from the output
-    # with open('comments.txt', 'a') as file:  # 'a' 模式可以让你把内容追加到文件末尾
-    #     file.write(persona.name+":"+p1 + "\n"+p2 + "\n")  # 每个 comment 后加一个换行符，便于区分不同的 comment
+    with open("comments.txt", "a") as file:  # 'a' 模式可以让你把内容追加到文件末尾
+        file.write(persona.name + ":" + p1 + "\n" + p2 + "\n")  # 每个 comment 后加一个换行符，便于区分不同的 comment
 
     # GOD knows how this works
     return p1

@@ -11,6 +11,8 @@ static_dirs/*
 !reverie/storage/demo/**
 !reverie/storage/legislative_council_life
 !reverie/storage/legislative_council_life/**
+!reverie/storage/shbz
+!reverie/storage/shbz/**
 
 !reverie/storage/dragon_tv_demo
 !reverie/storage/dragon_tv_demo/**

@@ -35,6 +35,9 @@ const getTemplateImage = (template: apis.TemplateListItem) => {
     else if (template.template_sim_code === 'legislative_council_life') {
         return chat;
     }
+    else if (template.template_sim_code === 'shbz') {
+        return chat;
+    }
 }
 
 const mockTemplates: apis.TemplateListItem[] = [

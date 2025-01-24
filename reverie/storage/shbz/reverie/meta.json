@@ -1,0 +1,40 @@
+{
+  "template_sim_code": "shbz",
+  "name": "社会保障",
+  "bullets": [
+    "20 个 智能体",
+    "调查问卷",
+    "在线多人讨论"
+  ],
+  "description": "观察不同年龄、职业、收入、经历的人物对西湖益联保的看法。",
+  "start_date": "February 13, 2023",
+  "curr_time": "February 13, 2023, 00:00:00",
+  "sec_per_step": 10,
+  "maze_name": "the_ville",
+  "persona_names": [
+    "用户1",
+    "用户2",
+    "用户3",
+    "用户4",
+    "用户5",
+    "用户6",
+    "用户7",
+    "用户8",
+    "用户9",
+    "用户10",
+    "用户11",
+    "用户12",
+    "用户13",
+    "用户14",
+    "用户15",
+    "用户16",
+    "用户17",
+    "用户18",
+    "用户19",
+    "用户20"
+  ],
+  "step": 0,
+  "sim_mode": "online",
+  "hidden": false,
+  "start_order": "custom-run shbz"
+}

@@ -76,6 +76,9 @@ export const ConfirmPage = () => {
                 case 'legislative_council_life':
                     setTemplateImage(chat);
                     break;
+                case 'shbz':
+                    setTemplateImage(chat);
+                    break;
                 default:
                     setTemplateImage(stf);
             }
