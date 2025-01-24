@@ -12,6 +12,7 @@ from jinja2 import Template
 from utils import thread_local
 
 default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
+default_async_client = openai.AsyncClient(api_key=openai_api_key, base_url=openai_api_base)
 
 default_llm_config = override_gpt_param
 
@@ -256,6 +257,158 @@ def llm_request(
     return failsafe_fn(result, kwargs)
 
 
+async def async_llm_request(
+    usr_prompt,
+    sys_prompt,
+    llm_config,
+    validate_fn,
+    cleanup_fn,
+    failsafe_fn,
+    kwargs,
+    func_name="",
+    max_retries=3,
+    retry_delay=0.5,
+    raw_response=False,
+    legacy=False,
+):
+    """
+    Send a LLM request with error handling and logging. The llm_config dictionary consists of the following fields:
+    - model: str                the model name, e.g. "gpt-4",
+    - chat: bool                whether to use chat mode or not,
+    - temperature: float
+    - max_tokens: int
+    - top_p: float
+    - frequency_penalty: float
+    - presence_penalty: float
+    - stop: list of str         stop sequence
+    - base_url: str             the base URL of the API endpoint, e.g. "https://api.openai.com/v1"
+    - api_key: str              the API key for the OpenAI API
+    - max_retries: int          maximum number of retry attempts (default: 3)
+    - retry_delay: int          delay in seconds between retries (default: 2)
+    """
+
+    # Validate the necessary fields
+    if "model" not in llm_config or "chat" not in llm_config:
+        raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
+
+    r = thread_local.reverie_local
+    r.interested = True
+
+    # Provide default values for optional fields
+    temperature = llm_config.get("temperature", 1.0)  # Default temperature
+    max_tokens = llm_config.get("max_tokens", 150)  # Default max tokens
+    top_p = llm_config.get("top_p", 1.0)  # Default top_p
+    frequency_penalty = llm_config.get("frequency_penalty", 0.0)  # Default frequency penalty
+    presence_penalty = llm_config.get("presence_penalty", 0.0)  # Default presence penalty
+    stop = llm_config.get("stop", None)  # Default stop sequence
+    model = override_model if override_model else llm_config["model"]
+    is_chat = llm_config["chat"]
+    if not is_chat and not model.endswith("-instruct"):
+        model += "-instruct"
+
+    if "base_url" in llm_config or "api_key" in llm_config:
+        client = default_async_client.copy(
+            base_url=llm_config["base_url"] if "base_url" in llm_config else openai_api_base,
+            api_key=llm_config["api_key"] if "api_key" in llm_config else openai_api_key,
+        )
+    else:
+        client = default_async_client
+
+    attempt = 0
+    L.debug(
+        f"[{func_name}] LLM REQUEST; KIND: {'chat' if llm_config['chat'] else 'completion'}; USER_PROMPT:{llm_logging_repr(usr_prompt)}; SYSTEM_PROMPT:{llm_logging_repr(sys_prompt)}"
+    )
+    while attempt < max_retries:
+        try:
+            result = ""
+            L.debug(
+                f"[{func_name}] Attempt {attempt + 1}: Sending LLM request. Model: {llm_config['model']}, Chat: {llm_config['chat']}"
+            )
+            start_time = time.time()
+            if llm_config["chat"]:
+                # Chat mode implementation
+                messages = [
+                    {"role": "system", "content": sys_prompt},
+                    {"role": "user", "content": usr_prompt},
+                ]
+                # L.debug(f"Prompt:{str(messages)}")
+
+                response = await client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                    stream=False,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
+                    stop=stop,
+                    # api_key=llm_config.get("api_key"),
+                    # base_url=llm_config.get("base_url"),
+                )
+                if raw_response:
+                    return response
+                result = response.choices[0].message.content
+
+                if legacy:
+                    result = str(extract_first_json_dict(response.choices[0].message.content.strip())["output"])
+
+                # result = response["choices"][0]["message"]["content"]
+            else:
+                # Standard completion mode
+                # L.debug(f"Prompt:{str(sys_prompt + "\n" + usr_prompt)}")
+                response = await client.completions.create(
+                    model=model,
+                    prompt=sys_prompt + "\n" + usr_prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                    stream=False,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
+                    stop=stop,
+                )
+                if raw_response:
+                    return response
+
+                result = response.choices[0].text
+
+                # result = response["choices"][0]["text"]
+            valid = validate_fn(result, kwargs)
+            L.stats(
+                function_name=func_name,
+                model=model,
+                is_chat=llm_config["chat"],
+                duration=time.time() - start_time,
+                request_tokens=response.usage.prompt_tokens,
+                response_tokens=response.usage.completion_tokens,
+                valid=valid,
+            )
+            result = unescape_markdown(result)
+            L.debug(f"[{func_name}] LLM RESPONSE: {llm_logging_repr(result)}")
+            if valid:
+                L.debug(f"[{func_name}] LLM Request succeeded.")
+                return cleanup_fn(result, kwargs)
+            else:
+                L.warning(f"[{func_name}] LLM Response validation failed, retry scheduled")
+                # continue
+
+        except Exception as e:
+            # Log the error
+            L.error(f"[{func_name}] Error on attempt {attempt + 1}: {str(e)}")
+
+            if attempt <= max_retries:
+                L.warning(f"[{func_name}] Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+            else:
+                L.error(f"[{func_name}] Max retries exceeded. Request failed.")
+                result = ""
+                # raise e
+        attempt += 1
+
+    return failsafe_fn(result, kwargs)
+
+
 def insert_prompt_args(prompt: str, kwargs):
     template = Template(prompt)
     return template.render(**kwargs)
@@ -353,6 +506,7 @@ def extract_largest_json(unstructured_string):
     return result
 
 
+
 def llm_function(
     user_prompt: str = None,  # If prompt_file is not provided, this is used as the user prompt directly
     system_prompt: str = None,  # If prompt_file is not provided, this is used as the system prompt directly
@@ -446,6 +600,110 @@ def llm_function(
             _cleanup_fn = cleanup_fn if cleanup_fn is not None else default_cleanup_fn
 
             result = llm_request(
+                usr_prompt,
+                sys_prompt,
+                _llm_config,
+                _validate_fn,
+                _cleanup_fn,
+                _failsafe_fn,
+                kwargs,
+                desc_func.__name__,
+            )
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def async_llm_function(
+    user_prompt: str = None,
+    system_prompt: str = None,
+    prompt_file: str = None,
+    is_chat: bool = False,
+    stop: str = "",
+    llm_config={},
+    cleanup_fn=None,
+    failsafe_fn=None,
+    failsafe=None,
+    validate_fn=None,
+):
+    # Load prompt files if necessary
+    if prompt_file:
+        loaded_prompt = load_prompt_file(prompt_file)
+        user_prompt = loaded_prompt["user_prompt"]
+        system_prompt = loaded_prompt["system_prompt"]
+
+    def decorator(desc_func):
+        signature = inspect.signature(desc_func)
+
+        # Generate example arguments based on type hints
+        example_args = []
+        for param in signature.parameters.values():
+            if param.default is not inspect.Parameter.empty:
+                example_args.append(param.default)
+            else:
+                param_type = param.annotation
+                if param_type == int:
+                    example_args.append(0)
+                elif param_type == float:
+                    example_args.append(0.0)
+                elif param_type == str:
+                    example_args.append("")
+                elif param_type == bool:
+                    example_args.append(False)
+                elif param_type == list:
+                    example_args.append([])
+                elif param_type == dict:
+                    example_args.append({})
+                else:
+                    example_args.append(None)
+
+        @functools.wraps(desc_func)
+        async def wrapper(*args, _llm_config=default_llm_config, **kwargs):
+            bound_args = signature.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+            bound_example_args = signature.bind(*example_args)
+            bound_example_args.apply_defaults()
+            example_kwargs = dict(bound_example_args.arguments)
+            _llm_config.update(llm_config)
+            if is_chat:
+                _llm_config["chat"] = True
+            if stop:
+                _llm_config["stop"] = stop
+            kwargs = dict(bound_args.arguments)
+
+            usr_prompt = user_prompt.strip()
+            sys_prompt = system_prompt.strip()
+
+            usr_prompt = insert_prompt_args(usr_prompt, kwargs)
+            example_result = desc_func(**example_kwargs)
+
+            sys_prompt = insert_prompt_args(sys_prompt, kwargs) + example_output_format(example_kwargs, example_result)
+
+            def default_validate_fn(result, kwargs):
+                try:
+                    largest_json = extract_largest_json(result)
+                    json_result = json.loads(largest_json)
+                    return types_match(json_result, example_result)
+                except:
+                    return False
+
+            def default_failsafe_fn(result, kwargs):
+                if failsafe:
+                    return failsafe
+                else:
+                    return desc_func(**kwargs)
+
+            def default_cleanup_fn(result, kwargs):
+                return json.loads(extract_largest_json(result))
+
+            _validate_fn = validate_fn if validate_fn is not None else default_validate_fn
+            _failsafe_fn = failsafe_fn if failsafe_fn is not None else default_failsafe_fn
+            _cleanup_fn = cleanup_fn if cleanup_fn is not None else default_cleanup_fn
+
+            # Await the async llm_request call
+            result = await async_llm_request(
                 usr_prompt,
                 sys_prompt,
                 _llm_config,

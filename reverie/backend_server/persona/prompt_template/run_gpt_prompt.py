@@ -14,7 +14,7 @@ import sys
 from persona.prompt_template.gpt_structure import *
 from persona.prompt_template.print_prompt import *
 from utils import *
-from utils.llm_function import llm_function
+from utils.llm_function import llm_function, async_llm_function
 
 
 def get_random_alphanumeric(i=6, j=6):
@@ -3350,6 +3350,33 @@ def run_gpt_prompt_generate_next_convo_line(
         print_run_prompts(prompt_template, persona, gpt_param, prompt_input, prompt, output)
 
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
+
+
+async def run_gpt_prompt_generate_survey_content(
+    persona, questions
+):
+    quesion_lines = [
+        f"{key}: {value}" for key, value in questions.items()
+    ]
+    question_text = '\n'.join(quesion_lines)
+    def validate_fn(result, kwargs):
+        return True
+
+    @async_llm_function(is_chat=True, prompt_file="generate_survey_content.md", validate_fn=validate_fn)
+    def llm_generate_survey_content(
+        persona_name, persona_iss, question, retrieved_summary
+    ):
+        return {
+            "answer" : {
+                "1.question text for 1": "A",
+                "2.question text for 2": "B",
+                "3.1.question for 3.1" : "answer to question3",
+                "3.2.question for 3.2": "answer to question3.1"
+            }
+        }
+    
+    output = await llm_generate_survey_content(persona.scratch.name, persona.scratch.get_str_iss(), question_text, "")
+    return output
 
 
 def run_gpt_prompt_generate_interview_content(

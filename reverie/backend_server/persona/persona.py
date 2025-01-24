@@ -171,6 +171,9 @@ class DaiPersona(Persona):
 
     def chat_to_persona(self, mode, vbase, prev_msgs, msg):
         return chat_to_persona(self, mode, vbase, prev_msgs, msg)
+    
+    async def run_survey(self, questions):
+        return await survey_persona(self, questions)
 
     def open_convo_session(self, convo_mode, vbase, input_queue):
         """

@@ -9,6 +9,8 @@ import datetime
 import math
 import random
 import sys
+import re
+
 
 sys.path.append("../")
 
@@ -197,7 +199,6 @@ def generate_summarize_ideas(persona, nodes, question):
     summarized_idea = run_gpt_prompt_summarize_ideas(persona, statements, question)[0]
     return summarized_idea
 
-
 def generate_next_line(persona, interlocutor_desc, curr_convo, summarized_idea, vbase):
     # def generate_next_line(persona, interlocutor_desc, curr_convo, summarized_idea):
     # Original chat -- line by line generation
@@ -319,9 +320,21 @@ def load_history_via_whisper(personas, whispers):
         )
 
 
-import re
-
-
+async def survey_persona(persona, questions):
+    '''
+    questions should be a dictionary like :
+    {
+    "question1" : "question text 1",
+    "question2" : "question text 2",
+    "question3" : "question text 3",
+    "question3.1" : "question text 3.1",
+    ...
+    }
+    '''
+    results = await run_gpt_prompt_generate_survey_content(persona, questions)
+    return results
+    
+        
 
 def chat_to_persona(persona, convo_mode, vbase, prev_messages, message):
     # The prev_messages is a list of tuples of (speaker, message)

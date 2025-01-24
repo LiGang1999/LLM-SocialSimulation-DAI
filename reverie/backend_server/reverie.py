@@ -30,6 +30,7 @@ import threading
 from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
 from typing import List, Optional, Tuple
+import asyncio
 
 from pydantic import BaseModel, Field, parse_obj_as
 import traceback
@@ -1182,7 +1183,40 @@ class Reverie:
 
                 #     print(f"完整回答:\n{response}")
                 #     # Do you want to run for mayor in the local election?
+                elif "call -- survey" in sim_command.lower():
+                    # 在这里对每个persona 逐个采访
+                    print("\n输入问卷文件：")
+                    filename = self.command_queue.get()
+                    filename = f"{self.storage_path}/{self.sim_code}/{filename}"
+                    with open(filename, "r") as f:
+                        questions = json.load(f)
+                    responses = {}
 
+                    # Create async task wrapper
+                    async def _run_concurrent_surveys():
+                        # Create survey tasks for all personas
+                        tasks = [
+                            asyncio.create_task(self.personas[name].run_survey(questions))
+                            for name in self.personas
+                        ]
+                        # Run concurrently and collect results
+                        results = await asyncio.gather(*tasks)
+                        # Match results with names
+                        return {name: result for name, result in zip(self.personas.keys(), results)}
+
+                    # Run the async surveys
+                    responses = asyncio.run(_run_concurrent_surveys())
+
+                    # Print and save results
+                    for name, response in responses.items():
+                        print(f"\n=== {name} 的回答 ===")
+                        print(response)
+                        print("==========")
+
+                    with open("survey_log.txt", "w", encoding="utf-8") as f:
+                        json.dump(responses, f, ensure_ascii=False, indent=2)
+
+                        
                 elif "call -- analysis" in sim_command.lower():
                     persona_name = sim_command[len("call -- analysis") :].strip()
                     vbase = getattr(self.maze, "vbase", None)
