@@ -2,7 +2,7 @@
 Author: Joon Sung Park (joonspk@stanford.edu)
 
 File: reflect.py
-Description: This defines the "Reflect" module for generative agents. 
+Description: This defines the "Reflect" module for generative agents.
 """
 
 import sys
@@ -24,7 +24,7 @@ def generate_focal_points(persona, n=3):
 
     nodes = [
         [i.last_accessed, i]
-        for i in persona.a_mem.get_seq_events() + persona.a_mem.get_seq_thoughts()
+        for i in persona.a_mem.get_events() + persona.a_mem.get_thoughts()
         if "idle" not in i.embedding_key
     ]
 
@@ -44,7 +44,7 @@ def generate_focal_points_new(persona, n=3):
 
     nodes = [
         [i.last_accessed, i]
-        for i in persona.a_mem.get_seq_events() + persona.a_mem.get_seq_thoughts()
+        for i in persona.a_mem.get_events() + persona.a_mem.get_thoughts()
         if "idle" not in i.embedding_key
     ]
 
@@ -71,7 +71,6 @@ def generate_insights_and_evidence(persona, nodes, n=5):
 
     print(ret)
     try:
-
         for thought, evi_raw in ret.items():
             evidence_node_id = [nodes[i].node_id for i in evi_raw]
             ret[thought] = evidence_node_id
@@ -245,10 +244,7 @@ def reflection_trigger(persona):
       True if we are running a new reflection.
       False otherwise.
     """
-    if (
-        persona.scratch.importance_trigger_curr <= 0
-        and [] != persona.a_mem.get_seq_events() + persona.a_mem.get_seq_thoughts()
-    ):
+    if persona.scratch.importance_trigger_curr <= 0 and [] != persona.a_mem.get_events() + persona.a_mem.get_thoughts():
         return True
     return False
 
@@ -297,10 +293,7 @@ def reflect(persona):
     # print (persona.scratch.name, "al;sdhfjlsad", persona.scratch.chatting_end_time)
     if persona.scratch.chatting_end_time:
         # print("DEBUG", persona.scratch.curr_time + datetime.timedelta(0,10))
-        if (
-            persona.scratch.curr_time + datetime.timedelta(0, 10)
-            == persona.scratch.chatting_end_time
-        ):
+        if persona.scratch.curr_time + datetime.timedelta(0, 10) == persona.scratch.chatting_end_time:
             #
             # class datetime.timedelta(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0)
             ####################原始框架的时间跨度为十秒钟，此处需要调整优化！！！####################
@@ -378,7 +371,6 @@ def reflect(persona):
 
 # This function should be greatly improved
 def reflect_dai(persona):
-
     if reflection_trigger(persona):
         run_reflect_new(persona)
         reset_reflection_counter(persona)

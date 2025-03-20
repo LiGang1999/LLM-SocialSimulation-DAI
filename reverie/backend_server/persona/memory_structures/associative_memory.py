@@ -59,6 +59,7 @@ class ConceptNode:
     def spo_summary(self):
         return (self.subject, self.predicate, self.object)
 
+
 # memory types
 EVENT = 0
 THOUGHT = 1
@@ -80,7 +81,7 @@ class AssociativeMemory(Memory):
         self.nodes = []
         self.kw_mappings = ({}, {}, {}, {})
         self.id_mappings = ([], [], [], [])
-        self.embeddings = np.zeros((0,1536))
+        self.embeddings = np.zeros((0, 1536))
         self.embedding_keys = []
 
         f_path = Path(f_saved)
@@ -90,13 +91,13 @@ class AssociativeMemory(Memory):
         if (f_path / "embeddings.npy").exists():
             embeddings = np.load(f"{f_saved}/embeddings.npy")
         else:
-            embeddings = np.zeros((0,1536))
+            embeddings = np.zeros((0, 1536))
 
         if (f_path / "embedding_keys.json").exists():
             embedding_keys = json.load(open(f"{f_saved}/embedding_keys.json"))
         else:
             embedding_keys = []
-        
+
         if (f_path / "nodes.json").exists():
             nodes_load = json.load(open(f"{f_saved}/nodes.json"))
         else:
@@ -106,9 +107,7 @@ class AssociativeMemory(Memory):
             self.add_node(
                 node["type"],
                 datetime.datetime.strptime(node["created"], "%Y-%m-%d %H:%M:%S"),
-                datetime.datetime.strptime(node["expiration"], "%Y-%m-%d %H:%M:%S")
-                if node["expiration"]
-                else None,
+                datetime.datetime.strptime(node["expiration"], "%Y-%m-%d %H:%M:%S") if node["expiration"] else None,
                 node["subject"],
                 node["predicate"],
                 node["object"],
@@ -143,7 +142,7 @@ class AssociativeMemory(Memory):
             json.dump(nodes, f)
 
         np.save(f"{out_json}/embeddings.npy", self.embeddings)
-        
+
         with open(f"{out_json}/embedding_keys.json", "w") as f:
             json.dump(self.embedding_keys, f)
 
@@ -307,6 +306,9 @@ class AssociativeMemory(Memory):
 
     def get_str_seq_events(self):
         return self.get_str_node("event")
+
+    def get_events(self):
+        return [self.nodes[id] for id in self.id_mappings[EVENT]]
 
     def get_thoughts(self):
         return [self.nodes[id] for id in self.id_mappings[THOUGHT]]

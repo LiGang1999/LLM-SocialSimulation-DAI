@@ -2,7 +2,7 @@
 Author: Joon Sung Park (joonspk@stanford.edu)
 
 File: retrieve.py
-Description: This defines the "Retrieve" module for generative agents. 
+Description: This defines the "Retrieve" module for generative agents.
 """
 
 import sys
@@ -36,18 +36,13 @@ def retrieve(persona, perceived):
         retrieved[event.description] = dict()
         retrieved[event.description]["curr_event"] = event
 
-        relevant_events = persona.a_mem.retrieve_relevant_events(
-            event.subject, event.predicate, event.object
-        )
+        relevant_events = persona.a_mem.retrieve_relevant_events(event.subject, event.predicate, event.object)
         retrieved[event.description]["events"] = list(relevant_events)
 
-        relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(
-            event.subject, event.predicate, event.object
-        )
+        relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(event.subject, event.predicate, event.object)
         retrieved[event.description]["thoughts"] = list(relevant_thoughts)
 
     return retrieved
-
 
 
 def cos_sim(a, b):
@@ -190,7 +185,7 @@ def extract_relevance(persona, nodes, focal_pt):
 
     relevance_out = dict()
     for count, node in enumerate(nodes):
-        node_embedding = persona.a_mem.embeddings[node.embedding_key]
+        node_embedding = persona.a_mem.embeddings[node.node_id]
         relevance_out[node.node_id] = cos_sim(node_embedding, focal_embedding)
 
     return relevance_out
@@ -221,12 +216,10 @@ def new_retrieve(persona, focal_points, n_count=30):
         # Getting all nodes from the agent's memory (both thoughts and events) and
         # sorting them by the datetime of creation.
         # You could also imagine getting the raw conversation, but for now.
-        L.debug(
-            f"seq events and seq_thought: {persona.a_mem.seq_event + persona.a_mem.seq_thought}"
-        )
+        L.debug(f"seq events and seq_thought: {persona.a_mem.get_events() + persona.a_mem.get_thoughts()}")
         nodes = [
             [i.last_accessed, i]
-            for i in persona.a_mem.seq_event + persona.a_mem.seq_thought
+            for i in persona.a_mem.get_events() + persona.a_mem.get_thoughts()
             if "idle" not in i.embedding_key
         ]
         L.debug(f"{nodes}")
@@ -309,20 +302,17 @@ def retrieve_dai(persona, perceived):
             retrieved[event_name] = dict()
             retrieved[event_name]["curr_event"] = event
 
-            relevant_events = persona.a_mem.retrieve_relevant_events(
-                event.subject, event.predicate, event.object
-            )
+            relevant_events = persona.a_mem.retrieve_relevant_events(event.subject, event.predicate, event.object)
             # print("pig-------------------------------")
             # print(len(relevant_events))
             # retrieved[event.description]["events"] = list(relevant_events)
 
-            relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(
-                event.subject, event.predicate, event.object
-            )
+            relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(event.subject, event.predicate, event.object)
             retrieved[event_name]["events"] = list(relevant_events) + list(relevant_thoughts)
             retrieved[event_name]["thoughts"] = list()
 
     return retrieved
+
 
 def retrieve_dai_custom(persona, perceived):
     """
@@ -346,33 +336,25 @@ def retrieve_dai_custom(persona, perceived):
         for event in perceived:
             retrieved[event_name] = dict()
             retrieved[event_name]["curr_event"] = event
-            
+
             task_info = persona.get_workflow_stage_config()["plan"]
             task_description = task_info.get("task", "Decide the next action.")
 
             desc_embedding = get_embedding(event.description)
             task_embedding = get_embedding(task_description)
-            relevant_events = persona.a_mem.retrieve_by_sim(
-                "event", desc_embedding, 10
-            )
+            relevant_events = persona.a_mem.retrieve_by_sim("event", desc_embedding, 10)
 
-            relevant_thoughts = persona.a_mem.retrieve_by_sim(
-                "thought", desc_embedding, 10
-            )
+            relevant_thoughts = persona.a_mem.retrieve_by_sim("thought", desc_embedding, 10)
 
             retrieved[event_name]["events"] = list(relevant_events) + list(relevant_thoughts)
             retrieved[event_name]["thoughts"] = list()
-            
-            
-            relevant_speeches = persona.a_mem.retrieve_by_sim(
-                "archive", task_embedding, 10
-            )
+
+            relevant_speeches = persona.a_mem.retrieve_by_sim("archive", task_embedding, 10)
 
             retrieved[event_name]["speeches"] = list(relevant_speeches)
-            
-            
 
     return retrieved
+
 
 # tyn
 # We should improve this function further and further - zjy.

@@ -63,11 +63,13 @@ def start_servers(quiet, dev_mode, compile=False):
     back_port = data.get("back_port")
 
     # Frontend command now uses Caddy
-    if compile:
+    if compile and not dev_mode:
         frontend_command = "pnpm build && caddy run"
-    else:
+    elif not dev_mode:
         frontend_command = "caddy run"
-    
+    else:
+        frontend_command = "pnpm run dev --host"
+
     # Backend command remains the same
     backend_command = f"python3 server.py --host 0.0.0.0 --port {back_port}"
     if dev_mode:
@@ -134,14 +136,8 @@ def main(quiet, dev_mode, compile):
 if __name__ == "__main__":
     os.environ["PYTHONUNBUFFERED"] = "1"
     parser = argparse.ArgumentParser(description="Manage servers.")
-    parser.add_argument(
-        "--save", action="store_true", help="Log output to files instead of console."
-    )
-    parser.add_argument(
-        "--dev", action="store_true", help="Run servers in development mode.", default=False
-    )
-    parser.add_argument(
-        "--compile", action="store_true", help="Build the frontend before starting Caddy."
-    )
+    parser.add_argument("--save", action="store_true", help="Log output to files instead of console.")
+    parser.add_argument("--dev", action="store_true", help="Run servers in development mode.", default=False)
+    parser.add_argument("--compile", action="store_true", help="Build the frontend before starting Caddy.")
     args = parser.parse_args()
     main(args.save, args.dev, args.compile)
