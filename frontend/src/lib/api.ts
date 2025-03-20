@@ -1,11 +1,9 @@
 import { ChatMessage } from '@/SimContext';
+import { backendUrl } from './utils';
 import axios from 'axios';
 
-export const apiBaseUrl = import.meta.env.VITE_SERVER_IP;
-export const apiPort = import.meta.env.VITE_BACK_PORT;
-
 export const api = axios.create({
-    baseURL: `http://${apiBaseUrl}:${apiPort}`,
+    baseURL: `${backendUrl}`,
 });
 
 
@@ -388,7 +386,7 @@ export namespace apis {
     }
 
     export const messageSocket = (simCode: string) => {
-        return new WebSocket(`ws://${apiBaseUrl}:${apiPort}/ws?sim_code=${simCode}`);
+        return new WebSocket(`ws://${backendUrl}/ws?sim_code=${simCode}`);
     }
 
 

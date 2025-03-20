@@ -22,6 +22,7 @@ dotenv.config()
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: config['frontend_url'],
   define: {
     'process.env': process.env
   },
@@ -31,4 +32,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    port: 9080
+  },
+  preview: {
+    port: 9080
+  }
 })

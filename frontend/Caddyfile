@@ -1,0 +1,8 @@
+:3000 {
+  handle /css/socialsim/* {
+      uri strip_prefix /css/socialsim
+      root * ./dist
+      try_files {path} /index.html
+      file_server
+  }
+}

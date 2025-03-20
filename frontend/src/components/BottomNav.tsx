@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { HTMLAttributes } from 'react';
 import { ProgressBar } from './ProgressBar';
+import { useNavigate } from 'react-router-dom';
 
 interface BottomNavProps extends HTMLAttributes<HTMLDivElement> {
     prevLink: string;
@@ -23,11 +24,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     variant = 'default',
     ...props
 }) => {
+    const navigate = useNavigate();
     const handlePrevClick = () => {
         if (onClickPrev) {
             onClickPrev();
         } else if (prevLink) {
-            window.location.href = prevLink;
+            navigate(prevLink);
         }
     };
 
@@ -35,7 +37,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         if (onClickNext && !disabled) {
             onClickNext();
         } else if (nextLink && !disabled) {
-            window.location.href = nextLink;
+            navigate(nextLink);
         }
     };
 

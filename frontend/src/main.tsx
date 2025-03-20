@@ -12,11 +12,12 @@ import { ConfigPage } from './pages/llmconfig.tsx';
 import { ConfirmPage } from './pages/confirm.tsx';
 import { InteractPage } from './pages/interact.tsx';
 import { SimContextProvider } from './SimContext.tsx';
+import { frontendUrl } from './lib/utils.ts';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SimContextProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={frontendUrl}>
         <Routes>
           <Route path="/" element={
             <Navigate to="/welcome" replace />

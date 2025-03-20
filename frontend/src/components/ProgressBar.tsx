@@ -1,5 +1,6 @@
 import React, { HTMLAttributes } from 'react';
 import classNames from 'classnames';
+import { Link } from 'react-router-dom';
 
 interface ProgressBarProps extends HTMLAttributes<HTMLDivElement> {
     currentStep: number;
@@ -53,7 +54,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
                 </div>
                 <div className={`flex ${isVertical ? 'flex-col justify-between h-full' : 'justify-between'}`}>
                     {steps.map((step, index) => (
-                        <a key={index} href={step.link} className='flex flex-col items-center'>
+                        <Link key={index} to={step.link} className='flex flex-col items-center'>
                             <div className='relative'>
                                 <div
                                     className={`w-6 h-6 rounded-full
@@ -71,7 +72,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
                             <div className='text-center mt-2'>
                                 <span className="text-sm text-gray-600 whitespace-nowrap">{step.label}</span>
                             </div>
-                        </a>
+                        </Link>
                     ))}
                 </div>
             </div>

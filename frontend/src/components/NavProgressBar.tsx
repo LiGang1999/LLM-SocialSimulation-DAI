@@ -16,6 +16,7 @@ import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { buttonVariants } from "./ui/button";
 import { Menu } from "lucide-react";
 import { LogoIcon } from "./Icons";
+import { Link } from "react-router-dom";
 
 const github_link = 'https://github.com/LiGang1999/LLM-SocialSimulation-DAI'
 
@@ -54,14 +55,14 @@ export const NavProgressBar = () => {
             <NavigationMenu className="mx-auto">
                 <NavigationMenuList className="container h-14 px-4 w-screen flex justify-between ">
                     <NavigationMenuItem className="font-bold flex">
-                        <a
+                        <Link
                             rel="noreferrer noopener"
-                            href="/"
+                            to="/"
                             className="ml-2 font-bold text-xl flex"
                         >
                             <LogoIcon />
                             LLM-SocialSimulation
-                        </a>
+                        </Link>
                     </NavigationMenuItem>
 
                     {/* mobile */}
@@ -88,24 +89,24 @@ export const NavProgressBar = () => {
                                 </SheetHeader>
                                 <nav className="flex flex-col justify-center items-center gap-2 mt-4">
                                     {routeList.map(({ href, label }: RouteProps) => (
-                                        <a
+                                        <Link
                                             rel="noreferrer noopener"
                                             key={label}
-                                            href={href}
+                                            to={href}
                                             onClick={() => setIsOpen(false)}
                                             className={buttonVariants({ variant: "ghost" })}
                                         >
                                             {label}
-                                        </a>
+                                        </Link>
                                     ))}
-                                    <a
+                                    <Link
                                         rel="noreferrer noopener"
-                                        href={github_link}
+                                        to={github_link}
                                         className="w-[110px] border"
                                     >
                                         <GitHubLogoIcon className="mr-2 w-5 h-5" />
                                         Github
-                                    </a>
+                                    </Link>
                                 </nav>
                             </SheetContent>
                         </Sheet>
@@ -114,29 +115,29 @@ export const NavProgressBar = () => {
                     {/* desktop */}
                     <nav className="hidden md:flex gap-2">
                         {routeList.map((route: RouteProps, i) => (
-                            <a
+                            <Link
                                 rel="noreferrer noopener"
-                                href={route.href}
+                                to={route.href}
                                 key={i}
                                 className={`text-[17px] ${buttonVariants({
                                     variant: "ghost",
                                 })}`}
                             >
                                 {route.label}
-                            </a>
+                            </Link>
                         ))}
                     </nav>
 
                     <div className="hidden md:flex gap-2">
-                        <a
+                        <Link
                             rel="noreferrer noopener"
-                            href={github_link}
+                            to={github_link}
                             target="_blank"
                             className={`border ${buttonVariants({ variant: "ghost" })}`}
                         >
                             <GitHubLogoIcon className="mr-2 w-5 h-5" />
                             Github
-                        </a>
+                        </Link>
 
                     </div>
                 </NavigationMenuList>

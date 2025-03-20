@@ -15,6 +15,35 @@ import { InfoTooltip } from '@/components/Tooltip';
 
 import backgroundImage from '@/assets/Untitled.png'
 
+// Common default values for Agent properties to fix TypeScript errors
+const agentDefaults = {
+    vision_r: 5,
+    att_bandwidth: 3,
+    retention: 0.98,
+    concept_forget: 0.95,
+    importance_weight: 1.0,
+    recency_weight: 1.0,
+    relevance_weight: 1.0,
+    creation_patience: 5,
+    a1: 0.5,
+    a2: 0.5,
+    a3: 0.5,
+    p1: 0.1,
+    p2: 0.1,
+    p3: 0.1,
+    update_lt: false,
+    update_convo: true,
+    update_x: false,
+    daily_reflection_time: 0,
+    daily_reflection_size: 10,
+    overlap_reflect_th: 1,
+    kw_strg_event_reflect_th: 0.5,
+    kw_strg_thought_reflect_th: 0.5,
+    recency_w: 0.5,
+    relevance_w: 0.5,
+    importance_w: 0.5, recency_decay: 0.5, importance_trigger_max: 0.5, importance_trigger_curr: 0.5,
+    importance_ele_n: 10, thought_count: 10
+};
 
 const mockAgents: (apis.Agent & { id: number })[] = [
     {
@@ -39,7 +68,8 @@ const mockAgents: (apis.Agent & { id: number })[] = [
         act_obj_event: [],
         act_path_set: false,
         planned_path: [],
-        chatting_with_buffer: {}
+        chatting_with_buffer: {},
+        ...agentDefaults // Add missing properties
     },
     {
         id: 2,
@@ -63,7 +93,8 @@ const mockAgents: (apis.Agent & { id: number })[] = [
         act_obj_event: [],
         act_path_set: false,
         planned_path: [],
-        chatting_with_buffer: {}
+        chatting_with_buffer: {},
+        ...agentDefaults // Add missing properties
     },
     {
         id: 3,
@@ -87,7 +118,8 @@ const mockAgents: (apis.Agent & { id: number })[] = [
         act_obj_event: [],
         act_path_set: false,
         planned_path: [],
-        chatting_with_buffer: {}
+        chatting_with_buffer: {},
+        ...agentDefaults // Add missing properties
     }
 ];
 
@@ -123,7 +155,9 @@ export const AgentsPage = () => {
 
     useEffect(() => {
         // Validate all agents whenever agents change
-        const newErrors: { [agentId: number]: { [field: string]: string } } = {};
+        let agentErrors: { [field: string]: string } = {};
+        const newErrors: { [agentId: string]: { [field: string]: string } } = {};
+        agentErrors['innate'] = 'Innate characteristics are required.';
         for (const agent of agents) {
             const agentErrors = validateAgent(agent);
             if (Object.keys(agentErrors).length > 0) {
@@ -262,6 +296,8 @@ export const AgentsPage = () => {
             plan: [],
             memory: [],
             bibliography: '',
+            // Add missing properties from Agent interface
+            ...agentDefaults
         };
 
         const updatedAgents = [...agents, newAgent];
@@ -432,7 +468,7 @@ export const AgentsPage = () => {
                                     <div className="mt-6">
                                         <div className="flex items-center align-center space-x-2 mb-1 relative">
                                             <label className="block text-sm font-medium text-gray-700">每日计划要求</label>
-                                            <InfoTooltip message='a1' />
+                                            <InfoTooltip message="详细描述智能体的日常活动安排，包括工作时间、休息时间以及其他日常活动。这将决定智能体在仿真中的行为模式。" />
                                         </div>
                                         <AutoResizeTextarea
                                             name="daily_plan_req"
@@ -446,7 +482,7 @@ export const AgentsPage = () => {
                                     <div className="mt-6">
                                         <div className="flex items-center align-center space-x-2 mb-1 relative">
                                             <label className="block text-sm font-medium text-gray-700">内在性格</label>
-                                            <InfoTooltip message='a1' />
+                                            <InfoTooltip message="描述智能体的性格特点和个性特征，如友好、内向、分析型等。这些特征将影响智能体的交互方式和决策过程。" />
                                         </div>
                                         <AutoResizeTextarea
                                             name="innate"
@@ -460,7 +496,7 @@ export const AgentsPage = () => {
                                     <div className="mt-6">
                                         <div className="flex items-center align-center space-x-2 mb-1 relative">
                                             <label className="block text-sm font-medium text-gray-700">当前处境</label>
-                                            <InfoTooltip message='a2' />
+                                            <InfoTooltip message="描述智能体的背景、职业、知识储备以及当前生活状况。这些信息将帮助智能体在仿真环境中做出更真实的决策。" />
                                         </div>
                                         <AutoResizeTextarea
                                             name="learned"
@@ -489,3 +525,5 @@ export const AgentsPage = () => {
         </div>
     )
 }
+
+export default AgentsPage;
