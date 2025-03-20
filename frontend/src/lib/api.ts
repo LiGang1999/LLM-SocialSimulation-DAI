@@ -148,7 +148,7 @@ export namespace apis {
 
     export const fetchTemplate = async (templateName: string): Promise<Template> => {
         try {
-            const response = await api.get<{ meta: any, events: any[], personas: Record<string, any> }>('/fetch_template/', { params: { sim_code: templateName } });
+            const response = await api.get<{ meta: any, events: any[], personas: Record<string, any> }>('/fetch_template', { params: { sim_code: templateName } });
             const { meta, events, personas } = response.data;
             return {
                 simCode: templateName,
@@ -218,8 +218,9 @@ export namespace apis {
     };
 
     export const fetchTemplates = async (): Promise<{ envs: TemplateListItem[], all_templates: string[] }> => {
+        console.log(backendUrl)
         try {
-            const response = await api.get<{ envs: TemplateListItem[], all_templates: string[] }>('/fetch_templates/');
+            const response = await api.get<{ envs: TemplateListItem[], all_templates: string[] }>('/fetch_templates');
 
             // 定义优先级顺序
             const priorityOrder = ['shbz', 'legislative_council', 'dragon_tv_demo'];
@@ -386,7 +387,7 @@ export namespace apis {
     }
 
     export const messageSocket = (simCode: string) => {
-        return new WebSocket(`ws://${backendUrl}/ws?sim_code=${simCode}`);
+        return new WebSocket(`${backendUrl}/ws?sim_code=${simCode}`);
     }
 
 

@@ -55,16 +55,20 @@ def run_command(command, cwd, color, log_file=None):
             process.wait()
 
 
-def start_servers(quiet, dev_mode):
+def start_servers(quiet, dev_mode, compile=False):
     """Start all servers with threading."""
     with open("config.yaml", "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
     front_port = data.get("front_port")
     back_port = data.get("back_port")
 
-    frontend_command = (
-        "pnpm run dev --host" if dev_mode else "pnpm run build && pnpm run preview --host"
-    )
+    # Frontend command now uses Caddy
+    if compile:
+        frontend_command = "pnpm build && caddy run"
+    else:
+        frontend_command = "caddy run"
+    
+    # Backend command remains the same
     backend_command = f"python3 server.py --host 0.0.0.0 --port {back_port}"
     if dev_mode:
         backend_command += " --dev"
@@ -75,7 +79,7 @@ def start_servers(quiet, dev_mode):
             "directory": "frontend",
             "color": COLORS["frontend"],
             "log_file": "frontend.log" if quiet else None,
-            "hint": "Starting frontend server...",
+            "hint": "Starting frontend server with Caddy...",
         },
         {
             "command": backend_command,
@@ -105,7 +109,7 @@ def start_servers(quiet, dev_mode):
     return threads
 
 
-def main(quiet, dev_mode):
+def main(quiet, dev_mode, compile):
     # Check whether config.yaml exists. If not, copy config.template.yaml to config.yaml
     if not os.path.exists("config.yaml"):
         shutil.copy("config.template.yaml", "config.yaml")
@@ -118,7 +122,7 @@ def main(quiet, dev_mode):
         )
         sys.exit(1)
 
-    threads = start_servers(quiet, dev_mode)
+    threads = start_servers(quiet, dev_mode, compile)
 
     try:
         for thread in threads:
@@ -134,7 +138,10 @@ if __name__ == "__main__":
         "--save", action="store_true", help="Log output to files instead of console."
     )
     parser.add_argument(
-        "--dev", action="store_true", help="Run servers in development mode.", default=True
+        "--dev", action="store_true", help="Run servers in development mode.", default=False
+    )
+    parser.add_argument(
+        "--compile", action="store_true", help="Build the frontend before starting Caddy."
     )
     args = parser.parse_args()
-    main(args.save, args.dev)
+    main(args.save, args.dev, args.compile)
