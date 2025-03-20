@@ -1443,7 +1443,7 @@ def run_gpt_prompt_event_triple_new(action_description, verbose=False):
     return [(output["subject"], output["predicate"], output["object"])]
 
 
-# tyn
+#
 def run_gpt_prompt_event_triple_new_old(action_description, verbose=False):
     def __func_clean_up(gpt_response, prompt=""):
         cr = gpt_response.strip()
@@ -3352,29 +3352,24 @@ def run_gpt_prompt_generate_next_convo_line(
     return output, [output, prompt, gpt_param, prompt_input, fail_safe]
 
 
-async def run_gpt_prompt_generate_survey_content(
-    persona, questions
-):
-    quesion_lines = [
-        f"{key}: {value}" for key, value in questions.items()
-    ]
-    question_text = '\n'.join(quesion_lines)
+async def run_gpt_prompt_generate_survey_content(persona, questions):
+    quesion_lines = [f"{key}: {value}" for key, value in questions.items()]
+    question_text = "\n".join(quesion_lines)
+
     def validate_fn(result, kwargs):
         return True
 
     @async_llm_function(is_chat=True, prompt_file="generate_survey_content.md", validate_fn=validate_fn)
-    def llm_generate_survey_content(
-        persona_name, persona_iss, question, retrieved_summary
-    ):
+    def llm_generate_survey_content(persona_name, persona_iss, question, retrieved_summary):
         return {
-            "answer" : {
+            "answer": {
                 "1.question text for 1": "A",
                 "2.question text for 2": "B",
-                "3.1.question for 3.1" : "answer to question3",
-                "3.2.question for 3.2": "answer to question3.1"
+                "3.1.question for 3.1": "answer to question3",
+                "3.2.question for 3.2": "answer to question3.1",
             }
         }
-    
+
     output = await llm_generate_survey_content(persona.scratch.name, persona.scratch.get_str_iss(), question_text, "")
     return output
 

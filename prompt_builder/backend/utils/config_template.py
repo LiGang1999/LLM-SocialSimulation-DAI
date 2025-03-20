@@ -13,8 +13,8 @@ override_gpt_param = {
     "stream": False,
 }
 
-google_api_key = "AIzaSyDuYLLNJHv_51Gafiw7Vc2NIucFLf4MaNg"  # search model key
-google_api_cx = "c2ab1202fad094a87"  # search model id
+google_api_key = "<Google API Key>"  # search model key
+google_api_cx = "<Google API CX>"  # search model id
 
 # Put your name
 key_owner = "<Name>"
@@ -35,5 +35,5 @@ BASE_TEMPLATES = [
     # "base_the_villie_isabella_maria_klaus",
     "base_the_villie_isabella_maria_klaus_online",
     # "base_the_villie_n25",
-    "base_the_villie_n25_info"
+    "base_the_villie_n25_info",
 ]

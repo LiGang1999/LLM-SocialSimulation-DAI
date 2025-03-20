@@ -121,3 +121,9 @@ curr_sim_code.json
 config.yaml
 node_modules
 .venv
+
+*.xlsx
+analysis
+
+reverie/backend_server/utils/config.py
+prompt_builder/backend/utils/config.py

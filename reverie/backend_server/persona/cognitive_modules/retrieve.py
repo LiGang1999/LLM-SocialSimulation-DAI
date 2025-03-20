@@ -277,8 +277,8 @@ def new_retrieve(persona, focal_points, n_count=30):
     return retrieved
 
 
-# tyn
-# We should improve this function further and further - zjy.
+#
+# We should improve this function further and further - .
 def retrieve_dai(persona, perceived):
     """
     This function takes the events that are perceived by the persona as input
@@ -356,8 +356,8 @@ def retrieve_dai_custom(persona, perceived):
     return retrieved
 
 
-# tyn
-# We should improve this function further and further - zjy.
+#
+# We should improve this function further and further - .
 def new_retrieve_dai(persona, retrieved, n_count=30):
     """
     Given the current persona and focal points (focal points are events or
@@ -393,7 +393,7 @@ for i in ... if "idle" not in i.embedding_key：在遍历这个混合列表时�
     new_retrieved = retrieved.copy()
     for keys, vals in new_retrieved.items():
         if vals["events"] == []:
-            print("tyn--ok")
+            print("--ok")
             continue
         nodes = []
         for event in vals["events"]:
@@ -422,7 +422,7 @@ for i in ... if "idle" not in i.embedding_key：在遍历这个混合列表时�
                 persona.scratch.recency_w * recency_out[key] * gw[0]
                 + persona.scratch.importance_w * importance_out[key] * gw[2]
             )
-        print("new_retrieve_new_tyn=========")
+        print("new_retrieve_new_=========")
 
         master_out = top_highest_x_values(master_out, len(master_out.keys()))
         for key, val in master_out.items():

@@ -18,7 +18,7 @@ import { Menu } from "lucide-react";
 import { LogoIcon } from "./Icons";
 import { Link } from "react-router-dom";
 
-const github_link = 'https://github.com/LiGang1999/LLM-SocialSimulation-DAI'
+const github_link = 'https://github.com/ZJUCSS/social-experiment-device'
 
 interface RouteProps {
     href: string;

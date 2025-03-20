@@ -1196,8 +1196,7 @@ class Reverie:
                     async def _run_concurrent_surveys():
                         # Create survey tasks for all personas
                         tasks = [
-                            asyncio.create_task(self.personas[name].run_survey(questions))
-                            for name in self.personas
+                            asyncio.create_task(self.personas[name].run_survey(questions)) for name in self.personas
                         ]
                         # Run concurrently and collect results
                         results = await asyncio.gather(*tasks)
@@ -1216,7 +1215,6 @@ class Reverie:
                     with open("survey_log.txt", "w", encoding="utf-8") as f:
                         json.dump(responses, f, ensure_ascii=False, indent=2)
 
-                        
                 elif "call -- analysis" in sim_command.lower():
                     persona_name = sim_command[len("call -- analysis") :].strip()
                     vbase = getattr(self.maze, "vbase", None)
@@ -1371,7 +1369,7 @@ class Reverie:
                     else:
                         print("<---There is no case.--->")
 
-                elif "call -- zjy test 1" in sim_command.lower():
+                elif "call --  test 1" in sim_command.lower():
                     commands = [
                         "call -- load online event",
                         "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters.",
@@ -1385,7 +1383,7 @@ class Reverie:
                         self.command_queue.put(cmd)
 
                 elif "call -- load online event" in sim_command.lower():  # 将事件广播给每个智能体。
-                    # tyn
+                    #
                     word_command = self.command_queue.get().strip()
                     names = self.command_queue.get().strip()
 
@@ -1395,7 +1393,7 @@ class Reverie:
                     )
 
                 elif "call -- with policy load online event" in sim_command.lower():  # 将事件广播给每个智能体。
-                    # tyn
+                    #
                     # truth = input("Input your content: ")
                     # truth = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
                     word_command = self.command_queue.get().strip()

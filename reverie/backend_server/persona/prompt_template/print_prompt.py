@@ -23,9 +23,7 @@ from utils.config import *
 ##############################################################################
 
 
-def print_run_prompts(
-    prompt_template=None, persona=None, gpt_param=None, prompt_input=None, prompt=None, output=None
-):
+def print_run_prompts(prompt_template=None, persona=None, gpt_param=None, prompt_input=None, prompt=None, output=None):
     # Deprecated. Use logging instead.
     return
     print(f"=== {prompt_template}")
@@ -43,10 +41,8 @@ def print_run_prompts(
     print("\n\n\n")
 
 
-# tyn
-def print_run_prompts_new(
-    prompt_template=None, gpt_param=None, prompt_input=None, prompt=None, output=None
-):
+#
+def print_run_prompts_new(prompt_template=None, gpt_param=None, prompt_input=None, prompt=None, output=None):
     # Deprecated. Use logging instead.
     return
     print(f"=== {prompt_template}")

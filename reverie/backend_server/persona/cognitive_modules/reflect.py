@@ -182,7 +182,7 @@ def run_reflect(persona):
             )
 
 
-# tyn
+#
 def run_reflect_new(persona):
     """
     Run the actual reflection. We generate the focal points, retrieve any

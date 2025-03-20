@@ -17,7 +17,7 @@ const carouselData = [
 ];
 
 
-const github_link = 'https://github.com/LiGang1999/LLM-SocialSimulation-DAI'
+const github_link = 'https://github.com/ZJUCSS/social-experiment-device'
 
 // TODO:
 // 1. background image
@@ -125,7 +125,7 @@ export const WelcomePage = () => {
                                 <ChevronRight className="h-6 w-6" />
                             </Button>
                         </div>
-                        
+
                     </div>
                 </div>
 
