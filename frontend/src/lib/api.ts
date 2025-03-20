@@ -222,12 +222,50 @@ export namespace apis {
     export const fetchTemplates = async (): Promise<{ envs: TemplateListItem[], all_templates: string[] }> => {
         try {
             const response = await api.get<{ envs: TemplateListItem[], all_templates: string[] }>('/fetch_templates/');
+
+            // 定义优先级顺序
+            const priorityOrder = ['shbz', 'legislative_council', 'dragon_tv_demo'];
+
+            // 对 envs 数组排序（按 template_sim_code 的优先级）
+            response.data.envs.sort((a, b) => {
+                const aCode = a.template_sim_code;
+                const bCode = b.template_sim_code;
+
+                const aPriority = priorityOrder.indexOf(aCode);
+                const bPriority = priorityOrder.indexOf(bCode);
+
+                if (aPriority !== -1 && bPriority !== -1) {
+                    return aPriority - bPriority; // 优先级高的排在前面
+                }
+                if (aPriority !== -1) return -1; // a 在优先级列表中，排在前面
+                if (bPriority !== -1) return 1; // b 在优先级列表中，a 排在后面
+
+                // 都不在优先级列表中，按字典序排序
+                return aCode.localeCompare(bCode);
+            });
+
+            // 对 all_templates 数组排序（按字符串的优先级）
+            response.data.all_templates.sort((a, b) => {
+                const aPriority = priorityOrder.indexOf(a);
+                const bPriority = priorityOrder.indexOf(b);
+
+                if (aPriority !== -1 && bPriority !== -1) {
+                    return aPriority - bPriority;
+                }
+                if (aPriority !== -1) return -1;
+                if (bPriority !== -1) return 1;
+
+                // 都不在优先级列表中，按字典序排序
+                return a.localeCompare(b);
+            });
+
             return response.data;
         } catch (error) {
             console.error("Error fetching templates:", error);
             throw error;
         }
     };
+
 
     export const startSim = async (
         simCode: string,

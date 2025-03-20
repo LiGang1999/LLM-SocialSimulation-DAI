@@ -4,7 +4,10 @@ import { Navbar } from '@/components/Navbar';
 
 import start1 from '@/assets/template2.png';
 import chat from '@/assets/chat.png';
-import stf from '@/assets/start2.jpg'
+import stf from '@/assets/start2.jpg';
+import shbz from '@/assets/444.png';
+import hk5 from '@/assets/555.png';
+import hk20 from '@/assets/666.png'
 
 
 import { BottomNav } from '@/components/BottomNav';
@@ -18,7 +21,10 @@ import backgroundImage from '@/assets/Untitled.png'
 
 // TODO Add background for this webpage
 const getTemplateImage = (template: apis.TemplateListItem) => {
-    if (template.template_sim_code === 'base_the_ville_isabella_maria_klaus_online') {
+    if (template.template_sim_code === 'shbz') {
+        return shbz;
+    }
+    else if (template.template_sim_code === 'base_the_ville_isabella_maria_klaus_online') {
         return chat;
     } else if (template.template_sim_code === 'base_the_ville_isabella_maria_klaus') {
         return start1;
@@ -30,13 +36,10 @@ const getTemplateImage = (template: apis.TemplateListItem) => {
         return start1;
     }
     else if (template.template_sim_code === 'legislative_council') {
-        return chat;
+        return hk5;
     }
     else if (template.template_sim_code === 'legislative_council_life') {
-        return chat;
-    }
-    else if (template.template_sim_code === 'shbz') {
-        return chat;
+        return hk20;
     }
 }
 

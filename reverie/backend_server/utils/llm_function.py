@@ -506,7 +506,6 @@ def extract_largest_json(unstructured_string):
     return result
 
 
-
 def llm_function(
     user_prompt: str = None,  # If prompt_file is not provided, this is used as the user prompt directly
     system_prompt: str = None,  # If prompt_file is not provided, this is used as the system prompt directly

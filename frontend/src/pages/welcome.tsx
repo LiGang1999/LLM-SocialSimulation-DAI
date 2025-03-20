@@ -66,8 +66,9 @@ export const WelcomePage = () => {
                     {/* Left Column */}
                     <div className="md:w-1/2 text-white z-10 relative animate-fade-in-up flex flex-col justify-between">
                         <div>
-                            <h1 className="text-5xl font-bold mb-6">欢迎来到</h1>
-                            <h1 className="text-7xl font-bold mb-8">基于LLM的 <br /> 通用社会仿真平台</h1>
+                            {/* <h1 className="text-5xl font-bold mb-6">欢迎来到</h1> */}
+                            <h1 className="text-7xl font-bold mb-8">基于大语言模型的 <br /> 社会科学实验装置</h1>
+                            {/* <h1 className="text-7xl font-bold mb-8">社会科学实验装置</h1> */}
                             <p className="text-2xl text-gray-300 mb-8">Developed by DAI Lab, Zhejiang University</p>
                         </div>
 

@@ -17,9 +17,11 @@ import backgroundImage from '@/assets/Untitled.png'
 
 const defaultConfig: apis.LLMConfig = {
     type: 'default',
-    baseUrl: 'https://api.openai.com/v1',
+    // baseUrl: 'https://api.openai.com/v1',
+    baseUrl: '',
     key: '',
-    engine: 'gpt-3.5-turbo',
+    // engine: 'gpt-3.5-turbo',
+    engine: '',
     temperature: 0.7,
     maxTokens: 512,
     topP: 0.7,
@@ -66,7 +68,7 @@ export const ConfigPage = () => {
 
                 <DescriptionCard
                     title="选择仿真使用的大语言模型"
-                    description="我们的整个仿真实验由大语言模型驱动，包括智能体的对话、思考和行为。您可以选择以下两种方式之一：1. 使用默认配置，即我们为您部署的开源 LLaMA-3 70B 大模型及其参数；2. 指定您自己的符合 OpenAI 接口规范的大语言模型及其参数。"
+                    description="我们的整个仿真实验由大语言模型驱动，包括智能体的对话、思考和行为。您可以选择以下两种方式之一：1. 使用默认配置，即我们为您部署的开源 LLaMA-3 70B 大模型及其参数；2. 指定您自己的符合接口规范的大语言模型及其参数。"
                 />
 
                 <Card className="w-full bg-opacity-70 bg-white mx-auto">
@@ -112,7 +114,7 @@ export const ConfigPage = () => {
                                     id="apiBase"
                                     value={config.baseUrl}
                                     onChange={(e) => updateConfig('baseUrl', e.target.value)}
-                                    placeholder="https://api.openai.com/v1"
+                                    placeholder="请输入url"
                                 />
                             </div>
 
@@ -149,7 +151,7 @@ export const ConfigPage = () => {
                                     id="engine"
                                     value={config.engine}
                                     onChange={(e) => updateConfig('engine', e.target.value)}
-                                    placeholder="例如：gpt-3.5-turbo"
+                                    placeholder="例如：qwen-2.5-max"
                                 />
                             </div>
 

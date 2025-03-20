@@ -60,7 +60,7 @@ export const Navbar = () => {
                             className="ml-2 font-bold text-xl flex"
                         >
                             <LogoIcon />
-                            LLM-SocialSimulation
+                            社会科学实验装置
                         </a>
                     </NavigationMenuItem>
 
