@@ -1,5 +1,5 @@
 : 9080 {
-  handle / css / socialsim / api/* {
+  handle /css/socialsim/api/* {
       uri strip_prefix /css/socialsim/api
       reverse_proxy localhost:9081
   }
