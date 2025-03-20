@@ -1,60 +1,13 @@
-import { defineConfig } from 'vite'
-import path from "path"
-import { resolve } from 'path'
-import fs from 'fs'
-import react from '@vitejs/plugin-react'
-import yaml from 'js-yaml'
-import dotenv from 'dotenv'
-
-// Load YAML configuration
-const configPath = resolve(__dirname, '../config.yaml')
-const fileContents = fs.readFileSync(configPath, 'utf8')
-const config = yaml.load(fileContents) as Record<string, any>
-
-// Create .env file content
-const envContent = Object.entries(config).map(([key, value]) => `VITE_${key.toUpperCase()}=${value}`).join('\n')
-
-// Write to .env file
-fs.writeFileSync('.env', envContent)
-
-// Load .env file
-dotenv.config()
-
-// Base path - ensure it's set to '/css/socialsim/' if not already configured in YAML
-const basePath = config['frontend_url'] || '/css/socialsim/'
-
-// https://vitejs.dev/config/
-export default defineConfig({
-  base: basePath,
-  define: {
-    'process.env': process.env
-  },
-  plugins: [react()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
-  server: {
-    port: 9080,
-    proxy: {
-      // Proxy API requests to backend server
-      '/css/socialsim/api': {
-        target: 'http://localhost:9081',
-        changeOrigin: true,
-        rewrite: (path) => path,  // Keep the original path with prefix
-      }
-    }
-  },
-  preview: {
-    port: 9080,
-    proxy: {
-      // Same proxy configuration for preview mode
-      '/css/socialsim/api': {
-        target: 'http://localhost:9081',
-        changeOrigin: true,
-        rewrite: (path) => path,
-      }
-    }
+: 9080 {
+  handle / css / socialsim / api/* {
+      uri strip_prefix /css/socialsim/api
+      reverse_proxy localhost:9081
   }
-})
+
+  handle /css/socialsim/* {
+      uri strip_prefix /css/socialsim
+      root * ./dist
+      try_files {path} /index.html
+      file_server
+  }
+}
