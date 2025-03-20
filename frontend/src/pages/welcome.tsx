@@ -17,7 +17,7 @@ const carouselData = [
 ];
 
 
-const github_link = 'https://github.com/ZJUCSS/social-experiment-device'
+const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
 
 // TODO:
 // 1. background image

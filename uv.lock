@@ -4,7 +4,7 @@ requires-python = ">=3.12.8"
 [manifest]
 members = [
     "backend-server",
-    "social-experiment-device",
+    "social-experiment-platform",
 ]
 
 [[package]]
@@ -1102,7 +1102,7 @@ wheels = [
 ]
 
 [[package]]
-name = "social-experiment-device"
+name = "social-experiment-platform"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
