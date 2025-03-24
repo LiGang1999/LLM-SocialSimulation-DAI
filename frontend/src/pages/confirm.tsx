@@ -129,9 +129,9 @@ export const ConfirmPage = () => {
                             <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {displayedAgents.map((agent, index) => (
                                     <div key={index} className="flex items-center mb-2">
-                                        <RandomAvatar className="h-10 w-10 mr-4" name={`${agent.first_name} ${agent.last_name}`} />
+                                        <RandomAvatar className="h-10 w-10 mr-4" name={`${agent.name}`} />
                                         <div>
-                                            <p className="font-semibold">{agent.first_name} {agent.last_name}</p>
+                                            <p className="font-semibold">{agent.name}</p>
                                             <p className="text-sm">{agent.age}岁</p>
                                         </div>
                                     </div>

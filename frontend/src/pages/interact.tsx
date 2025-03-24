@@ -213,8 +213,8 @@ const AgentStatusCard: React.FC<{ agent: apis.Agent, onViewFullInfo: (agentName:
         <Card className="mb-4">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center space-x-4">
-                    <RandomAvatar name={`${agent.first_name} ${agent.last_name}`} className='w-14 h-14' />
-                    <h3 className="text-lg font-semibold">{`${agent.first_name} ${agent.last_name}`}</h3>
+                    <RandomAvatar name={`${agent.name}`} className='w-14 h-14' />
+                    <h3 className="text-lg font-semibold">{`${agent.name}`}</h3>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)}>
                     <MoreHorizontal className="h-4 w-4" />
@@ -636,7 +636,7 @@ export const InteractPage: React.FC = () => {
                 demoMessagesForAgents[agentName] = [
                     {
                         sender: agentName,
-                        content: `Hello! I'm ${persona.first_name} ${persona.last_name}. How can I assist you today?`,
+                        content: `Hello! I'm ${persona.name}. How can I assist you today?`,
                         timestamp: new Date().toLocaleTimeString(),
                         type: 'private',
                         role: 'agent',
@@ -644,7 +644,7 @@ export const InteractPage: React.FC = () => {
                     },
                     {
                         sender: 'user',
-                        content: `Hi ${persona.first_name}! What's your primary focus right now?`,
+                        content: `Hi ${persona.name}! What's your primary focus right now?`,
                         timestamp: new Date().toLocaleTimeString(),
                         type: 'private',
                         role: 'user',
@@ -902,7 +902,7 @@ export const InteractPage: React.FC = () => {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="p-0 hover:bg-transparent">
                                         <Avatar>
-                                            {privateChatAgent && agents && <RandomAvatar className='w-12 h-12' name={`${agents.find(a => a.name === privateChatAgent)?.first_name} ${agents.find(a => a.name === privateChatAgent)?.last_name}`} />}
+                                            {privateChatAgent && agents && <RandomAvatar className='w-12 h-12' name={`${agents.find(a => a.name === privateChatAgent)?.name}`} />}
                                         </Avatar>
                                         <div className="ml-2 text-left">
                                             {privateChatAgent && agents && <h2 className="text-xl font-bold">{agents.find(a => a.name === privateChatAgent)?.name}</h2>}
@@ -914,9 +914,9 @@ export const InteractPage: React.FC = () => {
                                     {agents.map((agent) => (
                                         <DropdownMenuItem key={agent.name} onSelect={() => setPrivateChatAgent(agent.name)} className='flex flex-row items-center align-center'>
                                             <Avatar className="mr-2">
-                                                <RandomAvatar className='w-8 h-8 mt-1' name={`${agent.first_name} ${agent.last_name}`} />
+                                                <RandomAvatar className='w-8 h-8 mt-1' name={`${agent.name}`} />
                                             </Avatar>
-                                            <span>{`${agent.first_name} ${agent.last_name}`}</span>
+                                            <span>{`${agent.name}`}</span>
                                         </DropdownMenuItem>
                                     ))}
                                 </DropdownMenuContent>

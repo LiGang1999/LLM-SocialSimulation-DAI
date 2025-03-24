@@ -319,7 +319,17 @@ async def run(sim_code: str, count: int):
         L.warning(f"Simulation with code {sim_code} not found")
         raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
     q = reverie_instance.reverie.command_queue
-    q.put(f"run {count}")
+    # special treatment for cases
+    if sim_code in [
+        "dragon_tv_demo",
+        "shbz",
+        "legislative_council_life",
+        "legislative_council",
+        "legislative_council_life_demo",
+    ]:
+        q.put(f"cusom-run {sim_code} {count}")
+    else:
+        q.put(f"run {count}")
     L.debug(list(q.queue))
     return {"status": "success"}
 

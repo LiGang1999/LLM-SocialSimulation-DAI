@@ -40,7 +40,9 @@ const getTemplateImage = (template: apis.TemplateListItem) => {
     }
     else if (template.template_sim_code === 'legislative_council_life') {
         return hk20;
-    }
+    } else if (template.template_sim_code == 'legislative_council_life_demo') {
+        return hk20;
+    } else return chat;
 }
 
 const mockTemplates: apis.TemplateListItem[] = [

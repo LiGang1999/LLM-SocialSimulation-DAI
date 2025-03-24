@@ -378,8 +378,8 @@ export const AgentsPage = () => {
                                                 onClick={() => handleAgentSelect(agent.id)}
                                             >
                                                 <div className="flex items-center space-x-4 flex-grow">
-                                                    <RandomAvatar className="h-10 w-10" name={`${agent.first_name} ${agent.last_name}`} />
-                                                    <span className="font-medium">{`${agent.first_name} ${agent.last_name}`}</span>
+                                                    <RandomAvatar className="h-10 w-10" name={`${agent.name}`} />
+                                                    <span className="font-medium">{`${agent.name}`}</span>
                                                 </div>
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
@@ -428,9 +428,9 @@ export const AgentsPage = () => {
                                         <div className="flex items-center space-x-6">
                                             <RandomAvatar
                                                 className="h-24 w-24 rounded-full"
-                                                name={`${localAgent.first_name} ${localAgent.last_name}`}
+                                                name={`${localAgent.name}`}
                                             />
-                                            <h1 className="text-3xl font-bold">{`${localAgent.first_name} ${localAgent.last_name}`}</h1>
+                                            <h1 className="text-3xl font-bold">{`${localAgent.name}`}</h1>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-6">

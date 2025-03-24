@@ -131,6 +131,8 @@ def main(quiet, dev_mode, compile):
             thread.join()
     except KeyboardInterrupt:
         print(f"\n{COLORS['manage']} Stopping all servers...")
+        for thread in threads:
+            thread.jo
 
 
 if __name__ == "__main__":
