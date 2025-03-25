@@ -1,28 +1,13 @@
 import { defineConfig } from 'vite'
 import path from "path"
-import { resolve } from 'path'
-import fs from 'fs'
 import react from '@vitejs/plugin-react'
-import yaml from 'js-yaml'
 import dotenv from 'dotenv'
 
-// Load YAML configuration
-const configPath = resolve(__dirname, '../config.yaml')
-const fileContents = fs.readFileSync(configPath, 'utf8')
-const config = yaml.load(fileContents) as Record<string, any>
-
-// Create .env file content
-const envContent = Object.entries(config).map(([key, value]) => `VITE_${key.toUpperCase()}=${value}`).join('\n')
-
-// Write to .env file
-fs.writeFileSync('.env', envContent)
-
-// Load .env file
-dotenv.config()
+// Load .env file from project root
+dotenv.config({ path: '../.env' })
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: config['frontend_url'],
   define: {
     'process.env': process.env
   },
@@ -33,9 +18,16 @@ export default defineConfig({
     },
   },
   server: {
-    port: 9080
+    host: process.env.LISTEN_ADDRESS || '0.0.0.0',
+    port: parseInt(process.env.LISTEN_PORT || '9080'),
+    proxy: {
+      '/api': {
+        target: `http://localhost:${process.env.BACKEND_PORT || '9081'}`,
+        changeOrigin: true,
+      }
+    }
   },
   preview: {
-    port: 9080
+    port: parseInt(process.env.LISTEN_PORT || '9080')
   }
 })

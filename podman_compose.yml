@@ -1,0 +1,48 @@
+version: "3"
+services:
+  app:
+    image: your_app_image:latest
+    ports:
+      - "8080:8080"  # <host_port>:<container_port> for web server
+    environment:
+      # Network Configuration
+      - LISTEN_ADDRESS="0.0.0.0"  # Address to listen on
+      - LISTEN_PORT=8080             # Port to listen on
+      - BACKEND_PORT=8081
+
+      # Storage Configuration
+      - STORAGE_PATH=/app/storage  # Path where files will be stored
+
+      # PostgreSQL Configuration
+      - POSTGRES_HOST=postgresql   # Host of PostgreSQL (same network)
+      - POSTGRES_PORT=5432         # Port of PostgreSQL
+      - POSTGRES_USER=your_user    # Username
+      - POSTGRES_PASSWORD=your_password  # Password
+      - POSTGRES_DB=your_database  # Database name
+
+      # LLM Configuration
+      - LLM_API_KEY=your_api_key      # API Key for LLM service (e.g., OpenAI)
+      - LLM_BASE_URL="https://api.example.com"  # Base URL of LLM service
+      - LLM_MODEL_NAME="your-model-v1"          # Default model name
+    volumes:
+      - ./config/custom_config.py:/app/reverie/backend_server/utils/config.py
+        # Mounts your local config file to container's internal path
+      - ./storage_data:/app/storage
+        # Mounts local storage directory to container's storage path
+
+  postgresql:
+    image: postgres:13
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data # Mounts PostgreSQL data folder (persistent storage)
+    environment:
+      - POSTGRES_USER=your_user
+      - POSTGRES_PASSWORD=your_password
+      - POSTGRES_DB=your_database
+    networks:
+      - app_net
+
+volumes:
+  postgres_data:
+    
+networks:
+  app_net:

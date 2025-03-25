@@ -98,16 +98,20 @@ export const TemplatePage = () => {
     useEffect(() => {
         const fetchTemplates = async () => {
             try {
-                const fetchedTemplates = await apis.fetchTemplates();
-                setTemplates(fetchedTemplates.envs);
+                const { public_templates, user_templates } = await apis.fetchTemplates();
+                // Combine both template types for display
+                const allTemplates = [...public_templates, ...user_templates];
+                setTemplates(allTemplates);
                 ctx.setData(
                     {
                         ...ctx.data,
-                        allTemplates: fetchedTemplates.envs,
-                        allEnvs: fetchedTemplates.all_templates
+                        allTemplates: allTemplates,
+                        allEnvs: allTemplates.map(t => t.template_sim_code)
                     }
                 )
             } catch (err) {
+                // If there's an error (e.g., 401 unauthorized), use mock templates
+                // This provides a fallback UI when the API is inaccessible
                 console.error("Failed to fetch templates:", err);
                 setTemplates(mockTemplates);
             }

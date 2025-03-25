@@ -1,13 +1,77 @@
 import { ChatMessage } from '@/SimContext';
-import { backendUrl } from './utils';
 import axios from 'axios';
 
-export const api = axios.create({
-    baseURL: `${backendUrl}`,
+export const api = axios.create(({
+    baseURL: `/api`,
+}))
+
+// Setup axios interceptor to add authorization token to requests
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
 });
+
+export interface AuthResponse {
+    access_token: string;
+    token_type: string;
+}
+
+export interface RegisterRequest {
+    username: string;
+    email: string;
+    full_name: string;
+    phone: string;
+    institution: string;
+    password: string;
+}
+
+export interface User {
+    username: string;
+    email?: string;
+    full_name?: string;
+    disabled?: boolean;
+}
 
 
 export namespace apis {
+    export const login = async (username: string, password: string): Promise<AuthResponse> => {
+        try {
+            // Login endpoint expects form data
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+
+            const response = await api.post<AuthResponse>('/login', formData);
+            return response.data;
+        } catch (error) {
+            console.error("Login error:", error);
+            throw error;
+        }
+    };
+
+    export const register = async (userData: RegisterRequest): Promise<User> => {
+        try {
+            const response = await api.post<User>('/register', userData);
+            return response.data;
+        } catch (error) {
+            console.error("Registration error:", error);
+            throw error;
+        }
+    };
+
+    export const getCurrentUser = async (): Promise<User> => {
+        try {
+            const response = await api.get<User>('/users/me');
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching current user:", error);
+            throw error;
+        }
+    };
+
 
     export interface EventConfig {
         name: string;
@@ -217,48 +281,48 @@ export namespace apis {
         }
     };
 
-    export const fetchTemplates = async (): Promise<{ envs: TemplateListItem[], all_templates: string[] }> => {
-        console.log(backendUrl)
+    export const fetchTemplates = async (): Promise<{ 
+        public_templates: TemplateListItem[], 
+        user_templates: TemplateListItem[] 
+    }> => {
         try {
-            const response = await api.get<{ envs: TemplateListItem[], all_templates: string[] }>('/fetch_templates');
+            const response = await api.get<{ 
+                public_templates: TemplateListItem[], 
+                user_templates: TemplateListItem[] 
+            }>('/fetch_templates');
 
-            // 定义优先级顺序
+            // Define priority order
             const priorityOrder = ['shbz', 'legislative_council', 'dragon_tv_demo'];
 
-            // 对 envs 数组排序（按 template_sim_code 的优先级）
-            response.data.envs.sort((a, b) => {
-                const aCode = a.template_sim_code;
-                const bCode = b.template_sim_code;
+            // Sort both template arrays
+            const sortTemplates = (templates: TemplateListItem[]) => {
+                return templates.sort((a, b) => {
+                    const aCode = a.template_sim_code;
+                    const bCode = b.template_sim_code;
 
-                const aPriority = priorityOrder.indexOf(aCode);
-                const bPriority = priorityOrder.indexOf(bCode);
+                    const aPriority = priorityOrder.indexOf(aCode);
+                    const bPriority = priorityOrder.indexOf(bCode);
 
-                if (aPriority !== -1 && bPriority !== -1) {
-                    return aPriority - bPriority; // 优先级高的排在前面
-                }
-                if (aPriority !== -1) return -1; // a 在优先级列表中，排在前面
-                if (bPriority !== -1) return 1; // b 在优先级列表中，a 排在后面
+                    if (aPriority !== -1 && bPriority !== -1) {
+                        return aPriority - bPriority;
+                    }
+                    if (aPriority !== -1) return -1;
+                    if (bPriority !== -1) return 1;
 
-                // 都不在优先级列表中，按字典序排序
-                return aCode.localeCompare(bCode);
-            });
+                    return aCode.localeCompare(bCode);
+                });
+            };
 
-            // 对 all_templates 数组排序（按字符串的优先级）
-            response.data.all_templates.sort((a, b) => {
-                const aPriority = priorityOrder.indexOf(a);
-                const bPriority = priorityOrder.indexOf(b);
+            // Get public templates (should always be available)
+            const publicTemplates = response.data.public_templates || [];
+            
+            // Get user templates (may be empty for unauthorized users)
+            const userTemplates = response.data.user_templates || [];
 
-                if (aPriority !== -1 && bPriority !== -1) {
-                    return aPriority - bPriority;
-                }
-                if (aPriority !== -1) return -1;
-                if (bPriority !== -1) return 1;
-
-                // 都不在优先级列表中，按字典序排序
-                return a.localeCompare(b);
-            });
-
-            return response.data;
+            return {
+                public_templates: sortTemplates(publicTemplates),
+                user_templates: sortTemplates(userTemplates)
+            };
         } catch (error) {
             console.error("Error fetching templates:", error);
             throw error;
@@ -387,9 +451,7 @@ export namespace apis {
     }
 
     export const messageSocket = (simCode: string) => {
-        return new WebSocket(`${backendUrl}/ws?sim_code=${simCode}`);
+        const token = localStorage.getItem('token');
+        return new WebSocket(`api/ws?sim_code=${simCode}${token ? `&token=${token}` : ''}`);
     }
-
-
 }
-

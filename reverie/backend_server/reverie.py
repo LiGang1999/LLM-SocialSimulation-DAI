@@ -300,17 +300,16 @@ def bootstrap_persona(path: str, config: ScratchData):
 
 
 class Reverie:
-    def __init__(self, template_sim_code, sim_config: ReverieConfig, reverie_storage_path=""):
+    def __init__(self, username, template_config, sim_config: ReverieConfig):
         # Check if all required fields in sim_config are populated
         missing_fields = []
 
         self.is_running = False
         self.command_queue = Queue()  # User command input queue
         self.message_queue = Queue()
-
-        if not reverie_storage_path:
-            reverie_storage_path = storage_path
-        self.storage_path = reverie_storage_path
+        self.storage_path = storage_path
+        self.user = username
+        user_hash = get_user_hash(username)
 
         # L.info(f"Initializing Reverie with template {template_sim_code} and config {sim_config}")
 
@@ -325,11 +324,14 @@ class Reverie:
             # You can raise an exception here if necessary:
             # raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
 
-        self.template_sim_code = template_sim_code
-        template_folder = f"{self.storage_path}/{self.template_sim_code}"
+        self.template_sim_code = template_config["template_sim_code"]
+        if template_config["is_public"]:
+            template_folder = f"{self.storage_path}/public_templates/{self.template_sim_code}"
+        else:
+            template_folder = f"{self.storage_path}/user_templates/{user_hash}/{self.template_sim_code}"
 
         self.sim_code = sim_config.sim_code
-        sim_folder = f"{self.storage_path}/{self.sim_code}"
+        sim_folder = f"{self.storage_path}/user_templates/{user_hash}/{self.sim_code}"
 
         if check_if_dir_exists(sim_folder):
             if self.sim_code in BASE_TEMPLATES:
@@ -496,13 +498,8 @@ class Reverie:
             # simulation.
             curr_sim_code = dict()
             curr_sim_code["sim_code"] = self.sim_code
-            with open(f"{temp_storage_path}/curr_sim_code.json", "w") as outfile:
-                outfile.write(json.dumps(curr_sim_code, indent=2))
-
             curr_step = dict()
             curr_step["step"] = self.step
-            with open(f"{temp_storage_path}/curr_step.json", "w") as outfile:
-                outfile.write(json.dumps(curr_step, indent=2))
 
             self.tag = False  # case
             self.maze.planning_cycle = 1  # extend planning cycle

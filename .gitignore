@@ -3,20 +3,6 @@ frontend_server/settings/local.py
 **/storage/*
 static_dirs/*
 
-!**/storage/base_*
-
-!reverie/storage/legislative_council
-!reverie/storage/legislative_council/**
-!reverie/storage/demo
-!reverie/storage/demo/**
-!reverie/storage/legislative_council_life
-!reverie/storage/legislative_council_life/**
-!reverie/storage/shbz
-!reverie/storage/shbz/**
-
-!reverie/storage/dragon_tv_demo
-!reverie/storage/dragon_tv_demo/**
-
 bin/
 include/
 pip-selfcheck.json
@@ -115,6 +101,7 @@ ENV/
 .vscode
 
 vite.config.js.*
+*.tsbuildinfo
 
 curr_sim_code.json
 

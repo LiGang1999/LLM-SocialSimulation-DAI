@@ -57,10 +57,34 @@ def run_command(command, cwd, color, log_file=None):
 
 def start_servers(quiet, dev_mode, compile=False):
     """Start all servers with threading."""
-    with open("config.yaml", "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    front_port = data.get("front_port")
-    back_port = data.get("back_port")
+    # Prioritize environment variables if set, otherwise use config values
+    # Network configuration
+    server_ip = os.environ.get("LISTEN_ADDRESS", "127.0.0.1").strip('"')
+    front_port = int(os.environ.get("LISTEN_PORT", 10056))
+    back_port = int(os.environ.get("BACKEND_PORT", 10069))
+    
+    # Storage configuration
+    storage_path = os.environ.get("STORAGE_PATH", "./reverie/storage").strip('"')
+    
+    # Log environment variables for debugging
+    print(f"{COLORS['manage']} Using network configuration:")
+    print(f"{COLORS['manage']} - Server IP: {server_ip}")
+    print(f"{COLORS['manage']} - Frontend Port: {front_port}")
+    print(f"{COLORS['manage']} - Backend Port: {back_port}")
+    print(f"{COLORS['manage']} - Storage Path: {storage_path}")
+    
+    # Check for PostgreSQL configuration
+    pg_host = os.environ.get("POSTGRES_HOST")
+    pg_port = os.environ.get("POSTGRES_PORT")
+    pg_user = os.environ.get("POSTGRES_USER")
+    pg_password = os.environ.get("POSTGRES_PASSWORD")
+    pg_db = os.environ.get("POSTGRES_DB")
+    
+    if pg_host and pg_port and pg_user and pg_password and pg_db:
+        print(f"{COLORS['manage']} PostgreSQL configuration detected:")
+        print(f"{COLORS['manage']} - Host: {pg_host}")
+        print(f"{COLORS['manage']} - Port: {pg_port}")
+        print(f"{COLORS['manage']} - Database: {pg_db}")
 
     # Frontend command now uses Caddy
     if compile and not dev_mode:
@@ -70,8 +94,10 @@ def start_servers(quiet, dev_mode, compile=False):
     else:
         frontend_command = "pnpm run dev --host"
 
-    # Backend command remains the same
-    backend_command = f"python3 server.py --host 0.0.0.0 --port {back_port}"
+    # Backend command now uses environment-specified parameters
+    backend_command = "python3 reverie/backend_server/server.py"
+    
+    # Add dev mode flag if specified
     if dev_mode:
         backend_command += " --dev"
 
@@ -85,7 +111,7 @@ def start_servers(quiet, dev_mode, compile=False):
         },
         {
             "command": backend_command,
-            "directory": "reverie/backend_server",
+            "directory": ".",
             "color": COLORS["backend"],
             "log_file": "backend.log" if quiet else None,
             "hint": "Starting backend server...",
@@ -112,11 +138,6 @@ def start_servers(quiet, dev_mode, compile=False):
 
 
 def main(quiet, dev_mode, compile):
-    # Check whether config.yaml exists. If not, copy config.template.yaml to config.yaml
-    if not os.path.exists("config.yaml"):
-        shutil.copy("config.template.yaml", "config.yaml")
-        print(f"{COLORS['manage']} Created config.yaml from config.template.yaml")
-
     # Check whether backend_server/utils/config.py exists. If not, exit program
     if not os.path.exists("reverie/backend_server/utils/config.py"):
         print(
@@ -132,7 +153,7 @@ def main(quiet, dev_mode, compile):
     except KeyboardInterrupt:
         print(f"\n{COLORS['manage']} Stopping all servers...")
         for thread in threads:
-            thread.jo
+            thread.join()
 
 
 if __name__ == "__main__":

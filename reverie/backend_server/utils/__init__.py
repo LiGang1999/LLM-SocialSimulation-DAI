@@ -14,6 +14,8 @@ import shutil
 import threading
 from os import listdir
 
+from passlib.context import CryptContext
+
 import numpy
 
 thread_local = threading.local()
@@ -287,6 +289,25 @@ def ensure_files_with_default_content(base_path: str, files: dict):
         if not os.path.exists(full_file_path):
             with open(full_file_path, "w") as f:
                 json.dump(default_content, f, indent=4)
+
+
+# Password hashing utilities
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+
+def get_user_hash(username: str) -> str:
+    """Generate consistent hash from username for storage paths"""
+    import hashlib
+
+    return hashlib.sha256(username.encode()).hexdigest()
 
 
 if __name__ == "__main__":

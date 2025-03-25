@@ -4,21 +4,275 @@ import os
 import threading
 import time
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, timedelta
 from queue import Queue
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, APIRouter
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, APIRouter, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ValidationError
-from utils import *
-from utils import config
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+import jwt
+from jwt.exceptions import PyJWTError
+
+from pydantic import BaseModel, ValidationError, EmailStr
+from sqlalchemy.future import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+from utils import config, check_if_dir_exists, get_password_hash, get_user_hash
 from utils.config import BASE_TEMPLATES
 from utils.logs import L
+from contextlib import asynccontextmanager
+
 
 from reverie import LLMConfig, Reverie, ReverieConfig, ScratchData
+from database import User as DBUser, get_db, init_db
 
-app = FastAPI()
+# Security configuration
+SECRET_KEY = "8f42a73d98f3118bcc9dd52fc4e53fce983e5f7f7acfeffeeb67a49e47f66673"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 3600
+
+
+# User management
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+
+
+class UserBase(BaseModel):
+    username: str
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+
+
+class UserCreate(UserBase):
+    password: str
+    phone: str
+    institution: str
+
+
+class User(UserBase):
+    disabled: Optional[bool] = False
+
+
+class UserInDB(User):
+    hashed_password: str
+
+
+# User storage paths
+USER_TEMPLATES_PATH = os.path.join(config.storage_path, "user_templates")
+os.makedirs(USER_TEMPLATES_PATH, exist_ok=True)
+
+# Invalid usernames
+INVALID_USERNAMES = [
+    "admin",
+    "administrator",
+    "root",
+    "system",
+    "superuser",
+    "user",
+    "guest",
+    "anonymous",
+    "moderator",
+    "support",
+    "help",
+    "webmaster",
+    "postmaster",
+    "hostmaster",
+    "info",
+    "mail",
+    "ftp",
+    "www",
+    "test",
+]
+
+# Windows reserved device names
+WINDOWS_RESERVED_NAMES = [
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    "COM1",
+    "COM2",
+    "COM3",
+    "COM4",
+    "COM5",
+    "COM6",
+    "COM7",
+    "COM8",
+    "COM9",
+    "LPT1",
+    "LPT2",
+    "LPT3",
+    "LPT4",
+    "LPT5",
+    "LPT6",
+    "LPT7",
+    "LPT8",
+    "LPT9",
+]
+
+
+def validate_username(username: str) -> Tuple[bool, str]:
+    """
+    Validate a username to ensure it can be used as a valid folder name in both Linux and Windows
+    and doesn't contain disallowed strings.
+
+    Returns:
+        Tuple[bool, str]: (is_valid, error_message)
+    """
+    # Check against invalid username list
+    if username.lower() in INVALID_USERNAMES:
+        return False, f"Username '{username}' is reserved and cannot be used"
+
+    # Check if username is . or ..
+    if username in [".", ".."]:
+        return False, "Username cannot be '.' or '..'"
+
+    # Check if username is a Windows reserved name
+    if username.upper() in WINDOWS_RESERVED_NAMES:
+        return False, f"Username '{username}' is a reserved system name"
+
+    # Check for invalid characters
+    invalid_chars = ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]
+    for char in invalid_chars:
+        if char in username:
+            return False, f"Username cannot contain '{char}'"
+
+    # Check for control characters
+    if any(ord(char) < 32 for char in username):
+        return False, "Username cannot contain control characters"
+
+    # Check maximum length (Windows path component limitation)
+    if len(username) > 255:
+        return False, "Username cannot exceed 255 characters"
+
+    # Check if username starts or ends with space or period
+    if username.startswith(" ") or username.endswith(" ") or username.endswith("."):
+        return False, "Username cannot start or end with a space, or end with a period"
+
+    return True, ""
+
+
+def is_template_public(sim_code: str) -> bool:
+    """Check if template is in public directory"""
+    public_path = os.path.join(STORAGE_PATH, "public_templates", sim_code)
+    return os.path.exists(public_path)
+
+
+def user_owns_template(username: str, sim_code: str) -> bool:
+    """Check if user owns this private template"""
+    user_hash = get_user_hash(username)
+    user_path = os.path.join(STORAGE_PATH, "user_templates", user_hash, sim_code)
+    return os.path.exists(user_path)
+
+
+async def get_user(db: AsyncSession, username: str) -> Optional[DBUser]:
+    """Get user from database"""
+    result = await db.execute(select(DBUser).where(DBUser.username == username))
+    return result.scalar_one_or_none()
+
+
+async def authenticate_user(db: AsyncSession, username: str, password: str):
+    """Authenticate user against database"""
+    user = await get_user(db, username)
+    if not user:
+        return False
+    if not DBUser.verify_password(password, user.hashed_password):
+        return False
+    return user
+
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
+
+
+def get_current_user(required: bool = True):
+    async def _get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
+        if not required and not token:
+            return None
+
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        if not token:
+            raise credentials_exception
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username: str = payload.get("sub")
+            if username is None:
+                raise credentials_exception
+            token_data = TokenData(username=username)
+        except PyJWTError:
+            raise credentials_exception
+        user = await get_user(db, username=token_data.username)
+        if user is None:
+            raise credentials_exception
+        return UserInDB(
+            username=user.username,
+            email=user.email,
+            full_name=user.full_name,
+            disabled=user.disabled,
+            hashed_password=user.hashed_password,
+        )
+
+    return _get_current_user
+
+
+async def get_current_active_user(current_user: User = Depends(get_current_user())):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+async def get_optional_current_user(token: Optional[str] = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
+    if token is None:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            return None
+        token_data = TokenData(username=username)
+    except PyJWTError:
+        return None
+    user = await get_user(db, username=token_data.username)
+    if user is None:
+        return None
+    return UserInDB(
+        username=user.username,
+        email=user.email,
+        full_name=user.full_name,
+        disabled=user.disabled,
+        hashed_password=user.hashed_password,
+    )
+
+
+# Initialize database on startup
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,15 +282,76 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-router = APIRouter(prefix="/css/socialsim/api")
+router = APIRouter(prefix="/api")
+
+
+# Authentication endpoints
+@router.post("/register", response_model=User)
+async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
+    # Check if username already exists
+    existing_user = await get_user(db, user_data.username)
+    if existing_user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered")
+
+    # Validate username
+    is_valid, error_message = validate_username(user_data.username)
+    if not is_valid:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_message)
+
+    hashed_password = get_password_hash(user_data.password)
+
+    # Create new user in database
+    new_user = DBUser(
+        username=user_data.username,
+        email=user_data.email,
+        full_name=user_data.full_name,
+        phone=user_data.phone,
+        institution=user_data.institution,
+        hashed_password=hashed_password,
+        disabled=False,
+    )
+
+    try:
+        db.add(new_user)
+        await db.commit()
+        await db.refresh(new_user)
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered")
+
+    # Create user's template directory
+    user_template_dir = os.path.join(USER_TEMPLATES_PATH, get_user_hash(user_data.username))
+    os.makedirs(user_template_dir, exist_ok=True)
+
+    return User(
+        username=new_user.username, email=new_user.email, full_name=new_user.full_name, disabled=new_user.disabled
+    )
+
+
+@router.post("/login", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+    user = await authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/users/me", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_active_user)):
+    return current_user
 
 
 STORAGE_PATH = config.storage_path
 TEMP_STORAGE_PATH = config.temp_storage_path
 
-# Utility functions (load_json_file, save_json_file, parse_llm_config, parse_persona_configs, parse_public_events)
 
-
+# Utility functions (unchanged)
 def load_json_file(file_path: str) -> Dict[str, Any]:
     try:
         with open(file_path, "r") as f:
@@ -90,13 +405,14 @@ def parse_public_events(events_data: List[Dict[str, Any]], personas: List[str]) 
 
 
 class ReverieInstance:
-    def __init__(self, template_sim_code, sim_config: ReverieConfig):
+    # ReverieInstance definition (unchanged)
+    def __init__(self, username, template_config, sim_config: ReverieConfig):
         self.initialized = False
         self.last_accessed = datetime.now()
         self.active_websockets = {}
         self.ws_lock = threading.Lock()
-        self.reverie = Reverie(template_sim_code=template_sim_code, sim_config=sim_config)
-        self.template_sim_code = template_sim_code
+        self.reverie = Reverie(username, template_config, sim_config=sim_config)
+        self.template_sim_code = template_config["template_sim_code"]
         self.sim_config = sim_config
         # more code for ReverieInstance is omitted
 
@@ -112,6 +428,8 @@ class ReverieInstance:
             for ws_id, websocket in self.active_websockets.items():
                 try:
                     await websocket.send_text(message)
+                except PyJWTError:
+                    disconnected_sockets.append(ws_id)
                 except Exception:
                     disconnected_sockets.append(ws_id)
 
@@ -143,12 +461,15 @@ class ReverieInstance:
 
 
 class ReveriePool:
+    # ReveriePool definition (unchanged)
     def __init__(self, max_instances: int = 1000):
         self.max_instances = max_instances
         self.pool: OrderedDict[str, ReverieInstance] = OrderedDict()
         self.lock = threading.Lock()
 
-    def get_or_create(self, session_id: str, template_sim_code: str, sim_config: ReverieConfig) -> ReverieInstance:
+    def get_or_create(
+        self, session_id: str, username: str, template_config: Dict, sim_config: ReverieConfig
+    ) -> ReverieInstance:
         with self.lock:
             if session_id in self.pool:
                 reverie = self.pool.pop(session_id)
@@ -157,7 +478,7 @@ class ReveriePool:
                 if len(self.pool) >= self.max_instances:
                     _, oldest_reverie = self.pool.popitem(last=False)
                     oldest_reverie.shutdown()  # Shutdown the removed instance
-                reverie = ReverieInstance(template_sim_code, sim_config)
+                reverie = ReverieInstance(username, template_config, sim_config)
                 self.pool[session_id] = reverie
             return reverie
 
@@ -213,23 +534,30 @@ def get_reverie_instance(sim_code: str):
     return instance
 
 
-import threading
-from typing import Dict
-
-from fastapi import HTTPException
-
-
+# Protected endpoints (require authentication)
 @router.post("/start")
-async def start(sim_data: StartReq):
+async def start(sim_data: StartReq, current_user: User = Depends(get_current_active_user)):
     try:
         sim_code = sim_data.simCode
         template = sim_data.template
+        template_sim_code = template.get("simCode")
         llm_config = sim_data.llmConfig
         initial_rounds = sim_data.initialRounds
+
+        # Check if user is allowed to use the template
+        if template_sim_code:
+            if not is_template_public(template_sim_code) and not user_owns_template(
+                current_user.username, template_sim_code
+            ):
+                raise HTTPException(status_code=403, detail="You don't have access to the specified template")
+
+        is_public = is_template_public(template_sim_code)
+        user_hash = get_user_hash(current_user.username)
+
         if sim_code in BASE_TEMPLATES:
             raise HTTPException(status_code=400, detail="Cannot overwrite base template")
         # Forbid overwriting existing template for now
-        sim_folder = f"{STORAGE_PATH}/{sim_code}"
+        sim_folder = f"{STORAGE_PATH}/user_templates/{user_hash}/{sim_code}"
         if check_if_dir_exists(sim_folder):
             raise HTTPException(status_code=400, detail="Simulation already exists")
         parsed_llm_config = parse_llm_config(llm_config)
@@ -250,7 +578,12 @@ async def start(sim_data: StartReq):
             direction=template.get("meta", {}).get("direction", ""),
             initial_rounds=initial_rounds or 0,
         )
-        reverie_instance = reverie_pool.get_or_create(sim_code, template.get("simCode"), reverie_config)
+        reverie_instance = reverie_pool.get_or_create(
+            sim_code,
+            current_user.username,
+            {"is_public": is_public, "template_sim_code": template.get("simCode")},
+            reverie_config,
+        )
 
         # Start a new thread to run the open_server method
         thread = threading.Thread(target=reverie_instance.reverie.open_server, args=(reverie_instance,))
@@ -263,11 +596,8 @@ async def start(sim_data: StartReq):
 
 
 @router.post("/publish_events")
-async def publish_event(event: EventPublishReq, sim_code: str):
+async def publish_event(event: EventPublishReq, sim_code: str, current_user: User = Depends(get_current_active_user)):
     reverie_instance = get_reverie_instance(sim_code)
-    if not reverie_instance:
-        L.warning(f"Simulation with code {sim_code} not found")
-        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
     try:
         event_access_list = [name.strip() for name in event.access_list.split(",")]
         q = reverie_instance.reverie.command_queue
@@ -286,7 +616,7 @@ async def publish_event(event: EventPublishReq, sim_code: str):
 
 
 @router.get("/status")
-async def query_status(sim_code: str):
+async def query_status(sim_code: str, current_user: User = Depends(get_current_active_user)):
     instance = reverie_pool.get(sim_code)
     if not instance:
         return {"status": "terminated"}
@@ -297,27 +627,21 @@ async def query_status(sim_code: str):
 
 
 @router.get("/command")
-async def add_command(sim_code: str, command: str):
+async def add_command(sim_code: str, command: str, current_user: User = Depends(get_current_active_user)):
     reverie_instance = get_reverie_instance(sim_code)
     if not command:
         L.warning("add_command: No command provided")
         raise HTTPException(status_code=400, detail="Missing command parameter")
-    if not reverie_instance:
-        L.warning(f"Simulation with code {sim_code} not found")
-        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
     reverie_instance.reverie.command_queue.put(command)
     return {"status": "success"}
 
 
 @router.get("/run")
-async def run(sim_code: str, count: int):
+async def run(sim_code: str, count: int, current_user: User = Depends(get_current_active_user)):
     reverie_instance = get_reverie_instance(sim_code)
     if not count:
         L.warning("run: No count provided")
         raise HTTPException(status_code=400, detail="Missing count parameter")
-    if not reverie_instance:
-        L.warning(f"Simulation with code {sim_code} not found")
-        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
     q = reverie_instance.reverie.command_queue
     # special treatment for cases
     if sim_code in [
@@ -334,13 +658,31 @@ async def run(sim_code: str, count: int):
     return {"status": "success"}
 
 
-# This is a legacy endpoint from the original project
+@router.post("/chat")
+async def chat(chat_request: ChatReq, sim_code: str, current_user: User = Depends(get_current_active_user)):
+    reverie_instance = get_reverie_instance(sim_code)
+    try:
+        q = reverie_instance.reverie.command_queue
+        q.put(f"call -- chat to persona {chat_request.agent_name}")
+        q.put(
+            json.dumps(
+                {
+                    "mode": chat_request.type,
+                    "prev_msgs": chat_request.history,
+                    "msg": chat_request.content,
+                }
+            )
+        )
+        return {"status": "success"}
+    except Exception as e:
+        L.warning(f"Error processing chat request: {e}")
+        raise HTTPException(status_code=404, detail="Invalid simulation or persona")
+
+
+# Public endpoints (no authentication required)
 @router.get("/get_persona/{sim_code}")
 async def get_persona(sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
-    if not reverie_instance:
-        L.warning(f"Simulation with code {sim_code} not found")
-        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
     personas_path = os.path.join(STORAGE_PATH, reverie_instance.template_sim_code, "personas")
     persona_names = set(
         name
@@ -355,10 +697,6 @@ async def get_persona(sim_code: str):
 async def personas_info(sim_code: str):
     reverie_instance = get_reverie_instance(sim_code)
     r = reverie_instance.reverie
-    if not reverie_instance:
-        L.warning(f"Simulation with code {sim_code} not found")
-        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
-
     persona_info = []
 
     try:
@@ -378,64 +716,17 @@ async def personas_info(sim_code: str):
                     "act_event": scratch.act_event,
                 }
             )
-    # scratch_data = load_json_file(scratch_file)
-    # try:
-    # person = ScratchData(**scratch_data)
-    # persona_info.append(
-    #     {
-    #         "name": person.name,
-    #         "first_name": person.first_name,
-    #         "last_name": person.last_name,
-    #         "age": person.age,
-    #         "innate": person.innate,
-    #         "learned": person.learned,
-    #         "currently": person.currently,
-    #         "lifestyle": person.lifestyle,
-    #         "living_area": person.living_area,
-    #         "act_event": person.act_event,
-    #     }
-    # )
     except ValidationError as e:
         L.warning(f"Error parsing persona {persona}: {e}")
 
     return {"personas": persona_info}
 
 
-@router.post("/chat")
-async def chat(chat_request: ChatReq, sim_code: str):
-    reverie_instance = get_reverie_instance(sim_code)
-    if not reverie_instance:
-        L.warning(f"Simulation with code {sim_code} not found")
-        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
-    try:
-        q = reverie_instance.reverie.command_queue
-        q.put(f"call -- chat to persona {chat_request.agent_name}")
-        q.put(
-            json.dumps(
-                {
-                    "mode": chat_request.type,
-                    "prev_msgs": chat_request.history,
-                    "msg": chat_request.content,
-                }
-            )
-        )
-        return {"status": "success"}
-    except Exception as e:
-        L.warning(f"Error processing chat request: {e}")
-        raise HTTPException(status_code=404, detail="Invalid simulation or persona")
-
-
 @router.get("/persona_detail")
 async def persona_detail(sim_code: str, agent_name: str):
     r = get_reverie_instance(sim_code)
-    if not r:
-        L.warning(f"Simulation with code {sim_code} not found")
-        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
     r = r.reverie
     persona_path = os.path.join(STORAGE_PATH, r.template_sim_code, "personas", agent_name)
-    # scratch_file = os.path.join(persona_path, "bootstrap_memory", "scratch.json")
-    # Actually the scratch data should be loaded from ReverieInstance
-    # scratch_data = load_json_file(scratch_file)
     scratch = r.personas[agent_name].scratch
     scratch_data = vars(scratch)
 
@@ -449,41 +740,78 @@ async def persona_detail(sim_code: str, agent_name: str):
     return {"scratch": persona_detail, "a_mem": {}, "s_mem": {}}
 
 
-@router.get("/fetch_templates")
-async def fetch_templates():
-    envs = [dir for dir in os.listdir(STORAGE_PATH) if os.path.isdir(os.path.join(STORAGE_PATH, dir))]
-    filtered_envs = [env for env in envs if "test" not in env and "sim" not in env and "July" not in env]
-    # 暂时不显示这个
-    # if "base_the_ville_n25" in filtered_envs:
-    # filtered_envs.remove("base_the_ville_n25")
-    result_envs = []
-    for dir in filtered_envs:
-        template_meta_file = os.path.join(STORAGE_PATH, dir, "reverie", "meta.json")
-        template_meta = load_json_file(template_meta_file)
-        if template_meta:
-            hidden = template_meta.get("hidden", True)
-            L.debug(f"Hidden: {hidden}")
-            if not hidden:
-                result_envs.append(template_meta)
+def get_public_templates():
+    """Get list of available public templates"""
+    public_path = os.path.join(STORAGE_PATH, "public_templates")
+    print(public_path)
+    public_templates = []
+    if os.path.exists(public_path):
+        public_dirs = [dir for dir in os.listdir(public_path) if os.path.isdir(os.path.join(public_path, dir))]
+        print(public_dirs)
+        for dir in public_dirs:
+            template_meta_file = os.path.join(public_path, dir, "reverie", "meta.json")
+            template_meta = load_json_file(template_meta_file)
+            if template_meta:
+                hidden = template_meta.get("hidden", True)
+                if not hidden:
+                    public_templates.append(template_meta)
 
-    # Sort result_envs based on template_sim_code
+    # Sort templates
     def sort_key(env):
         sim_code = env.get("template_sim_code", "")
         return (0 if "online" in sim_code.lower() else 1, sim_code)
 
-    result_envs.sort(key=sort_key)
+    public_templates.sort(key=sort_key)
+    return public_templates
 
-    return {"envs": result_envs, "all_templates": envs}
+
+@router.get("/fetch_templates")
+async def fetch_templates(current_user: User = Depends(get_current_user(False), use_cache=False)):
+    # Get public templates
+    public_templates = get_public_templates()
+
+    # If user is not authenticated, return only public templates
+    if current_user is None:
+        return {"public_templates": public_templates, "user_templates": []}
+
+    # Get user templates from storage_path/{user_hash}/
+    user_hash = get_user_hash(current_user.username)
+    user_path = os.path.join(STORAGE_PATH, user_hash)
+    user_templates = []
+    if os.path.exists(user_path):
+        user_dirs = [dir for dir in os.listdir(user_path) if os.path.isdir(os.path.join(user_path, dir))]
+        for dir in user_dirs:
+            template_meta_file = os.path.join(user_path, dir, "reverie", "meta.json")
+            template_meta = load_json_file(template_meta_file)
+            if template_meta:
+                user_templates.append(template_meta)
+
+    # Sort user templates
+    def sort_key(env):
+        sim_code = env.get("template_sim_code", "")
+        return (0 if "online" in sim_code.lower() else 1, sim_code)
+
+    user_templates.sort(key=sort_key)
+
+    return {"public_templates": public_templates, "user_templates": user_templates}
 
 
 @router.get("/fetch_template")
-async def fetch_template(sim_code: str):
+async def fetch_template(sim_code: str, current_user: User = Depends(get_current_active_user)):
     if not sim_code:
         raise HTTPException(status_code=400, detail="Missing sim_code parameter")
 
-    env_path = os.path.join(STORAGE_PATH, sim_code)
-    if not os.path.exists(env_path):
-        raise HTTPException(status_code=404, detail="Environment does not exist")
+    # Check if the template is accessible to the user
+    # First, check if it's a public template
+    if is_template_public(sim_code):
+        env_path = os.path.join(STORAGE_PATH, "public_templates", sim_code)
+    # Then check if it's owned by the user
+    elif user_owns_template(current_user.username, sim_code):
+        user_hash = get_user_hash(current_user.username)
+        env_path = os.path.join(STORAGE_PATH, user_hash, sim_code)
+    else:
+        # Template doesn't exist or user doesn't have access
+        raise HTTPException(status_code=403, detail="Template not found or access denied")
 
     meta_file = os.path.join(env_path, "reverie", "meta.json")
     env_meta = load_json_file(meta_file)
@@ -514,17 +842,33 @@ async def fetch_template(sim_code: str):
 
 
 @router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, sim_code: str):
+async def websocket_endpoint(websocket: WebSocket, sim_code: str, token: Optional[str] = None):
+    # Authenticate websocket connections with token parameter
+    if token:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get("sub")
+            if not username or get_user(username) is None:
+                await websocket.close(code=1008)  # Policy violation
+                return
+        except PyJWTError:
+            await websocket.close(code=1008)  # JWT Authentication failed
+            return
+        except Exception:
+            await websocket.close(code=1008)  # General authentication failure
+            return
+
     reverie_instance = get_reverie_instance(sim_code)
     if not reverie_instance:
         L.warning(f"No reverie instance found for sim_code: {sim_code}")
-        raise HTTPException(status_code=404, detail="No reverie instance found")
-    await websocket.accept()
+        await websocket.close(code=1003)  # Can't accept
+        return
 
+    await websocket.accept()
     websocket_id = id(websocket)
 
     try:
-        with threading.Lock():
+        with reverie_instance.ws_lock:
             reverie_instance.active_websockets[websocket_id] = websocket
 
         while True:
@@ -535,7 +879,7 @@ async def websocket_endpoint(websocket: WebSocket, sim_code: str):
     except WebSocketDisconnect:
         pass
     finally:
-        with threading.Lock():
+        with reverie_instance.ws_lock:
             reverie_instance.active_websockets.pop(websocket_id, None)
 
 
@@ -548,12 +892,14 @@ if __name__ == "__main__":
     import uvicorn
 
     parser = argparse.ArgumentParser(description="Run the FastAPI server")
-    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
-    parser.add_argument("--port", type=int, default=11544, help="Port to bind to")
+    # parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
+    # parser.add_argument("--port", type=int, default=11544, help="Port to bind to")
     parser.add_argument("--dev", action="store_true", help="Run in development mode")
     args = parser.parse_args()
+    host = os.environ.get("LISTEN_ADDRESS", "0.0.0.0")
+    port = int(os.environ.get("BACKEND_PORT", 11544))
 
     if args.dev:
-        uvicorn.run("__main__:app", host=args.host, port=args.port, reload=True)
+        uvicorn.run("__main__:app", host=host, port=port, reload=True)
     else:
-        uvicorn.run(app, host=args.host, port=args.port)
+        uvicorn.run(app, host=host, port=port)

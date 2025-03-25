@@ -12,27 +12,64 @@ import { ConfigPage } from './pages/llmconfig.tsx';
 import { ConfirmPage } from './pages/confirm.tsx';
 import { InteractPage } from './pages/interact.tsx';
 import { SimContextProvider } from './SimContext.tsx';
-import { frontendUrl } from './lib/utils.ts';
+import { LoginPage } from './pages/login.tsx';
+import { RegisterPage } from './pages/register.tsx';
+import { AuthProvider } from './contexts/AuthContext.tsx';
+import { ProtectedRoute } from './components/ProtectedRoute.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SimContextProvider>
-      <BrowserRouter basename={frontendUrl}>
-        <Routes>
-          <Route path="/" element={
-            <Navigate to="/welcome" replace />
-          } />
-          <Route path="/confirm" element={<ConfirmPage />} />
-          <Route path="/llmconfig" element={<ConfigPage />} />
-          <Route path="/templates" element={<TemplatePage />} />
-          <Route path="/events" element={<EventsPage />} />
-          <Route path="/welcome" element={<WelcomePage />} />
-          <Route path="/agents" element={<AgentsPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/interact" element={<InteractPage />} />
-          <Route path="/tabs" element={<TabsDemo />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={
+              <Navigate to="/welcome" replace />
+            } />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/welcome" element={<WelcomePage />} />
+            <Route path="/templates" element={<TemplatePage />} />
+            
+            {/* Protected Routes */}
+            <Route path="/confirm" element={
+              <ProtectedRoute>
+                <ConfirmPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/llmconfig" element={
+              <ProtectedRoute>
+                <ConfigPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/events" element={
+              <ProtectedRoute>
+                <EventsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/agents" element={
+              <ProtectedRoute>
+                <AgentsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/interact" element={
+              <ProtectedRoute>
+                <InteractPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/tabs" element={
+              <ProtectedRoute>
+                <TabsDemo />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </SimContextProvider>
   </StrictMode>
 );

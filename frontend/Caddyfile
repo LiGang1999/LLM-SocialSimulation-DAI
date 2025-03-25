@@ -1,13 +1,11 @@
-:9080 {
-  handle /css/socialsim/api/* {
-      uri strip_prefix /css/socialsim/api
-      reverse_proxy localhost:9081
-  }
+:{$LISTEN_PORT} {
+	handle /api/* {
+		reverse_proxy localhost:{$BACKEND_PORT}
+	}
 
-  handle /css/socialsim/* {
-      uri strip_prefix /css/socialsim
-      root * ./dist
-      try_files {path} /index.html
-      file_server
-  }
+	handle /* {
+		root * ./dist
+		try_files {path} /index.html
+		file_server
+	}
 }

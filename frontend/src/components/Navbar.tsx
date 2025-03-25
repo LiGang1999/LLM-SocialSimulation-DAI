@@ -17,6 +17,7 @@ import { buttonVariants } from "./ui/button";
 import { Menu } from "lucide-react";
 import { LogoIcon } from "./Icons";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
 
@@ -50,6 +51,8 @@ const routeList: RouteProps[] = [
 
 export const Navbar = () => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    const { user, isAuthenticated, logout } = useAuth();
+    
     return (
         <header className="sticky top-0 z-40 w-full border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background">
             <NavigationMenu className="mx-auto">
@@ -99,6 +102,44 @@ export const Navbar = () => {
                                             {label}
                                         </Link>
                                     ))}
+                                    {isAuthenticated ? (
+                                        <>
+                                            <span className={buttonVariants({ variant: "ghost" })}>
+                                                {user?.username}
+                                            </span>
+                                            <Link
+                                                rel="noreferrer noopener"
+                                                to="/"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    logout();
+                                                    setIsOpen(false);
+                                                }}
+                                                className="w-[110px] border-[1px] bg-gray-50 border-white border-opacity-40"
+                                            >
+                                                登出
+                                            </Link>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Link
+                                                rel="noreferrer noopener"
+                                                to="/login"
+                                                onClick={() => setIsOpen(false)}
+                                                className="w-[110px] border-[1px] bg-gray-50 border-white border-opacity-40"
+                                            >
+                                                登录
+                                            </Link>
+                                            <Link
+                                                rel="noreferrer noopener"
+                                                to="/register"
+                                                onClick={() => setIsOpen(false)}
+                                                className="w-[110px] border-[1px] bg-gray-50 border-white border-opacity-40"
+                                            >
+                                                注册
+                                            </Link>
+                                        </>
+                                    )}
                                     <Link
                                         rel="noreferrer noopener"
                                         to={github_link}
@@ -129,6 +170,43 @@ export const Navbar = () => {
                     </nav>
 
                     <div className="hidden md:flex gap-2">
+                        {isAuthenticated ? (
+                            <>
+                                <span className={`text-[17px] ${buttonVariants({
+                                    variant: "ghost",
+                                })} bg-opacity-50`}>
+                                    {user?.username}
+                                </span>
+                                <Link
+                                    to="/"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        logout();
+                                    }}
+                                    className={`border ${buttonVariants({ variant: "ghost" })} bg-white bg-opacity-20 border-opacity-40 border-white`}
+                                >
+                                    登出
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    rel="noreferrer noopener"
+                                    to="/login"
+                                    className={`border ${buttonVariants({ variant: "ghost" })} bg-white bg-opacity-20 border-opacity-40 border-white`}
+                                >
+                                    登录
+                                </Link>
+                                <Link
+                                    rel="noreferrer noopener"
+                                    to="/register"
+                                    className={`border ${buttonVariants({ variant: "ghost" })} bg-white bg-opacity-20 border-opacity-40 border-white`}
+                                >
+                                    注册
+                                </Link>
+                            </>
+                        )}
+
                         <Link
                             rel="noreferrer noopener"
                             to={github_link}
@@ -138,7 +216,6 @@ export const Navbar = () => {
                             <GitHubLogoIcon className="mr-2 w-5 h-5" />
                             Github
                         </Link>
-
                     </div>
                 </NavigationMenuList>
             </NavigationMenu>

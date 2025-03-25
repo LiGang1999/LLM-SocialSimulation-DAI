@@ -1,3 +1,6 @@
+import os
+
+
 # Copy and paste your OpenAI API Key
 openai_api_base = "http://api.openai.com/v1"
 openai_api_key = "<Your OpenAI API>"
@@ -19,12 +22,14 @@ google_api_cx = "<Google API CX>"  # search model id
 # Put your name
 key_owner = "<Name>"
 
-maze_assets_loc = "api/static/assets"
+
+storage_path = os.getenv("STORAGE_PATH", "../storage")
+temp_storage_path = f"{storage_path}/temp_storage"
+
+
+maze_assets_loc = f"{storage_path}/assets"
 env_matrix = f"{maze_assets_loc}/the_ville/matrix"
 env_visuals = f"{maze_assets_loc}/the_ville/visuals"
-
-storage_path = "../storage"
-temp_storage_path = "../temp_storage"
 
 collision_block_id = "32125"
 

@@ -18,6 +18,8 @@ default_llm_config = override_gpt_param
 
 print_raw_log = False
 print_short_log = True
+dir_path = os.path.dirname(os.path.abspath(__file__))
+template_storage_dir = os.path.join(dir_path, "../prompt_templates")
 
 
 def llm_logging_repr(object):
@@ -84,7 +86,7 @@ def extract_first_json_dict(data_str):
     return None
 
 
-def load_prompt_file(prompt_file, prompt_storage="prompt_templates"):
+def load_prompt_file(prompt_file, prompt_storage=template_storage_dir):
     cwd = os.getcwd()
     fullpath = os.path.join(cwd, prompt_storage, prompt_file)
 

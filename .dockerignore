@@ -1,0 +1,11 @@
+# Ignore these directories
+frontend/node_modules
+prompt_builder
+logs
+__pycache__
+
+# Ignore specific files
+*.tmp
+.venv
+.github
+.git
