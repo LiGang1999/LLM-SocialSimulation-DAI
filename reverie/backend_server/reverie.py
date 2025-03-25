@@ -360,7 +360,7 @@ class Reverie:
 
             # This one should be called sim_code, but call it template_sim_code to maintain backward compatability
             reverie_meta["template_sim_code"] = sim_config.sim_code
-            self.storage_home = f"{self.storage_path}/{self.sim_code}"
+            self.storage_home = f"{self.storage_path}/user_templates/{user_hash}/{self.sim_code}"
 
             # check fields for reverie_meta
 

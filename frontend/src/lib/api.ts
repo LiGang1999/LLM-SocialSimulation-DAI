@@ -5,7 +5,9 @@ export const api = axios.create(({
     baseURL: `/api`,
 }))
 
-// Setup axios interceptor to add authorization token to requests
+// Setup axios interceptor to add authorization token to requests if needed
+// The cookie will be automatically sent by the browser, but we keep token support
+// for backwards compatibility
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -13,6 +15,9 @@ api.interceptors.request.use((config) => {
     }
     return config;
 });
+
+// Enable cookies to be sent with requests
+api.defaults.withCredentials = true;
 
 export interface AuthResponse {
     access_token: string;
@@ -49,6 +54,15 @@ export namespace apis {
         } catch (error) {
             console.error("Login error:", error);
             throw error;
+        }
+    };
+
+    export const logout = async (): Promise<void> => {
+        try {
+            // We'll call this endpoint even if it doesn't exist yet, so we can add it later
+            await api.post('/logout');
+        } catch (error) {
+            console.error("Logout error:", error);
         }
     };
 
@@ -281,14 +295,14 @@ export namespace apis {
         }
     };
 
-    export const fetchTemplates = async (): Promise<{ 
-        public_templates: TemplateListItem[], 
-        user_templates: TemplateListItem[] 
+    export const fetchTemplates = async (): Promise<{
+        public_templates: TemplateListItem[],
+        user_templates: TemplateListItem[]
     }> => {
         try {
-            const response = await api.get<{ 
-                public_templates: TemplateListItem[], 
-                user_templates: TemplateListItem[] 
+            const response = await api.get<{
+                public_templates: TemplateListItem[],
+                user_templates: TemplateListItem[]
             }>('/fetch_templates');
 
             // Define priority order
@@ -315,7 +329,7 @@ export namespace apis {
 
             // Get public templates (should always be available)
             const publicTemplates = response.data.public_templates || [];
-            
+
             // Get user templates (may be empty for unauthorized users)
             const userTemplates = response.data.user_templates || [];
 
@@ -452,6 +466,7 @@ export namespace apis {
 
     export const messageSocket = (simCode: string) => {
         const token = localStorage.getItem('token');
-        return new WebSocket(`api/ws?sim_code=${simCode}${token ? `&token=${token}` : ''}`);
+        const uriToken = encodeURIComponent(token || "");
+        return new WebSocket(`api/ws?sim_code=${simCode}${token ? `&token=${uriToken}` : ''}`);
     }
 }

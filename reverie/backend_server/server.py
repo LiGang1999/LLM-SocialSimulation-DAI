@@ -3,6 +3,9 @@ import json
 import os
 import threading
 import time
+import bcrypt
+
+bcrypt.__about__ = bcrypt  # this is a weird fix.
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from queue import Queue
@@ -215,6 +218,7 @@ def get_current_user(required: bool = True):
             raise credentials_exception
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            print(payload)
             username: str = payload.get("sub")
             if username is None:
                 raise credentials_exception
@@ -239,29 +243,6 @@ async def get_current_active_user(current_user: User = Depends(get_current_user(
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
-
-
-async def get_optional_current_user(token: Optional[str] = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
-    if token is None:
-        return None
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            return None
-        token_data = TokenData(username=username)
-    except PyJWTError:
-        return None
-    user = await get_user(db, username=token_data.username)
-    if user is None:
-        return None
-    return UserInDB(
-        username=user.username,
-        email=user.email,
-        full_name=user.full_name,
-        disabled=user.disabled,
-        hashed_password=user.hashed_password,
-    )
 
 
 # Initialize database on startup
@@ -328,6 +309,9 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     )
 
 
+from fastapi.responses import JSONResponse
+
+
 @router.post("/login", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
     user = await authenticate_user(db, form_data.username, form_data.password)
@@ -339,7 +323,41 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
-    return {"access_token": access_token, "token_type": "bearer"}
+
+    # Create response with token in body
+    response = JSONResponse(content={"access_token": access_token, "token_type": "bearer"})
+
+    # Set cookie with the same token
+    response.set_cookie(
+        key="auth_token",
+        value=f"Bearer {access_token}",
+        httponly=True,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        expires=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        samesite="lax",
+        secure=False,  # Set to True in production with HTTPS
+    )
+
+    return response
+
+
+@router.post("/logout")
+async def logout():
+    """Clear auth cookie on logout"""
+    response = JSONResponse(content={"status": "success"})
+
+    # Clear the auth cookie by setting it to expire immediately
+    response.set_cookie(
+        key="auth_token",
+        value="",
+        httponly=True,
+        max_age=0,
+        expires=0,
+        samesite="lax",
+        secure=False,  # Set to True in production with HTTPS
+    )
+
+    return response
 
 
 @router.get("/users/me", response_model=User)
@@ -743,7 +761,6 @@ async def persona_detail(sim_code: str, agent_name: str):
 def get_public_templates():
     """Get list of available public templates"""
     public_path = os.path.join(STORAGE_PATH, "public_templates")
-    print(public_path)
     public_templates = []
     if os.path.exists(public_path):
         public_dirs = [dir for dir in os.listdir(public_path) if os.path.isdir(os.path.join(public_path, dir))]
@@ -842,21 +859,30 @@ async def fetch_template(sim_code: str, current_user: User = Depends(get_current
 
 
 @router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, sim_code: str, token: Optional[str] = None):
+async def websocket_endpoint(
+    websocket: WebSocket, sim_code: str, token: Optional[str] = None, db: AsyncSession = Depends(get_db)
+):
     # Authenticate websocket connections with token parameter
     if token:
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            print("websocket token", payload)
             username = payload.get("sub")
-            if not username or get_user(username) is None:
+            if not username or get_user(db, username) is None:
+                print(1)
                 await websocket.close(code=1008)  # Policy violation
                 return
-        except PyJWTError:
+        except PyJWTError as e:
+            print(2, e)
             await websocket.close(code=1008)  # JWT Authentication failed
             return
-        except Exception:
+        except Exception as e:
+            print(3, e)
             await websocket.close(code=1008)  # General authentication failure
             return
+    else:
+        await websocket.close(code=1008)  # General authentication failure
+        return
 
     reverie_instance = get_reverie_instance(sim_code)
     if not reverie_instance:
@@ -884,6 +910,7 @@ async def websocket_endpoint(websocket: WebSocket, sim_code: str, token: Optiona
 
 
 app.include_router(router)
+
 
 if __name__ == "__main__":
     import argparse

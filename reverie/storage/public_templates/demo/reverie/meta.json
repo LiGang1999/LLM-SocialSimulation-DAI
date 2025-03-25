@@ -1,0 +1,26 @@
+{
+  "template_sim_code": "demo",
+  "name": "未来城市",
+  "bullets": [
+    "8 个 智能体",
+    "选择想居住的城市",
+    "在线多人讨论"
+  ],
+  "description": "观察不同年龄、职业、收入、经历的人物对未来城市的满意度，追踪其对AI技术的信任度变化。",
+  "start_date": "February 13, 2023",
+  "curr_time": "February 13, 2023, 00:00:00",
+  "sec_per_step": 10,
+  "maze_name": "the_ville",
+  "persona_names": [
+    "李悦",
+    "林敏",
+    "刘浩",
+    "苏瑶",
+    "王强",
+    "杨世真",
+    "张爱国",
+    "赵阳"
+  ],
+  "step": 0,
+  "sim_mode": "online"
+}

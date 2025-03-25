@@ -24,6 +24,11 @@ export default defineConfig({
       '/api': {
         target: `http://localhost:${process.env.BACKEND_PORT || '9081'}`,
         changeOrigin: true,
+      },
+      '/api/ws': {
+        target: `http://localhost:${process.env.BACKEND_PORT || '9081'}`,
+        changeOrigin: true,
+        ws: true
       }
     }
   },

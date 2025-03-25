@@ -1,0 +1,35 @@
+{
+  "template_sim_code": "legislative_council_life",
+  "name": "生命讨论立法会",
+  "bullets": [
+    "15 个 智能体",
+    "基于web搜索的决策制定",
+    "在线多人讨论"
+  ],
+  "description": "通过基于网络搜索的决策机制，共同参与重要公共事务的讨论。每10秒一个时间步长，参与者可以观察智能体如何实时获取和分析网络信息，权衡不同观点，处理分歧，并最终达成共识。",
+  "start_date": "February 13, 2023",
+  "curr_time": "February 13, 2023, 00:00:00",
+  "sec_per_step": 10,
+  "maze_name": "the_ville",
+  "persona_names": [
+    "陳凱欣",
+    "陳沛良",
+    "陳永光",
+    "鄧飛",
+    "鄧家彪",
+    "狄志远",
+    "管浩鸣",
+    "郭玲丽",
+    "简慧敏",
+    "江玉欢",
+    "李镇强",
+    "梁子颖",
+    "林素蔚",
+    "林哲玄",
+    "容海恩"
+  ],
+  "step": 0,
+  "sim_mode": "online",
+  "hidden": false,
+  "start_order": "custom-run legislative_council_life"
+}

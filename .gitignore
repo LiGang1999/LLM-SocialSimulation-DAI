@@ -2,6 +2,8 @@ reverie/backend_server/utils.py
 frontend_server/settings/local.py
 **/storage/*
 static_dirs/*
+!reverie/storage/public_templates
+!reverie/storage/assets
 
 bin/
 include/

@@ -6,9 +6,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   register: (
-    username: string, 
-    password: string, 
-    email: string, 
+    username: string,
+    password: string,
+    email: string,
     fullName: string,
     phone: string,
     institution: string
@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await apis.login(username, password);
       localStorage.setItem('token', response.access_token);
-      
+
       // Fetch user data after successful login
       await fetchCurrentUser();
       return true;
@@ -65,9 +65,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (
-    username: string, 
-    password: string, 
-    email: string, 
+    username: string,
+    password: string,
+    email: string,
     fullName: string,
     phone: string,
     institution: string
@@ -81,10 +81,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phone,
         institution
       };
-      
+
       // Register the user
       await apis.register(registerData);
-      
+
       // After successful registration, login the user
       return await login(username, password);
     } catch (error) {
@@ -93,7 +93,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Try to call the logout API (which will clear the cookie)
+    await apis.logout().catch(console.error);
+
+    // Always clear local storage token regardless of API call success
     localStorage.removeItem('token');
     setUser(null);
     setIsAuthenticated(false);
