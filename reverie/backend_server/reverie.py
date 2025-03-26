@@ -331,6 +331,7 @@ class Reverie:
             template_folder = f"{self.storage_path}/user_templates/{user_hash}/{self.template_sim_code}"
 
         self.sim_code = sim_config.sim_code
+        self.llm_config = sim_config.llm_config
         sim_folder = f"{self.storage_path}/user_templates/{user_hash}/{self.sim_code}"
 
         if check_if_dir_exists(sim_folder):
@@ -869,7 +870,7 @@ class Reverie:
 
         # set instance to thread local storage
         thread_local.reverie_instance = reverie_instance
-        thread_local.reverie_local = self
+        thread_local.reverie = self
         # Load all online events
         self.is_running = True
         if self.sim_mode == "online":

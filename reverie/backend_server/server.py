@@ -386,8 +386,10 @@ def save_json_file(file_path: str, data: Dict[str, Any]) -> None:
 
 def parse_llm_config(llm_config_data: Dict[str, Any]) -> LLMConfig:
     return LLMConfig(
-        base_url=llm_config_data.get("base_url", config.openai_api_base),
-        api_key=llm_config_data.get("api_key", config.openai_api_key),
+        # base_url=llm_config_data.get("base_url", config.openai_api_base), # 不再提供api
+        # api_key=llm_config_data.get("api_key", config.openai_api_key), # 不再提供api
+        base_url=llm_config_data.get("base_url", ""),
+        api_key=llm_config_data.get("api_key", ""),
         model=llm_config_data.get("model", ""),
         tempreature=float(llm_config_data.get("temperature", 1.0)),
         max_tokens=int(llm_config_data.get("max_tokens", 512)),
