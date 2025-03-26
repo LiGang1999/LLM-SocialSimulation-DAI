@@ -10,11 +10,20 @@ import ast
 import datetime
 import re
 import sys
+import os
+import random
+import string
 
 from persona.prompt_template.gpt_structure import *
 from persona.prompt_template.print_prompt import *
 from utils import *
 from utils.llm_function import llm_function, async_llm_function
+
+dir_path = os.path.dirname(os.path.abspath(__file__))
+template_storage_dir = os.path.join(dir_path, "./")
+
+def get_legacy_prompt(filename):
+    return os.path.join(template_storage_dir, filename)
 
 
 def get_random_alphanumeric(i=6, j=6):
@@ -109,7 +118,7 @@ def run_gpt_prompt_wake_up_hour_old(persona, test_input=None, verbose=False):
         "presence_penalty": 0,
         "stop": ["\n"],
     }
-    prompt_template = "persona/prompt_template/v2/wake_up_hour_v1.txt"
+    prompt_template = get_legacy_prompt("v2/wake_up_hour_v1.txt")
     prompt_input = create_prompt_input(persona, test_input)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe()
@@ -186,7 +195,7 @@ def run_gpt_prompt_daily_plan(persona, wake_up_hour, test_input=None, verbose=Fa
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/daily_planning_v6.txt"
+    prompt_template = get_legacy_prompt("v2/daily_planning_v6.txt")
     prompt_input = create_prompt_input(persona, wake_up_hour, test_input)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe()
@@ -271,8 +280,8 @@ def run_gpt_prompt_daily_plan_directed_by_LTP(
         "presence_penalty": 0,
         "stop": None,
     }
-    # prompt_template = "persona/prompt_template/v2/daily_planning_v6.txt"
-    prompt_template = "persona/prompt_template/v2/daily_planning_v6_new.txt"
+    # prompt_template = get_legacy_prompt("v2/daily_planning_v6.txt")
+    prompt_template = get_legacy_prompt("v2/daily_planning_v6_new.txt")
     prompt_input = create_prompt_input(persona, wake_up_hour, test_input)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe()
@@ -329,7 +338,7 @@ def run_gpt_prompt_stagely_plan(persona, maze):  # extend planning cycle
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/stagely_planning.txt"
+    prompt_template = get_legacy_prompt("v2/stagely_planning.txt")
     prompt_input = create_prompt_input(persona, maze)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe()
@@ -465,7 +474,7 @@ def run_gpt_prompt_generate_hourly_schedule_old(
     # gpt_param = {"model": "text-davinci-002", "max_tokens": 15,
     #              "temperature": 0, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # prompt_template = "persona/prompt_template/v3_ChatGPT/generate_hourly_schedule_v2.txt" ########
+    # prompt_template = get_legacy_prompt("v3_ChatGPT/generate_hourly_schedule_v2.txt") ########
     # prompt_input = create_prompt_input(persona,
     #                                    curr_hour_str,
     #                                    p_f_ds_hourly_org,
@@ -492,7 +501,7 @@ def run_gpt_prompt_generate_hourly_schedule_old(
         "presence_penalty": 0,
         "stop": "---",
     }
-    prompt_template = "persona/prompt_template/v2/generate_hourly_schedule_v2.txt"
+    prompt_template = get_legacy_prompt("v2/generate_hourly_schedule_v2.txt")
     prompt_input = create_prompt_input(persona, curr_hour_str, p_f_ds_hourly_org, hour_str, intermission2, test_input)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe()
@@ -573,7 +582,7 @@ def run_gpt_prompt_generate_daily_schedule(persona, curr_day_str, p_f_ds_daily_o
         "presence_penalty": 0,
         "stop": ["\n"],
     }
-    prompt_template = "persona/prompt_template/v2/generate_daily_schedule.txt"
+    prompt_template = get_legacy_prompt("v2/generate_daily_schedule.txt")
     prompt_input = create_prompt_input(persona, curr_day_str, p_f_ds_daily_org, maze)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe()
@@ -814,7 +823,7 @@ def run_gpt_prompt_task_decomp_old(persona, task, duration, test_input=None, ver
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/task_decomp_v3.txt"
+    prompt_template = get_legacy_prompt("v2/task_decomp_v3.txt")
     prompt_input = create_prompt_input(persona, task, duration)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe()
@@ -1016,7 +1025,7 @@ def run_gpt_prompt_action_sector_old(action_description, persona, maze, test_inp
     # gpt_param = {"model": "text-davinci-002", "max_tokens": 15,
     #              "temperature": 0, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # prompt_template = "persona/prompt_template/v3_ChatGPT/action_location_sector_v2.txt" ########
+    # prompt_template = get_legacy_prompt("v3_ChatGPT/action_location_sector_v2.txt") ########
     # prompt_input = create_prompt_input(action_description, persona, maze)  ########
     # prompt = generate_prompt(prompt_input, prompt_template)
     # example_output = "Johnson Park" ########
@@ -1038,7 +1047,7 @@ def run_gpt_prompt_action_sector_old(action_description, persona, maze, test_inp
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v1/action_location_sector_v1.txt"
+    prompt_template = get_legacy_prompt("v1/action_location_sector_v1.txt")
     prompt_input = create_prompt_input(action_description, persona, maze)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -1179,7 +1188,7 @@ def run_gpt_prompt_action_arena_old(
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v1/action_location_object_vMar11.txt"
+    prompt_template = get_legacy_prompt("v1/action_location_object_vMar11.txt")
     prompt_input = create_prompt_input(action_description, persona, maze, act_world, act_sector)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -1251,7 +1260,7 @@ def run_gpt_prompt_action_game_object_old(
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v1/action_object_v2.txt"
+    prompt_template = get_legacy_prompt("v1/action_object_v2.txt")
     prompt_input = create_prompt_input(action_description, persona, temp_address, test_input)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -1334,7 +1343,7 @@ def run_gpt_prompt_pronunciatio_old(action_description, persona, verbose=False):
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/generate_pronunciatio_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/generate_pronunciatio_v1.txt")  ########
     prompt_input = create_prompt_input(action_description)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "🛁🧖‍♀️"  ########
@@ -1358,7 +1367,7 @@ def run_gpt_prompt_pronunciatio_old(action_description, persona, verbose=False):
     # gpt_param = {"model": "text-davinci-003", "max_tokens": 15,
     #              "temperature": 0, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": ["\n"]}
-    # prompt_template = "persona/prompt_template/v2/generate_pronunciatio_v1.txt"
+    # prompt_template = get_legacy_prompt("v2/generate_pronunciatio_v1.txt")
     # prompt_input = create_prompt_input(action_description)
 
     # prompt = generate_prompt(prompt_input, prompt_template)
@@ -1421,7 +1430,7 @@ def run_gpt_prompt_event_triple_old(action_description, persona, verbose=False):
         "presence_penalty": 0,
         "stop": ["\n"],
     }
-    prompt_template = "persona/prompt_template/v2/generate_event_triple_v1.txt"
+    prompt_template = get_legacy_prompt("v2/generate_event_triple_v1.txt")
     prompt_input = create_prompt_input(action_description, persona)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe(persona)  ########
@@ -1481,7 +1490,7 @@ def run_gpt_prompt_event_triple_new_old(action_description, verbose=False):
 
     # 输出当前工作目录
     print("当前工作目录:", current_path)
-    prompt_template = "persona/prompt_template/v2/generate_event_triple_v2.txt"
+    prompt_template = get_legacy_prompt("v2/generate_event_triple_v2.txt")
     prompt_input = action_description
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe()  ########
@@ -1550,7 +1559,7 @@ def run_gpt_prompt_act_obj_desc_old(act_game_object, act_desp, persona, verbose=
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/generate_obj_event_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/generate_obj_event_v1.txt")  ########
     prompt_input = create_prompt_input(act_game_object, act_desp, persona)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "being fixed"  ########
@@ -1577,7 +1586,7 @@ def run_gpt_prompt_act_obj_desc_old(act_game_object, act_desp, persona, verbose=
     # gpt_param = {"model": "text-davinci-003", "max_tokens": 30,
     #              "temperature": 0, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": ["\n"]}
-    # prompt_template = "persona/prompt_template/v2/generate_obj_event_v1.txt"
+    # prompt_template = get_legacy_prompt("v2/generate_obj_event_v1.txt")
     # prompt_input = create_prompt_input(act_game_object, act_desp, persona)
     # prompt = generate_prompt(prompt_input, prompt_template)
     # fail_safe = get_fail_safe(act_game_object)
@@ -1634,7 +1643,7 @@ def run_gpt_prompt_act_obj_event_triple_old(act_game_object, act_obj_desc, perso
         "presence_penalty": 0,
         "stop": ["\n"],
     }
-    prompt_template = "persona/prompt_template/v2/generate_event_triple_v1.txt"
+    prompt_template = get_legacy_prompt("v2/generate_event_triple_v1.txt")
     prompt_input = create_prompt_input(act_game_object, act_obj_desc)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe(act_game_object)
@@ -1790,7 +1799,7 @@ def run_gpt_prompt_new_decomp_schedule(
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/new_decomp_schedule_v1.txt"
+    prompt_template = get_legacy_prompt("v2/new_decomp_schedule_v1.txt")
     prompt_input = create_prompt_input(
         persona,
         main_act_dur,
@@ -1899,7 +1908,7 @@ def run_gpt_prompt_decide_to_talk(persona, target_persona, retrieved, test_input
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/decide_to_talk_v2.txt"
+    prompt_template = get_legacy_prompt("v2/decide_to_talk_v2.txt")
     prompt_input = create_prompt_input(persona, target_persona, retrieved, test_input)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2008,7 +2017,7 @@ def run_gpt_prompt_decide_to_react(persona, target_persona, retrieved, test_inpu
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/decide_to_react_v1.txt"
+    prompt_template = get_legacy_prompt("v2/decide_to_react_v1.txt")
     prompt_input = create_prompt_input(persona, target_persona, retrieved, test_input)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2144,7 +2153,7 @@ def run_gpt_prompt_create_conversation(persona, target_persona, curr_loc, test_i
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/create_conversation_v2.txt"
+    prompt_template = get_legacy_prompt("v2/create_conversation_v2.txt")
     prompt_input = create_prompt_input(persona, target_persona, curr_loc, test_input)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2203,7 +2212,7 @@ def run_gpt_prompt_summarize_conversation(persona, conversation, test_input=None
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/summarize_conversation_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/summarize_conversation_v1.txt")  ########
     prompt_input = create_prompt_input(conversation, test_input)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "conversing about what to eat for lunch"  ########
@@ -2227,7 +2236,7 @@ def run_gpt_prompt_summarize_conversation(persona, conversation, test_input=None
     # gpt_param = {"model": "text-davinci-003", "max_tokens": 50,
     #              "temperature": 0, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # prompt_template = "persona/prompt_template/v2/summarize_conversation_v1.txt"
+    # prompt_template = get_legacy_prompt("v2/summarize_conversation_v1.txt")
     # prompt_input = create_prompt_input(conversation, test_input)
     # prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2286,7 +2295,7 @@ def run_gpt_prompt_extract_keywords(persona, description, test_input=None, verbo
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/get_keywords_v1.txt"
+    prompt_template = get_legacy_prompt("v2/get_keywords_v1.txt")
     prompt_input = create_prompt_input(description, test_input)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2328,7 +2337,7 @@ def run_gpt_prompt_keyword_to_thoughts(persona, keyword, concept_summary, test_i
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/keyword_to_thoughts_v1.txt"
+    prompt_template = get_legacy_prompt("v2/keyword_to_thoughts_v1.txt")
     prompt_input = create_prompt_input(persona, keyword, concept_summary)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2384,7 +2393,7 @@ def run_gpt_prompt_convo_to_thoughts(
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/convo_to_thoughts_v1.txt"
+    prompt_template = get_legacy_prompt("v2/convo_to_thoughts_v1.txt")
     prompt_input = create_prompt_input(init_persona_name, target_persona_name, convo_str, fin_target)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2444,7 +2453,7 @@ def run_gpt_prompt_event_poignancy(persona, event_description, test_input=None, 
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/poignancy_event_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/poignancy_event_v1.txt")  ########
     prompt_input = create_prompt_input(persona, event_description)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "5"  ########
@@ -2511,7 +2520,7 @@ def run_gpt_prompt_thought_poignancy(persona, event_description, test_input=None
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/poignancy_thought_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/poignancy_thought_v1.txt")  ########
     prompt_input = create_prompt_input(persona, event_description)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "5"  ########
@@ -2535,7 +2544,7 @@ def run_gpt_prompt_thought_poignancy(persona, event_description, test_input=None
     # gpt_param = {"model": "text-davinci-003", "max_tokens": 3,
     #              "temperature": 0, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # prompt_template = "persona/prompt_template/v2/poignancy_thought_v1.txt"
+    # prompt_template = get_legacy_prompt("v2/poignancy_thought_v1.txt")
     # prompt_input = create_prompt_input(persona, event_description)
     # prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2597,7 +2606,7 @@ def run_gpt_prompt_chat_poignancy(persona, event_description, test_input=None, v
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/poignancy_chat_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/poignancy_chat_v1.txt")  ########
     prompt_input = create_prompt_input(persona, event_description)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "5"  ########
@@ -2621,7 +2630,7 @@ def run_gpt_prompt_chat_poignancy(persona, event_description, test_input=None, v
     # gpt_param = {"model": "text-davinci-003", "max_tokens": 3,
     #              "temperature": 0, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # prompt_template = "persona/prompt_template/v2/poignancy_chat_v1.txt"
+    # prompt_template = get_legacy_prompt("v2/poignancy_chat_v1.txt")
     # prompt_input = create_prompt_input(persona, event_description)
     # prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2681,7 +2690,7 @@ def run_gpt_prompt_focal_pt(persona, statements, n, test_input=None, verbose=Fal
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/generate_focal_pt_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/generate_focal_pt_v1.txt")  ########
     prompt_input = create_prompt_input(persona, statements, n)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = '["What should Jane do for lunch", "Does Jane like strawberry", "Who is Jane"]'  ########
@@ -2748,7 +2757,7 @@ def run_gpt_prompt_focal_pt_new(persona, statements, n, test_input=None, verbose
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/generate_focal_pt_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/generate_focal_pt_v1.txt")  ########
     prompt_input = create_prompt_input(persona, statements, n)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = '["xxx", "xxx", "xxx"]'  ########
@@ -2779,7 +2788,7 @@ def run_gpt_prompt_focal_pt_new(persona, statements, n, test_input=None, verbose
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/generate_focal_pt_v1.txt"
+    prompt_template = get_legacy_prompt("v2/generate_focal_pt_v1.txt")
     prompt_input = create_prompt_input(persona, statements, n)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2801,7 +2810,7 @@ def run_gpt_prompt_focal_pt_new(persona, statements, n, test_input=None, verbose
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/generate_focal_pt_v1.txt"
+    prompt_template = get_legacy_prompt("v2/generate_focal_pt_v1.txt")
     prompt_input = create_prompt_input(persona, statements, n)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2865,7 +2874,7 @@ def run_gpt_prompt_insight_and_guidance_old(persona, statements, n, test_input=N
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/insight_and_evidence_v1.txt"
+    prompt_template = get_legacy_prompt("v2/insight_and_evidence_v1.txt")
     prompt_input = create_prompt_input(persona, statements, n)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -2927,7 +2936,7 @@ def run_gpt_prompt_agent_chat_summarize_ideas(
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/summarize_chat_ideas_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/summarize_chat_ideas_v1.txt")  ########
     prompt_input = create_prompt_input(persona, target_persona, statements, curr_context)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "Jane Doe is working on a project"  ########
@@ -2951,7 +2960,7 @@ def run_gpt_prompt_agent_chat_summarize_ideas(
     # gpt_param = {"model": "text-davinci-003", "max_tokens": 150,
     #              "temperature": 0.5, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # prompt_template = "persona/prompt_template/v2/summarize_chat_ideas_v1.txt"
+    # prompt_template = get_legacy_prompt("v2/summarize_chat_ideas_v1.txt")
     # prompt_input = create_prompt_input(persona, target_persona, statements, curr_context)
     # prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -3008,7 +3017,7 @@ def run_gpt_prompt_agent_chat_summarize_relationship(
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/summarize_chat_relationship_v2.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/summarize_chat_relationship_v2.txt")  ########
     prompt_input = create_prompt_input(persona, target_persona, statements)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "Jane Doe is working on a project"  ########
@@ -3032,7 +3041,7 @@ def run_gpt_prompt_agent_chat_summarize_relationship(
     # gpt_param = {"model": "text-davinci-003", "max_tokens": 150,
     #              "temperature": 0.5, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # prompt_template = "persona/prompt_template/v2/summarize_chat_relationship_v1.txt"
+    # prompt_template = get_legacy_prompt("v2/summarize_chat_relationship_v1.txt")
     # prompt_input = create_prompt_input(persona, target_persona, statements)
     # prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -3146,7 +3155,7 @@ def run_gpt_prompt_agent_chat(
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/agent_chat_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/agent_chat_v1.txt")  ########
     prompt_input = create_prompt_input(
         persona, target_persona, curr_context, init_summ_idea, target_summ_idea
     )  ########
@@ -3173,7 +3182,7 @@ def run_gpt_prompt_agent_chat(
     # gpt_param = {"model": "text-davinci-003", "max_tokens": 2000,
     #              "temperature": 0.7, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # prompt_template = "persona/prompt_template/v2/agent_chat_v1.txt"
+    # prompt_template = get_legacy_prompt("v2/agent_chat_v1.txt")
     # prompt_input = create_prompt_input(persona, target_persona, curr_context, init_summ_idea, target_summ_idea)
     # prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -3234,7 +3243,7 @@ def run_gpt_prompt_summarize_ideas(persona, statements, question, test_input=Non
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/summarize_ideas_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/summarize_ideas_v1.txt")  ########
     prompt_input = create_prompt_input(persona, statements, question)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "Jane Doe is working on a project"  ########
@@ -3258,7 +3267,7 @@ def run_gpt_prompt_summarize_ideas(persona, statements, question, test_input=Non
     # gpt_param = {"model": "text-davinci-003", "max_tokens": 150,
     #              "temperature": 0.5, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # prompt_template = "persona/prompt_template/v2/summarize_ideas_v1.txt"
+    # prompt_template = get_legacy_prompt("v2/summarize_ideas_v1.txt")
     # prompt_input = create_prompt_input(persona, statements, question)
     # prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -3317,7 +3326,7 @@ def run_gpt_prompt_generate_next_convo_line(
     # gpt_param = {"model": "text-davinci-002", "max_tokens": 15,
     #              "temperature": 0, "top_p": 1, "stream": False,
     #              "frequency_penalty": 0, "presence_penalty": 0, "stop": None}
-    # prompt_template = "persona/prompt_template/v3_ChatGPT/generate_next_convo_line_v1.txt" ########
+    # prompt_template = get_legacy_prompt("v3_ChatGPT/generate_next_convo_line_v1.txt") ########
     # prompt_input = create_prompt_input(persona, interlocutor_desc, prev_convo, retrieved_summary)  ########
     # prompt = generate_prompt(prompt_input, prompt_template)
     # example_output = 'Hello' ########
@@ -3339,7 +3348,7 @@ def run_gpt_prompt_generate_next_convo_line(
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/generate_next_convo_line_v1.txt"
+    prompt_template = get_legacy_prompt("v2/generate_next_convo_line_v1.txt")
     prompt_input = create_prompt_input(persona, interlocutor_desc, prev_convo, retrieved_summary)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -3435,7 +3444,7 @@ def run_gpt_prompt_generate_whisper_inner_thought(persona, whisper, test_input=N
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/whisper_inner_thought_v1.txt"
+    prompt_template = get_legacy_prompt("v2/whisper_inner_thought_v1.txt")
     prompt_input = create_prompt_input(persona, whisper)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -3476,7 +3485,7 @@ def run_gpt_prompt_planning_thought_on_convo(persona, all_utt, test_input=None, 
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/planning_thought_on_convo_v1.txt"
+    prompt_template = get_legacy_prompt("v2/planning_thought_on_convo_v1.txt")
     prompt_input = create_prompt_input(persona, all_utt)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -3529,7 +3538,7 @@ def run_gpt_prompt_memo_on_convo(persona, all_utt, test_input=None, verbose=Fals
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v3_ChatGPT/memo_on_convo_v1.txt"  ########
+    prompt_template = get_legacy_prompt("v3_ChatGPT/memo_on_convo_v1.txt")  ########
     prompt_input = create_prompt_input(persona, all_utt)  ########
     prompt = generate_prompt(prompt_input, prompt_template)
     example_output = "Jane Doe was interesting to talk to."  ########
@@ -3560,7 +3569,7 @@ def run_gpt_prompt_memo_on_convo(persona, all_utt, test_input=None, verbose=Fals
         "presence_penalty": 0,
         "stop": None,
     }
-    prompt_template = "persona/prompt_template/v2/memo_on_convo_v1.txt"
+    prompt_template = get_legacy_prompt("v2/memo_on_convo_v1.txt")
     prompt_input = create_prompt_input(persona, all_utt)
     prompt = generate_prompt(prompt_input, prompt_template)
 
@@ -3597,7 +3606,7 @@ def run_gpt_generate_safety_score(persona, comment, test_input=None, verbose=Fal
         return None
 
     print("11")
-    prompt_template = "persona/prompt_template/safety/anthromorphosization_v1.txt"
+    prompt_template = get_legacy_prompt("safety/anthromorphosization_v1.txt")
     prompt_input = create_prompt_input(comment)
     print("22")
     prompt = generate_prompt(prompt_input, prompt_template)
@@ -3724,7 +3733,7 @@ def run_gpt_generate_iterative_chat_utt(
         return cleaned_dict
 
     print("11")
-    prompt_template = "persona/prompt_template/v3_ChatGPT/iterative_convo_v1.txt"
+    prompt_template = get_legacy_prompt("v3_ChatGPT/iterative_convo_v1.txt")
     prompt_input = create_prompt_input(maze, init_persona, target_persona, retrieved, curr_context, curr_chat)
     print("22")
     prompt = generate_prompt(prompt_input, prompt_template)
@@ -3818,7 +3827,7 @@ def run_gpt_generate_iterative_comment_utt_with_policy(
         cleaned_dict["utterance"] = "..."
         return cleaned_dict
 
-    prompt_template = "persona/prompt_template/v3_ChatGPT/iterative_comment_v1.txt"
+    prompt_template = get_legacy_prompt("v3_ChatGPT/iterative_comment_v1.txt")
     prompt_input = create_prompt_input(persona, retrieved)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe()
@@ -3994,7 +4003,7 @@ def run_gpt_generate_iterative_comment_utt_with_websearch(
         cleaned_dict["utterance"] = "..."
         return cleaned_dict
 
-    prompt_template = "persona/prompt_template/v3_ChatGPT/iterative_comment_v3.txt"
+    prompt_template = get_legacy_prompt("v3_ChatGPT/iterative_comment_v3.txt")
     prompt_input = create_prompt_input(persona, retrieved)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe()
@@ -4080,7 +4089,7 @@ def run_gpt_generate_iterative_comment_utt_with_policy_and_websearch(
         cleaned_dict["utterance"] = "..."
         return cleaned_dict
 
-    prompt_template = "persona/prompt_template/v3_ChatGPT/iterative_comment_v4.txt"
+    prompt_template = get_legacy_prompt("v3_ChatGPT/iterative_comment_v4.txt")
     prompt_input = create_prompt_input(persona, retrieved)
     prompt = generate_prompt(prompt_input, prompt_template)
     fail_safe = get_fail_safe()

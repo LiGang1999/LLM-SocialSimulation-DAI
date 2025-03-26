@@ -789,7 +789,7 @@ async def fetch_templates(current_user: User = Depends(get_current_user(False), 
 
     # Get user templates from storage_path/{user_hash}/
     user_hash = get_user_hash(current_user.username)
-    user_path = os.path.join(STORAGE_PATH, user_hash)
+    user_path = os.path.join(STORAGE_PATH,"user_templates", user_hash)
     user_templates = []
     if os.path.exists(user_path):
         user_dirs = [dir for dir in os.listdir(user_path) if os.path.isdir(os.path.join(user_path, dir))]
@@ -863,7 +863,9 @@ async def websocket_endpoint(
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             username = payload.get("sub")
-            if not username or get_user(db, username) is None:
+            if username:
+                user = await get_user(db, username)
+            if not username or user is None:
                 await websocket.close(code=1008)  # Policy violation
                 return
         except PyJWTError as e:
