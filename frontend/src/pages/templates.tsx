@@ -93,7 +93,7 @@ export const TemplatePage = () => {
 
 
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-    const [templates, setTemplates] = useState<apis.TemplateListItem[]>([]);
+    const [_, setTemplates] = useState<apis.TemplateListItem[]>([]);
     const [public_templates, setPublicTemplates] = useState<apis.TemplateListItem[]>([]);
     const [user_templates, setUserTemplates] = useState<apis.TemplateListItem[]>([]);
 
