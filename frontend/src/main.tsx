@@ -29,7 +29,11 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/welcome" element={<WelcomePage />} />
-            <Route path="/templates" element={<TemplatePage />} />
+            <Route path="/templates" element={
+              <ProtectedRoute>
+                <TemplatePage />
+              </ProtectedRoute>
+            } />
 
             {/* Protected Routes */}
             <Route path="/confirm" element={

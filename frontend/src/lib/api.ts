@@ -343,6 +343,14 @@ export namespace apis {
         }
     };
 
+    export const deleteTemplate = async (simCode: string): Promise<void> => {
+        try {
+            await api.delete('/delete_template', { params: { sim_code: simCode } });
+        } catch (error) {
+            console.error("Error deleting template:", error);
+            throw error;
+        }
+    };
 
     export const startSim = async (
         simCode: string,

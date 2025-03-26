@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from '@/components/Navbar';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Trash2 } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 import start1 from '@/assets/template2.png';
 import chat from '@/assets/chat.png';
@@ -194,10 +197,70 @@ export const TemplatePage = () => {
                             {user_templates.map((template: apis.TemplateListItem) => (
                                 <Card
                                     key={template.template_sim_code}
-                                    className={`w-full rounded-xl bg-opacity-30 bg-white overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-150 cursor-pointer ${selectedTemplate === template.template_sim_code ? 'ring-4 ring-indigo-600 ring-offset-4' : ''
+                                    className={`w-full relative rounded-xl bg-opacity-30 bg-white overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-150 cursor-pointer ${selectedTemplate === template.template_sim_code ? 'ring-4 ring-indigo-600 ring-offset-4' : ''
                                         }`}
                                     onClick={() => handleSelectTemplate(template.template_sim_code)}
                                 >
+                                    <div className="absolute top-2 right-2">
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="bg-red-500 hover:bg-red-600 text-white p-1 rounded-full w-8 h-8 flex items-center justify-center"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>您确定要删除这个模板吗？</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        该操作无法撤销。模板 "{template.name}" 将从服务器上永久删除。
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>取消</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            try {
+                                                                await apis.deleteTemplate(template.template_sim_code);
+                                                                // Update user templates state
+                                                                const updatedUserTemplates = user_templates.filter(t => t.template_sim_code !== template.template_sim_code);
+                                                                setUserTemplates(updatedUserTemplates);
+
+                                                                // Update context with filtered templates
+                                                                const allUpdatedTemplates = [...public_templates, ...updatedUserTemplates];
+                                                                ctx.setData({
+                                                                    ...ctx.data,
+                                                                    allTemplates: allUpdatedTemplates,
+                                                                    allEnvs: allUpdatedTemplates.map(t => t.template_sim_code)
+                                                                });
+
+                                                                // If deleted template was selected, clear selection
+                                                                if (selectedTemplate === template.template_sim_code) {
+                                                                    setSelectedTemplate(null);
+                                                                    ctx.setData({
+                                                                        ...ctx.data,
+                                                                        templateCode: undefined,
+                                                                        currentTemplate: undefined
+                                                                    });
+                                                                }
+                                                            } catch (err) {
+                                                                console.error("Failed to delete template:", err);
+                                                                alert("删除模板失败");
+                                                            }
+                                                        }}
+                                                        className="bg-red-600 hover:bg-red-700"
+                                                    >
+                                                        删除
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
                                     <img
                                         src={getTemplateImage(template)}
                                         alt={template.name}

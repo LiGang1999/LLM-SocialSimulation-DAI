@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,12 @@ export const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setError(location.state.message);
+    }
+  }, [location.state]);
 
   // Get the redirect path from location state or default to /templates
   const from = location.state?.from?.pathname || '/templates';
@@ -50,55 +56,55 @@ export const LoginPage = () => {
       <Navbar></Navbar>
       <div className="flex-grow flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 w-full">
         <Card className="w-full max-w-md z-10 relative animate-fade-in-up">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">登录</CardTitle>
-          <CardDescription className="text-center">
-            登录以继续使用社会科学实验装置
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
-                {error}
+          <CardHeader>
+            <CardTitle className="text-center text-2xl font-bold">登录</CardTitle>
+            <CardDescription className="text-center">
+              登录以继续使用社会科学实验装置
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="username">用户名</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  autoComplete="username"
+                />
               </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="username">用户名</Label>
-              <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                autoComplete="username"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">密码</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? '登录中...' : '登录'}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-600">
-            还没有账号?{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
-              注册
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
+              <div className="space-y-2">
+                <Label htmlFor="password">密码</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? '登录中...' : '登录'}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <p className="text-sm text-gray-600">
+              还没有账号?{' '}
+              <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+                注册
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );

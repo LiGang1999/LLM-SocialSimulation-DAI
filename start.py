@@ -7,8 +7,6 @@ import sys
 import threading
 import time
 
-import yaml
-
 # ANSI color codes
 COLORS = {
     "frontend": "\033[94m[frontend]\033[0m",
@@ -62,24 +60,24 @@ def start_servers(quiet, dev_mode, compile=False):
     server_ip = os.environ.get("LISTEN_ADDRESS", "127.0.0.1").strip('"')
     front_port = int(os.environ.get("LISTEN_PORT", 10056))
     back_port = int(os.environ.get("BACKEND_PORT", 10069))
-    
+
     # Storage configuration
     storage_path = os.environ.get("STORAGE_PATH", "./reverie/storage").strip('"')
-    
+
     # Log environment variables for debugging
     print(f"{COLORS['manage']} Using network configuration:")
     print(f"{COLORS['manage']} - Server IP: {server_ip}")
     print(f"{COLORS['manage']} - Frontend Port: {front_port}")
     print(f"{COLORS['manage']} - Backend Port: {back_port}")
     print(f"{COLORS['manage']} - Storage Path: {storage_path}")
-    
+
     # Check for PostgreSQL configuration
     pg_host = os.environ.get("POSTGRES_HOST")
     pg_port = os.environ.get("POSTGRES_PORT")
     pg_user = os.environ.get("POSTGRES_USER")
     pg_password = os.environ.get("POSTGRES_PASSWORD")
     pg_db = os.environ.get("POSTGRES_DB")
-    
+
     if pg_host and pg_port and pg_user and pg_password and pg_db:
         print(f"{COLORS['manage']} PostgreSQL configuration detected:")
         print(f"{COLORS['manage']} - Host: {pg_host}")
@@ -96,7 +94,7 @@ def start_servers(quiet, dev_mode, compile=False):
 
     # Backend command now uses environment-specified parameters
     backend_command = "python3 reverie/backend_server/server.py"
-    
+
     # Add dev mode flag if specified
     if dev_mode:
         backend_command += " --dev"

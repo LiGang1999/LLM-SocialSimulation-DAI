@@ -789,7 +789,7 @@ async def fetch_templates(current_user: User = Depends(get_current_user(False), 
 
     # Get user templates from storage_path/{user_hash}/
     user_hash = get_user_hash(current_user.username)
-    user_path = os.path.join(STORAGE_PATH,"user_templates", user_hash)
+    user_path = os.path.join(STORAGE_PATH, "user_templates", user_hash)
     user_templates = []
     if os.path.exists(user_path):
         user_dirs = [dir for dir in os.listdir(user_path) if os.path.isdir(os.path.join(user_path, dir))]
@@ -809,6 +809,36 @@ async def fetch_templates(current_user: User = Depends(get_current_user(False), 
     return {"public_templates": public_templates, "user_templates": user_templates}
 
 
+@router.delete("/delete_template")
+async def delete_template(sim_code: str, current_user: User = Depends(get_current_active_user)):
+    """Delete a user template"""
+    if not sim_code:
+        raise HTTPException(status_code=400, detail="Missing sim_code parameter")
+
+    # Check if template is public (can't delete public templates)
+    if is_template_public(sim_code):
+        raise HTTPException(status_code=403, detail="Cannot delete public templates")
+
+    # Check if user owns the template
+    if not user_owns_template(current_user.username, sim_code):
+        raise HTTPException(status_code=403, detail="You don't own this template")
+
+    # Delete the template directory
+    user_hash = get_user_hash(current_user.username)
+    template_path = os.path.join(STORAGE_PATH, "user_templates", user_hash, sim_code)
+
+    try:
+        if os.path.exists(template_path):
+            import shutil
+
+            shutil.rmtree(template_path)
+            return {"status": "success", "message": "Template deleted"}
+        else:
+            raise HTTPException(status_code=404, detail="Template not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/fetch_template")
 async def fetch_template(sim_code: str, current_user: User = Depends(get_current_active_user)):
     if not sim_code:
@@ -821,7 +851,7 @@ async def fetch_template(sim_code: str, current_user: User = Depends(get_current
     # Then check if it's owned by the user
     elif user_owns_template(current_user.username, sim_code):
         user_hash = get_user_hash(current_user.username)
-        env_path = os.path.join(STORAGE_PATH, user_hash, sim_code)
+        env_path = os.path.join(STORAGE_PATH, "user_templates", user_hash, sim_code)
     else:
         # Template doesn't exist or user doesn't have access
         raise HTTPException(status_code=403, detail="Template not found or access denied")
