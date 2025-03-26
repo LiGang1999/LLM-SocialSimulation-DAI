@@ -6,6 +6,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from passlib.context import CryptContext
 import hashlib
+import logging
+
+logging.basicConfig()
+logging.getLogger("sqlalchemy.engine.Engine").setLevel(logging.WARNING)
+
 
 # Database configuration from environment
 DATABASE_URL = (
@@ -14,15 +19,17 @@ DATABASE_URL = (
 )
 
 # Create async engine
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL)
 async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 Base = declarative_base()
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 class User(Base):
     """User model for PostgreSQL database"""
+
     __tablename__ = "users"
 
     username = Column(String(50), primary_key=True)
@@ -46,10 +53,12 @@ class User(Base):
         """Generate consistent hash from email for storage folder naming"""
         return hashlib.sha256(email.encode()).hexdigest()
 
+
 async def init_db():
     """Initialize database tables"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
 
 async def get_db():
     """Dependency to get database session"""

@@ -3,6 +3,7 @@ import json
 import os
 import threading
 import time
+import logging
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from queue import Queue
@@ -215,7 +216,6 @@ def get_current_user(required: bool = True):
             raise credentials_exception
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            print(payload)
             username: str = payload.get("sub")
             if username is None:
                 raise credentials_exception
@@ -761,7 +761,6 @@ def get_public_templates():
     public_templates = []
     if os.path.exists(public_path):
         public_dirs = [dir for dir in os.listdir(public_path) if os.path.isdir(os.path.join(public_path, dir))]
-        print(public_dirs)
         for dir in public_dirs:
             template_meta_file = os.path.join(public_path, dir, "reverie", "meta.json")
             template_meta = load_json_file(template_meta_file)
@@ -863,18 +862,14 @@ async def websocket_endpoint(
     if token:
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            print("websocket token", payload)
             username = payload.get("sub")
             if not username or get_user(db, username) is None:
-                print(1)
                 await websocket.close(code=1008)  # Policy violation
                 return
         except PyJWTError as e:
-            print(2, e)
             await websocket.close(code=1008)  # JWT Authentication failed
             return
         except Exception as e:
-            print(3, e)
             await websocket.close(code=1008)  # General authentication failure
             return
     else:

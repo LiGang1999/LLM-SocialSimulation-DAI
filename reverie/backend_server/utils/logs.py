@@ -246,3 +246,6 @@ class L:
     @staticmethod
     def add_handler(handler):
         _logger.addHandler(handler)
+
+
+# configuration of library loggers
