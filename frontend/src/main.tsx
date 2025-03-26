@@ -21,7 +21,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SimContextProvider>
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={process.env.LISTEN_PREFIX}>
           <Routes>
             <Route path="/" element={
               <Navigate to="/welcome" replace />
@@ -30,7 +30,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/templates" element={<TemplatePage />} />
-            
+
             {/* Protected Routes */}
             <Route path="/confirm" element={
               <ProtectedRoute>

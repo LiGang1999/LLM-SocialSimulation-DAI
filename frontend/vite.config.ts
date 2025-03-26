@@ -1,13 +1,12 @@
-import { defineConfig } from 'vite'
+import { defineConfig, UserConfig } from 'vite'
 import path from "path"
 import react from '@vitejs/plugin-react'
-import dotenv from 'dotenv'
 
-// Load .env file from project root
-dotenv.config({ path: '../.env' })
+const LISTEN_PREFIX = process.env.LISTEN_PREFIX;
+const API_PREFIX = `${LISTEN_PREFIX}/api`
 
-// https://vitejs.dev/config/
-export default defineConfig({
+const config: UserConfig = {
+  base: LISTEN_PREFIX,
   define: {
     'process.env': process.env
   },
@@ -20,19 +19,21 @@ export default defineConfig({
   server: {
     host: process.env.LISTEN_ADDRESS || '0.0.0.0',
     port: parseInt(process.env.LISTEN_PORT || '9080'),
-    proxy: {
-      '/api': {
-        target: `http://localhost:${process.env.BACKEND_PORT || '9081'}`,
-        changeOrigin: true,
-      },
-      '/api/ws': {
-        target: `http://localhost:${process.env.BACKEND_PORT || '9081'}`,
-        changeOrigin: true,
-        ws: true
-      }
-    }
+    proxy: {}
   },
   preview: {
     port: parseInt(process.env.LISTEN_PORT || '9080')
   }
-})
+}
+
+if (config.server?.proxy) {
+  config.server.proxy[API_PREFIX] = {
+    target: `http://localhost:${process.env.BACKEND_PORT || '9081'}`,
+    rewrite: (path) => path.replace(new RegExp(`^${LISTEN_PREFIX}`), ''),
+    changeOrigin: true,
+    ws: true
+  }
+}
+
+// https://vitejs.dev/config/
+export default defineConfig(config);

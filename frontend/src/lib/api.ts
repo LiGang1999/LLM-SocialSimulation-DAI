@@ -2,7 +2,7 @@ import { ChatMessage } from '@/SimContext';
 import axios from 'axios';
 
 export const api = axios.create(({
-    baseURL: `/api`,
+    baseURL: `${process.env.LISTEN_PREFIX}/api`,
 }))
 
 // Setup axios interceptor to add authorization token to requests if needed

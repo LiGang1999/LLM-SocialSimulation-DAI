@@ -3,9 +3,6 @@ import json
 import os
 import threading
 import time
-import bcrypt
-
-bcrypt.__about__ = bcrypt  # this is a weird fix.
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from queue import Queue

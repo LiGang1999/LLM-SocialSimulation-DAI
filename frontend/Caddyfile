@@ -1,10 +1,14 @@
 :{$LISTEN_PORT} {
-	handle /api/* {
+	# reverse proxy for api
+	handle {$LISTEN_PREFIX}/api/* {
+		uri strip_prefix {$LISTEN_PREFIX}
 		reverse_proxy localhost:{$BACKEND_PORT}
 	}
 
-	handle /* {
+	# static website
+	handle {$LISTEN_PREFIX}/* {
 		root * ./dist
+		uri strip_prefix {$LISTEN_PREFIX}
 		try_files {path} /index.html
 		file_server
 	}
