@@ -8,7 +8,6 @@ from passlib.context import CryptContext
 import hashlib
 import logging
 
-logging.basicConfig()
 logging.getLogger("sqlalchemy.engine.Engine").setLevel(logging.WARNING)
 
 

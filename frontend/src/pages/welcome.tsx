@@ -47,7 +47,6 @@ export const WelcomePage = () => {
     }, [emblaApi, onSelect])
 
     useEffect(() => {
-        localStorage.clear();
         // You can remove the following line if you don't want to show an alert
         // alert('Local storage has been cleared.');
     }, []);
@@ -70,7 +69,7 @@ export const WelcomePage = () => {
                             {/* <h1 className="text-5xl font-bold mb-6">欢迎来到</h1> */}
                             <h1 className="text-7xl font-bold mb-8">基于大语言模型的 <br /> 社会科学实验装置</h1>
                             {/* <h1 className="text-7xl font-bold mb-8">社会科学实验装置</h1> */}
-                            <p className="text-2xl text-gray-300 mb-8">Developed by DAI Lab, Zhejiang University</p>
+                            <p className="text-2xl text-gray-300 mb-8">Developed by DAI Lab, Zhejiang Gongshang University</p>
                         </div>
 
                         <div className="flex flex-wrap items-center space-x-6 mb-12">

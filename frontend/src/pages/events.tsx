@@ -4,10 +4,12 @@ import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent, } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { FlowchartCanvas } from "@/components/FlowchartCanvas";
 
 import { Plus, InfoIcon, Trash2, Globe } from "lucide-react";
 import DescriptionCard from '@/components/DescriptionCard';
@@ -37,6 +39,10 @@ export const EventsPage = () => {
     const [selectedEvent, setSelectedEvent] = useState<(Event & { id: number }) | null>(null);
     const [nextEventId, setNextEventId] = useState(1);
     const [eventDescriptionError, setEventDescriptionError] = useState('');
+
+    // State for the flowchart textareas
+    const [planText, setPlanText] = useState('');
+    const [executeText, setExecuteText] = useState('');
 
     useEffect(() => {
         if (events && events.length > 0) {
@@ -226,8 +232,11 @@ export const EventsPage = () => {
 
                 <Card className="bg-opacity-70 bg-white">
                     <CardContent className='pt-8'>
-                        <div className="grid md:grid-cols-2 gap-8">
+                        <div className="grid md:grid-cols-2 gap-8 flex-col">
+                            {/* Left Column - Experiment Settings */}
+
                             <div className="space-y-6">
+                                <h3 className="text-lg font-semibold text-gray-700 mb-3">基本信息</h3>
                                 <div className='grid grid-cols-2 gap-4'>
                                     <div>
                                         <label htmlFor="experimentName" className="block text-sm font-medium text-gray-700 mb-1">实验名称</label>
@@ -260,6 +269,26 @@ export const EventsPage = () => {
                                     </div>
                                 </div>
 
+                                {/* Flowchart Canvas */}
+                                <div className="mb-6">
+                                    <h3 className="text-lg font-semibold text-gray-700 mb-3">流程设计</h3>
+                                    <FlowchartCanvas
+                                        planText={planText}
+                                        setPlanText={setPlanText}
+                                        executeText={executeText}
+                                        setExecuteText={setExecuteText}
+                                    />
+                                </div>
+
+
+
+                            </div>
+
+
+
+                            {/* Right Column - Event Selection and Details */}
+                            <div className="space-y-6">
+                                {/* Event Selection Dropdown */}
                                 <div>
                                     <h3 className="text-lg font-semibold text-gray-700 mb-3">事件列表</h3>
 
@@ -276,120 +305,102 @@ export const EventsPage = () => {
                                         </div>
                                     </div>
 
+                                    {/* Dropdown and Add Button Row */}
+                                    <div className="flex items-center gap-2">
+                                        <Select
+                                            value={selectedEvent ? selectedEvent.id.toString() : ""}
+                                            onValueChange={(value) => {
+                                                const event = events?.find(e => e.id.toString() === value);
+                                                if (event) setSelectedEvent(event);
+                                            }}
+                                        >
+                                            <SelectTrigger className="flex-1">
+                                                <SelectValue placeholder="选择事件" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {events?.map((event) => (
+                                                    <SelectItem
+                                                        key={event.id}
+                                                        value={event.id.toString()}
+                                                        className={event.description.trim() === '' ? 'text-red-500' : ''}
+                                                    >
+                                                        {event.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
 
-
-                                    <div className="space-y-2 max-h-80 overflow-y-auto">
-                                        <div className="space-y-2 max-h-80 overflow-y-auto">
-                                            {events?.map((event) => (
-                                                <div
-                                                    key={event.id}
-                                                    className={`flex items-center justify-between p-3 rounded-lg transition-shadow cursor-pointer ${selectedEvent && selectedEvent.id === event.id
-                                                        ? 'bg-blue-200'
-                                                        : event.description.trim() === ''
-                                                            ? 'bg-red-100'
-                                                            : 'bg-indigo-50'
-                                                        }`}
-                                                    onClick={() => setSelectedEvent(event)}
-                                                >
-                                                    <div className="flex items-center space-x-3">
-                                                        <Globe className="h-5 w-5 text-blue-500" />
-                                                        <span className="text-gray-700 font-medium">{event.name}</span>
-                                                    </div>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 ml-2"
-                                                                onClick={(e) => e.stopPropagation()}
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Are you sure you want to delete this event?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    This action cannot be undone. This will permanently delete this event and remove its data from our servers.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        removeEvent(event.id);
-                                                                    }}
-                                                                    className="bg-red-600 hover:bg-red-700"
-                                                                >
-                                                                    Delete
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </div>
-                                            ))}
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="text-red-600 hover:bg-red-50"
+                                                onClick={() => selectedEvent && removeEvent(selectedEvent.id)}
+                                                disabled={!selectedEvent}
+                                            >
+                                                <Trash2 className="h-4 w-4 mr-2" /> 删除
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="text-blue-600 hover:bg-blue-50"
+                                                onClick={addNewEvent}
+                                            >
+                                                <Plus className="h-4 w-4 mr-2" /> 添加新事件
+                                            </Button>
                                         </div>
                                     </div>
-                                    <Button
-                                        variant="outline"
-                                        className="w-full justify-center text-blue-600 mt-4 hover:bg-blue-50"
-                                        onClick={addNewEvent}
-                                    >
-                                        <Plus className="h-4 w-4 mr-2" /> 添加新事件
-                                    </Button>
                                 </div>
-                            </div>
 
-                            <div className="bg-indigo-50 p-6 rounded-lg">
-                                <h3 className="text-lg font-semibold text-gray-700 mb-4">事件详情</h3>
-                                {selectedEvent ? (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label htmlFor="eventDescription" className="block text-sm font-medium text-gray-700 mb-1">事件描述</label>
-                                            <AutoResizeTextarea
-                                                id="eventDescription"
-                                                value={selectedEvent.description}
-                                                onChange={(e) => updateEvent('description', e.target.value)}
-                                                placeholder="请输入事件描述"
-                                                rows={3}
-                                                className={selectedEvent.description == '' ? 'border-red-500' : ''}
-                                            />
-                                            {selectedEvent.description == '' && <p className="text-red-500 text-xs mt-1">{eventDescriptionError}</p>}
+                                {/* Event Details Section */}
+                                <div className="bg-indigo-50 p-6 rounded-lg">
+                                    <h3 className="text-lg font-semibold text-gray-700 mb-4">事件详情</h3>
+                                    {selectedEvent ? (
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label htmlFor="eventDescription" className="block text-sm font-medium text-gray-700 mb-1">事件描述</label>
+                                                <AutoResizeTextarea
+                                                    id="eventDescription"
+                                                    value={selectedEvent.description}
+                                                    onChange={(e) => updateEvent('description', e.target.value)}
+                                                    placeholder="请输入事件描述"
+                                                    rows={3}
+                                                    className={selectedEvent.description == '' ? 'border-red-500' : ''}
+                                                />
+                                                {selectedEvent.description == '' && <p className="text-red-500 text-xs mt-1">{eventDescriptionError}</p>}
+                                            </div>
+                                            <div>
+                                                <label htmlFor="eventName" className="block text-sm font-medium text-gray-700 mb-1">事件名称</label>
+                                                <Input
+                                                    id="eventName"
+                                                    value={selectedEvent.name}
+                                                    onChange={(e) => updateEvent('name', e.target.value)}
+                                                    placeholder="请输入事件名称"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="eventPolicy" className="block text-sm font-medium text-gray-700 mb-1">事件政策</label>
+                                                <AutoResizeTextarea
+                                                    id="eventPolicy"
+                                                    value={selectedEvent.policy}
+                                                    onChange={(e) => updateEvent('policy', e.target.value)}
+                                                    placeholder="请输入事件政策"
+                                                    rows={3}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="eventWebsearch" className="block text-sm font-medium text-gray-700 mb-1">网络搜索</label>
+                                                <AutoResizeTextarea
+                                                    id="eventWebsearch"
+                                                    value={selectedEvent.websearch}
+                                                    onChange={(e) => updateEvent('websearch', e.target.value)}
+                                                    placeholder="请输入事件政策"
+                                                    rows={3}
+                                                />
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label htmlFor="eventName" className="block text-sm font-medium text-gray-700 mb-1">事件名称</label>
-                                            <Input
-                                                id="eventName"
-                                                value={selectedEvent.name}
-                                                onChange={(e) => updateEvent('name', e.target.value)}
-                                                placeholder="请输入事件名称"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="eventPolicy" className="block text-sm font-medium text-gray-700 mb-1">事件政策</label>
-                                            <AutoResizeTextarea
-                                                id="eventPolicy"
-                                                value={selectedEvent.policy}
-                                                onChange={(e) => updateEvent('policy', e.target.value)}
-                                                placeholder="请输入事件政策"
-                                                rows={3}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="eventWebsearch" className="block text-sm font-medium text-gray-700 mb-1">网络搜索</label>
-                                            <AutoResizeTextarea
-                                                id="eventWebsearch"
-                                                value={selectedEvent.websearch}
-                                                onChange={(e) => updateEvent('websearch', e.target.value)}
-                                                placeholder="请输入事件政策"
-                                                rows={3}
-                                            />
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-500 text-center">请选择一个事件来查看和编辑详情</p>
-                                )}
+                                    ) : (
+                                        <p className="text-gray-500 text-center">请选择一个事件来查看和编辑详情</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </CardContent>

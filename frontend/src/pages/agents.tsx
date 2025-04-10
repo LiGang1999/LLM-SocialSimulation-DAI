@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { PlusCircle, Trash2 } from 'lucide-react'
+import { PlusCircle, Trash2, Upload, Loader2 } from 'lucide-react'
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 import { RandomAvatar } from '@/components/Avatars';
@@ -131,6 +131,10 @@ export const AgentsPage = () => {
     const [localAgent, setLocalAgent] = useState<(apis.Agent & { id: number }) | null>(null);
     const [errors, setErrors] = useState<{ [agentId: number]: { [field: string]: string } }>({});
     const [nextAgentNumber, setNextAgentNumber] = useState<number>(1);
+    const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState<boolean>(false);
+    const [isGenerating, setIsGenerating] = useState<boolean>(false);
+    const [descriptionText, setDescriptionText] = useState<string>("");
+    const [descriptionFile, setDescriptionFile] = useState<File | null>(null);
 
     const validateAgent = (agent: apis.Agent) => {
         const agentErrors: { [field: string]: string } = {};
@@ -350,6 +354,53 @@ export const AgentsPage = () => {
         });
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setDescriptionFile(e.target.files[0]);
+            setDescriptionText(""); // Clear text input when file is selected
+        }
+    };
+
+    const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setDescriptionText(e.target.value);
+        setDescriptionFile(null); // Clear file when text is entered
+    };
+
+    const handleGenerateFromDescription = async () => {
+        if (!descriptionText && !descriptionFile) {
+            return; // Don't proceed if no input
+        }
+
+        setIsGenerating(true);
+
+        try {
+            // This is a placeholder for the actual API call
+            // TODO: Implement the actual API call when available
+
+            // Simulate API call with a delay for now
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Mock response for demonstration
+            const newAgents = [
+                // Mock data that would come from the API
+                // In reality, this would be returned from the API based on the description
+            ];
+
+            // Process the API response here
+            // For now, we just close the dialog and reset states
+            setIsGenerateDialogOpen(false);
+            setDescriptionText("");
+            setDescriptionFile(null);
+
+            // TODO: Add the generated agents to the agents list
+
+        } catch (error) {
+            console.error("Error generating agents:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     const isNextDisabled = Object.keys(errors).length > 0 || agents.length === 0;
 
     return (
@@ -419,6 +470,67 @@ export const AgentsPage = () => {
                                     <Button onClick={handleAddAgent} className="w-full mt-6 bg-indigo-500 hover:bg-indigo-600 text-white">
                                         <PlusCircle className="mr-2 h-4 w-4" /> 添加新智能体
                                     </Button>
+                                    <Button onClick={() => setIsGenerateDialogOpen(true)} className="w-full mt-3 bg-teal-600 hover:bg-teal-700 text-white">
+                                        <Upload className="mr-2 h-4 w-4" /> 按照描述生成
+                                    </Button>
+
+                                    {/* 按照描述生成对话框 */}
+                                    <AlertDialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
+                                        <AlertDialogContent className="max-w-md">
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>通过描述生成智能体</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    请输入描述文本或上传文件，系统将根据您的描述生成相应的智能体。
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <div className="space-y-4 my-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">文本描述</label>
+                                                    <AutoResizeTextarea
+                                                        value={descriptionText}
+                                                        onChange={handleTextChange}
+                                                        placeholder="请描述您想要生成的智能体..."
+                                                        className="w-full min-h-[100px] p-2 border rounded-md"
+                                                        disabled={isGenerating}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">或者上传文件</label>
+                                                    <div className="flex items-center space-x-2">
+                                                        <Input
+                                                            type="file"
+                                                            onChange={handleFileChange}
+                                                            className="flex-1"
+                                                            disabled={isGenerating}
+                                                            accept=".txt,.pdf,.doc,.docx"
+                                                        />
+                                                    </div>
+                                                    {descriptionFile && (
+                                                        <p className="text-sm text-gray-600 mt-1">
+                                                            已选择文件: {descriptionFile.name}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel disabled={isGenerating}>取消</AlertDialogCancel>
+                                                <Button
+                                                    onClick={handleGenerateFromDescription}
+                                                    disabled={isGenerating || (!descriptionText && !descriptionFile)}
+                                                    className={`${isGenerating ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+                                                >
+                                                    {isGenerating ? (
+                                                        <>
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            生成中...
+                                                        </>
+                                                    ) : (
+                                                        "确认"
+                                                    )}
+                                                </Button>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </div>
 

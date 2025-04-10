@@ -307,7 +307,6 @@ class Reverie:
         self.is_running = False
         self.command_queue = Queue()  # User command input queue
         self.message_queue = Queue()
-        self.storage_path = storage_path
         self.user = username
         user_hash = get_user_hash(username)
 
@@ -326,12 +325,13 @@ class Reverie:
 
         self.template_sim_code = template_config["template_sim_code"]
         if template_config["is_public"]:
-            template_folder = f"{self.storage_path}/public_templates/{self.template_sim_code}"
+            template_folder = f"{storage_path}/public_templates/{self.template_sim_code}"
         else:
-            template_folder = f"{self.storage_path}/user_templates/{user_hash}/{self.template_sim_code}"
+            template_folder = f"{storage_path}/user_templates/{user_hash}/{self.template_sim_code}"
 
         self.sim_code = sim_config.sim_code
-        sim_folder = f"{self.storage_path}/user_templates/{user_hash}/{self.sim_code}"
+        sim_folder = f"{storage_path}/user_templates/{user_hash}/{self.sim_code}"
+        self.storage_path = sim_folder
 
         if check_if_dir_exists(sim_folder):
             if self.sim_code in BASE_TEMPLATES:
@@ -360,7 +360,7 @@ class Reverie:
 
             # This one should be called sim_code, but call it template_sim_code to maintain backward compatability
             reverie_meta["template_sim_code"] = sim_config.sim_code
-            self.storage_home = f"{self.storage_path}/user_templates/{user_hash}/{self.sim_code}"
+            self.storage_home = f"{storage_path}/user_templates/{user_hash}/{self.sim_code}"
 
             # check fields for reverie_meta
 
@@ -512,7 +512,7 @@ class Reverie:
         except Exception as e:
             L.error(f"Error during reverie initialization: {e}")
             if self.sim_code not in BASE_TEMPLATES:
-                removeanything(f"{self.storage_path}/{self.sim_code}")
+                removeanything(f"{storage_path}/{self.sim_code}")
             raise e
 
     def handle_command(self, payload):
@@ -530,7 +530,7 @@ class Reverie:
           * Saves all relevant data to the designated memory directory
         """
         # <sim_folder> points to the current simulation folder.
-        sim_folder = f"{self.storage_path}/{self.sim_code}"
+        sim_folder = f"{storage_path}/{self.sim_code}"
 
         # Save Reverie meta information.
         reverie_meta = dict()
@@ -650,7 +650,7 @@ class Reverie:
           None
         """
         # <sim_folder> points to the current simulation folder.
-        sim_folder = f"{self.storage_path}/{self.sim_code}"
+        sim_folder = f"{storage_path}/{self.sim_code}"
 
         self.is_running = True
 
@@ -865,7 +865,7 @@ class Reverie:
         print("and independent decision-making.\n---")
 
         # <sim_folder> points to the current simulation folder.
-        sim_folder = f"{self.storage_path}/{self.sim_code}"
+        sim_folder = f"{storage_path}/{self.sim_code}"
 
         # set instance to thread local storage
         thread_local.reverie_instance = reverie_instance
@@ -1184,7 +1184,7 @@ class Reverie:
                     # 在这里对每个persona 逐个采访
                     print("\n输入问卷文件：")
                     filename = self.command_queue.get()
-                    filename = f"{self.storage_path}/{self.sim_code}/{filename}"
+                    filename = f"{storage_path}/{self.sim_code}/{filename}"
                     with open(filename, "r") as f:
                         questions = json.load(f)
                     responses = {}
