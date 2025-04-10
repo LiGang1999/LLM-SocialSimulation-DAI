@@ -8,10 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { FlowchartCanvas } from "@/components/FlowchartCanvas";
 
-import { Plus, InfoIcon, Trash2, Globe } from "lucide-react";
+import { Plus, InfoIcon, Trash2 } from "lucide-react";
 import DescriptionCard from '@/components/DescriptionCard';
 
 import backgroundImage from '@/assets/Untitled.png'

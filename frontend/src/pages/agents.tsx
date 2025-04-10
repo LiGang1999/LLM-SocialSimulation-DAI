@@ -381,10 +381,10 @@ export const AgentsPage = () => {
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             // Mock response for demonstration
-            const newAgents = [
-                // Mock data that would come from the API
-                // In reality, this would be returned from the API based on the description
-            ];
+            // const newAgents = [
+            // Mock data that would come from the API
+            // In reality, this would be returned from the API based on the description
+            // ];
 
             // Process the API response here
             // For now, we just close the dialog and reset states
