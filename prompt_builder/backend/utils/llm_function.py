@@ -138,7 +138,7 @@ def llm_request(
     if "model" not in llm_config or "chat" not in llm_config:
         raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
 
-    r = thread_local.reverie_local
+    r = thread_local.reverie
     r.interested = True
 
     # Provide default values for optional fields
@@ -198,11 +198,7 @@ def llm_request(
                 result = response.choices[0].message.content
 
                 if legacy:
-                    result = str(
-                        extract_first_json_dict(response.choices[0].message.content.strip())[
-                            "output"
-                        ]
-                    )
+                    result = str(extract_first_json_dict(response.choices[0].message.content.strip())["output"])
 
                 # result = response["choices"][0]["message"]["content"]
             else:
@@ -266,7 +262,7 @@ def insert_prompt_args(prompt: str, kwargs):
 
 
 def example_output_format(example_kwargs: dict, example_retval={}, example_ret_json=""):
-    mid = '\n'.join([ f"{key}: {value}" for key, value in example_kwargs.items()])
+    mid = "\n".join([f"{key}: {value}" for key, value in example_kwargs.items()])
     prompt = f"""
 \n
 Here is the example user input and the answer:
@@ -296,10 +292,7 @@ def types_match(actual, example, path=""):
         if not isinstance(actual, dict):
             print_warning("dict", type(actual).__name__)
             return False
-        return all(
-            k in actual and types_match(actual[k], v, f"{path}.{k}" if path else k)
-            for k, v in example.items()
-        )
+        return all(k in actual and types_match(actual[k], v, f"{path}.{k}" if path else k) for k, v in example.items())
     elif isinstance(example, list):
         if not isinstance(actual, list):
             print_warning("list", type(actual).__name__)
@@ -425,9 +418,7 @@ def llm_function(
             usr_prompt = insert_prompt_args(usr_prompt, kwargs)
             example_result = desc_func(**example_kwargs)
 
-            sys_prompt = insert_prompt_args(sys_prompt, kwargs) + example_output_format(
-                example_kwargs, example_result
-            )
+            sys_prompt = insert_prompt_args(sys_prompt, kwargs) + example_output_format(example_kwargs, example_result)
 
             def default_validate_fn(result, kwargs):
                 """

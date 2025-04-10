@@ -141,7 +141,7 @@ def llm_request(
     if "model" not in llm_config or "chat" not in llm_config:
         raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
 
-    r = thread_local.reverie_local
+    r = thread_local.reverie
     r.interested = True
 
     # Provide default values for optional fields
@@ -293,7 +293,7 @@ async def async_llm_request(
     if "model" not in llm_config or "chat" not in llm_config:
         raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
 
-    r = thread_local.reverie_local
+    r = thread_local.reverie
     r.interested = True
 
     # Provide default values for optional fields

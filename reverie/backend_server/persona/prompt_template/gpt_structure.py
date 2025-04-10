@@ -9,6 +9,7 @@ import json
 import random
 import re
 import time
+import threading
 
 from openai import OpenAI
 from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model
@@ -98,9 +99,7 @@ def generate_gpt_response(
       A string containing the GPT response, or the fail_safe_response if unsuccessful.
     """
 
-    example_output_str = (
-        example_output if isinstance(example_output, str) else json.dumps(example_output)
-    )
+    example_output_str = example_output if isinstance(example_output, str) else json.dumps(example_output)
     system_prompt = f"""
     You are a helpful assistant. You should only output your response to the user in JSON format, and you should meet the requirements.
 
@@ -121,17 +120,26 @@ def generate_gpt_response(
 
     model = gpt_parameters["model"]
 
-    llm_config = {
-        "model": model,
-        "temperature": gpt_parameters["temperature"],
-        "top_p": gpt_parameters["top_p"],
-        "max_tokens": gpt_parameters["max_tokens"],
-        "stream": gpt_parameters["stream"],
-        "stop": gpt_parameters["stop"],
-        "frequency_penalty": gpt_parameters["frequency_penalty"],
-        "presence_penalty": gpt_parameters["presence_penalty"],
-        "chat": is_chat,
-    }
+    # If we are currently under web server environment, use the user's llm configuration
+    # otherwise use our provided configuration.
+
+    thread_local = threading.local()
+    instance = thread_local.reverie_instance
+    if instance is None:
+        llm_config = {
+            "model": model,
+            "temperature": gpt_parameters["temperature"],
+            "top_p": gpt_parameters["top_p"],
+            "max_tokens": gpt_parameters["max_tokens"],
+            "stream": gpt_parameters["stream"],
+            "stop": gpt_parameters["stop"],
+            "frequency_penalty": gpt_parameters["frequency_penalty"],
+            "presence_penalty": gpt_parameters["presence_penalty"],
+            "chat": is_chat,
+        }
+    else:
+        reverie = thread_local.reveries
+        llm_config = reverie.llm_config
 
     def validate_fn(response, kwargs):
         return func_validate(response, prompt="")
@@ -165,11 +173,8 @@ def safe_generate_response(
     func_cleanup=None,
     verbose=False,
 ):
-
     # 暂时使用 completion_request
-    return generate_gpt_response(
-        prompt, gpt_param, repeat, fail_safe, func_validate, func_cleanup, is_chat=False
-    )
+    return generate_gpt_response(prompt, gpt_param, repeat, fail_safe, func_validate, func_cleanup, is_chat=False)
 
 
 def completion_safe_generate_response(
@@ -181,11 +186,8 @@ def completion_safe_generate_response(
     func_cleanup=None,
     verbose=False,
 ):
-
     # 暂时使用 completion_request
-    return generate_gpt_response(
-        prompt, gpt_param, repeat, fail_safe, func_validate, func_cleanup, is_chat=False
-    )
+    return generate_gpt_response(prompt, gpt_param, repeat, fail_safe, func_validate, func_cleanup, is_chat=False)
 
 
 def chat_safe_generate_response(
@@ -257,8 +259,6 @@ def generate_prompt(curr_input, prompt_lib_file):
 
 
 def get_embedding(text, model="text-embedding-ada-002"):
-    
-
     model = model if not override_model else override_model
     model = "text-embedding-ada-002"
 
@@ -294,8 +294,6 @@ if __name__ == "__main__":
         cleaned_response = gpt_response.strip()
         return cleaned_response
 
-    output = completion_safe_generate_response(
-        prompt, gpt_parameter, 5, "rest", __func_validate, __func_clean_up, True
-    )
+    output = completion_safe_generate_response(prompt, gpt_parameter, 5, "rest", __func_validate, __func_clean_up, True)
 
     print(output)

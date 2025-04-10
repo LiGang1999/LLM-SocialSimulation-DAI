@@ -869,7 +869,7 @@ class Reverie:
 
         # set instance to thread local storage
         thread_local.reverie_instance = reverie_instance
-        thread_local.reverie_local = self
+        thread_local.reverie = self
         # Load all online events
         self.is_running = True
         if self.sim_mode == "online":
