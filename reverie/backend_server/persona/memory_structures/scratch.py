@@ -8,11 +8,66 @@ Description: Defines the short-term memory module for generative agents.
 import datetime
 import json
 import sys
-
-
 from utils import *
-
+from typing import List, Optional, Tuple, Dict
 from persona.memory_structures.memory import *
+from pydantic import BaseModel, Field
+
+
+class ScratchData(BaseModel):
+    # Necessary fields
+    name: str
+    first_name: str
+    last_name: str
+    age: int
+    lifestyle: str
+    daily_plan_req: str
+    innate: str
+    learned: str
+    living_area: str
+
+    # Optional fields with default values
+    vision_r: int = 8
+    att_bandwidth: int = 8
+    retention: int = 8
+    curr_time: Optional[str] = None
+    curr_tile: Optional[str] = None
+    currently: str = ""
+    concept_forget: int = 100
+    daily_reflection_time: int = 180
+    daily_reflection_size: int = 5
+    overlap_reflect_th: int = 4
+    kw_strg_event_reflect_th: int = 10
+    kw_strg_thought_reflect_th: int = 9
+    recency_w: int = 1
+    relevance_w: int = 1
+    importance_w: int = 1
+    recency_decay: float = 0.99
+    importance_trigger_max: int = 30  # very low poig score to cause reflection every online round!
+    importance_trigger_curr: int = 30
+    importance_ele_n: int = 0
+    thought_count: int = 5
+    daily_req: List[str] = Field(default_factory=list)
+    f_daily_schedule: List[str] = Field(default_factory=list)
+    f_daily_schedule_hourly_org: List[str] = Field(default_factory=list)
+    act_address: Optional[str] = None
+    act_start_time: Optional[str] = None
+    act_duration: Optional[str] = None
+    act_description: Optional[str] = None
+    act_pronunciatio: Optional[str] = None
+    act_event: Tuple[str, Optional[str], Optional[str]] = ("", None, None)
+    act_obj_description: Optional[str] = None
+    act_obj_pronunciatio: Optional[str] = None
+    act_obj_event: Tuple[Optional[str], Optional[str], Optional[str]] = (None, None, None)
+    chatting_with: Optional[str] = None
+    chat: Optional[List[List[str]]] = None
+    chatting_with_buffer: dict = Field(default_factory=dict)
+    chatting_end_time: Optional[str] = None
+    act_path_set: bool = False
+    planned_path: List[str] = Field(default_factory=list)
+
+    class Config:
+        extra = "ignore"
 
 
 class Scratch(Memory):
@@ -172,9 +227,7 @@ class Scratch(Memory):
             self.retention = scratch_load["retention"]
 
             if scratch_load["curr_time"]:
-                self.curr_time = datetime.datetime.strptime(
-                    scratch_load["curr_time"], "%B %d, %Y, %H:%M:%S"
-                )
+                self.curr_time = datetime.datetime.strptime(scratch_load["curr_time"], "%B %d, %Y, %H:%M:%S")
             else:
                 self.curr_time = None
             self.curr_tile = scratch_load["curr_tile"]
@@ -212,9 +265,7 @@ class Scratch(Memory):
 
             self.act_address = scratch_load["act_address"]
             if scratch_load["act_start_time"]:
-                self.act_start_time = datetime.datetime.strptime(
-                    scratch_load["act_start_time"], "%B %d, %Y, %H:%M:%S"
-                )
+                self.act_start_time = datetime.datetime.strptime(scratch_load["act_start_time"], "%B %d, %Y, %H:%M:%S")
             else:
                 self.curr_time = None
             self.act_duration = scratch_load["act_duration"]

@@ -25,7 +25,7 @@ from utils.logs import L
 from contextlib import asynccontextmanager
 
 
-from reverie import LLMConfig, Reverie, ReverieConfig, ScratchData
+from reverie import LLMConfig, Reverie, ReverieConfig, ScratchData, StageInfo
 from database import User as DBUser, get_db, init_db
 
 # Security configuration
@@ -594,6 +594,7 @@ async def start(sim_data: StartReq, current_user: User = Depends(get_current_act
             public_events=public_events,
             direction=template.get("meta", {}).get("direction", ""),
             initial_rounds=initial_rounds or 0,
+            workflow={key: StageInfo(value) for key, value in template.get("workflow", {})},
         )
         reverie_instance = reverie_pool.get_or_create(
             sim_code,
@@ -882,8 +883,9 @@ async def fetch_template(sim_code: str, current_user: User = Depends(get_current
 
     events_file = os.path.join(env_path, "reverie", "events.json")
     events = load_json_file(events_file)
+    workflow = env_meta.get("workflow", {})
 
-    return {"meta": env_meta, "personas": persona_info, "events": events}
+    return {"meta": env_meta, "personas": persona_info, "events": events, "workflow": workflow}
 
 
 @router.websocket("/ws")

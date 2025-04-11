@@ -1,10 +1,7 @@
 {
   "template_sim_code": "base_the_ville_n25_info",
   "name": "信息传播模拟",
-  "bullets": [
-    "25-50 个 智能体",
-    "大规模社会群体模拟"
-  ],
+  "bullets": ["25-50 个 智能体", "大规模社会群体模拟"],
   "description": "对社区中的信息传播过程进行仿真，衡量职业、人数等等不同因素对于某个信息在人群中传播速度的影响。",
   "start_date": "February 13, 2023",
   "curr_time": "February 13, 2023, 00:00:00",

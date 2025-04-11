@@ -2,6 +2,7 @@ import { defineConfig, UserConfig } from 'vite'
 import path from "path"
 import react from '@vitejs/plugin-react'
 
+
 const LISTEN_PREFIX = process.env.LISTEN_PREFIX;
 const API_PREFIX = `${LISTEN_PREFIX}/api`
 
@@ -18,6 +19,7 @@ const config: UserConfig = {
   },
   server: {
     host: process.env.LISTEN_ADDRESS || '0.0.0.0',
+    allowedHosts: true,
     port: parseInt(process.env.LISTEN_PORT || '9080'),
     proxy: {}
   },

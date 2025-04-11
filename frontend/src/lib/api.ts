@@ -195,12 +195,18 @@ export namespace apis {
         description: string;
     }
 
+    export interface Stage {
+        task: string,
+        output_format: Record<string,string>
+    }
+
 
     export interface Template {
         simCode: string;
         events: Event[];
         personas: Agent[];
         meta: Meta;
+        workflow: Record<string, Stage>
     }
 
     export interface TemplateListItem {
@@ -226,8 +232,9 @@ export namespace apis {
 
     export const fetchTemplate = async (templateName: string): Promise<Template> => {
         try {
-            const response = await api.get<{ meta: any, events: any[], personas: Record<string, any> }>('/fetch_template', { params: { sim_code: templateName } });
-            const { meta, events, personas } = response.data;
+            const response = await api.get<{ meta: any, events: any[], personas: Record<string, any>, workflow: Record<string,Stage> }>('/fetch_template', { params: { sim_code: templateName } });
+            const { meta, events, personas, workflow } = response.data;
+            console.log(workflow)
             return {
                 simCode: templateName,
                 events: isEmptyObject(events) ? [] : events.map(event => ({
@@ -236,6 +243,7 @@ export namespace apis {
                     websearch: event.websearch,
                     description: event.description,
                 })),
+                workflow: workflow,
                 personas: Object.values(personas).map(persona => ({
                     curr_time: undefined,
                     curr_tile: undefined,

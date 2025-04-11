@@ -14,6 +14,8 @@ import shutil
 import threading
 from os import listdir
 
+from utils.config import storage_path
+
 from passlib.context import CryptContext
 
 import numpy
@@ -308,6 +310,14 @@ def get_user_hash(username: str) -> str:
     import hashlib
 
     return hashlib.sha256(username.encode()).hexdigest()
+
+
+def get_user_stoarge_dir(username: str, reverie: str) -> str:
+    return os.path.join(storage_path, get_user_hash(username), reverie)
+
+
+def get_public_storage_dir(reverie: str) -> str:
+    return os.path.join(storage_path, "public", reverie)
 
 
 if __name__ == "__main__":

@@ -38,10 +38,9 @@ export const EventsPage = () => {
     const [selectedEvent, setSelectedEvent] = useState<(Event & { id: number }) | null>(null);
     const [nextEventId, setNextEventId] = useState(1);
     const [eventDescriptionError, setEventDescriptionError] = useState('');
-
-    // State for the flowchart textareas
-    const [planText, setPlanText] = useState('');
-    const [executeText, setExecuteText] = useState('');
+    const [workflow, setWorkflow] = useState<Record<string, apis.Stage> | undefined>(
+        ctx.data.currentTemplate?.workflow
+    )
 
     useEffect(() => {
         if (events && events.length > 0) {
@@ -56,6 +55,7 @@ export const EventsPage = () => {
             setSelectedEvent(events[0]);
         }
     }, [events]);
+
 
 
 
@@ -99,6 +99,17 @@ export const EventsPage = () => {
             currSimCode: value
         });
     };
+
+    const updateWorkflow = (value: Record<string, apis.Stage>) => {
+        setWorkflow(value);
+        ctx.setData({
+            ...ctx.data,
+            currentTemplate: ctx.data.currentTemplate ? {
+                ...ctx.data.currentTemplate,
+                workflow: value
+            } : undefined
+        })
+    }
 
     const updateReplicateCount = (value: string) => {
         setReplicateCount(value);
@@ -209,6 +220,7 @@ export const EventsPage = () => {
                         }
                     });
                     setEvents(events);
+                    // setPlanText(templateData.workflow['plan'])
                 }
             } catch (err) {
                 console.error("Failed to fetch template detail:", err);
@@ -234,7 +246,7 @@ export const EventsPage = () => {
                         <div className="grid md:grid-cols-2 gap-8 flex-col">
                             {/* Left Column - Experiment Settings */}
 
-                            <div className="space-y-6">
+                            <div className="space-y-6 flex flex-col h-full">
                                 <h3 className="text-lg font-semibold text-gray-700 mb-3">基本信息</h3>
                                 <div className='grid grid-cols-2 gap-4'>
                                     <div>
@@ -269,18 +281,13 @@ export const EventsPage = () => {
                                 </div>
 
                                 {/* Flowchart Canvas */}
-                                <div className="mb-6">
+                                <div className="flex flex-col flex-grow flex" >
                                     <h3 className="text-lg font-semibold text-gray-700 mb-3">流程设计</h3>
                                     <FlowchartCanvas
-                                        planText={planText}
-                                        setPlanText={setPlanText}
-                                        executeText={executeText}
-                                        setExecuteText={setExecuteText}
+                                        workflow={workflow || {}}
+                                        onUpdate={updateWorkflow}
                                     />
                                 </div>
-
-
-
                             </div>
 
 

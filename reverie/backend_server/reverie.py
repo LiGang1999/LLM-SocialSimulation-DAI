@@ -29,20 +29,40 @@ import shutil
 import threading
 from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 import asyncio
 
-from pydantic import BaseModel, Field, parse_obj_as
+from pydantic import BaseModel, Field
 import traceback
 
 
 # 然后是其他的导入语句
-from maze import *
-from persona.persona import *
-from utils import *
+from maze import OfflineMaze, OnlineMaze, maze_assets_loc
+from persona.persona import DaiPersona, GaPersona, MemoryNode, ScratchData
+from persona.cognitive_modules.converse import generate_action_event_triple_new, load_history_via_whisper
+from utils import (
+    ensure_directories,
+    ensure_files_with_default_content,
+    get_user_hash,
+    check_if_dir_exists,
+    check_if_file_exists,
+    copyanything,
+    removeanything,
+    read_file_to_list,
+    thread_local,
+)
+from utils.triggers import event_trigger
+from utils.logs import L
 from utils import config
-from utils.config import *
-
+from utils.config import (
+    openai_api_base,
+    openai_api_key,
+    storage_path,
+    temp_storage_path,
+    BASE_TEMPLATES,
+    override_gpt_param,
+)
+# from institution import DaiInstitution
 
 # 获取当前文件所在的目录（backend_server）
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -59,20 +79,9 @@ if project_root not in sys.path:
 
 rs_lock = threading.Lock()
 
-
 ##############################################################################
 #                                  REVERIE                                   #
 ##############################################################################
-
-
-def from_dict(cls, input_dict):
-    # Initialize with default values
-    obj = cls()
-    # Update with the values from input_dict
-    return replace(
-        obj,
-        **{key: value for key, value in input_dict.items() if key in {f.name for f in fields(cls)}},
-    )
 
 
 @dataclass
@@ -96,60 +105,10 @@ class LLMConfig:
     stream: bool = False
 
 
-class ScratchData(BaseModel):
-    # Necessary fields
-    name: str
-    first_name: str
-    last_name: str
-    age: int
-    lifestyle: str
-    daily_plan_req: str
-    innate: str
-    learned: str
-    living_area: str
-
-    # Optional fields with default values
-    vision_r: int = 8
-    att_bandwidth: int = 8
-    retention: int = 8
-    curr_time: Optional[str] = None
-    curr_tile: Optional[str] = None
-    currently: str = ""
-    concept_forget: int = 100
-    daily_reflection_time: int = 180
-    daily_reflection_size: int = 5
-    overlap_reflect_th: int = 4
-    kw_strg_event_reflect_th: int = 10
-    kw_strg_thought_reflect_th: int = 9
-    recency_w: int = 1
-    relevance_w: int = 1
-    importance_w: int = 1
-    recency_decay: float = 0.99
-    importance_trigger_max: int = 30  # very low poig score to cause reflection every online round!
-    importance_trigger_curr: int = 30
-    importance_ele_n: int = 0
-    thought_count: int = 5
-    daily_req: List[str] = Field(default_factory=list)
-    f_daily_schedule: List[str] = Field(default_factory=list)
-    f_daily_schedule_hourly_org: List[str] = Field(default_factory=list)
-    act_address: Optional[str] = None
-    act_start_time: Optional[str] = None
-    act_duration: Optional[str] = None
-    act_description: Optional[str] = None
-    act_pronunciatio: Optional[str] = None
-    act_event: Tuple[str, Optional[str], Optional[str]] = ("", None, None)
-    act_obj_description: Optional[str] = None
-    act_obj_pronunciatio: Optional[str] = None
-    act_obj_event: Tuple[Optional[str], Optional[str], Optional[str]] = (None, None, None)
-    chatting_with: Optional[str] = None
-    chat: Optional[List[List[str]]] = None
-    chatting_with_buffer: dict = Field(default_factory=dict)
-    chatting_end_time: Optional[str] = None
-    act_path_set: bool = False
-    planned_path: List[str] = Field(default_factory=list)
-
-    class Config:
-        extra = "ignore"
+@dataclass
+class StageInfo:
+    task: str = ""
+    ouput_format: Dict[str, str] = field(default_factory=dict)
 
 
 # The data class representing the meta information of a simulation.
@@ -170,6 +129,7 @@ class ReverieConfig:
     initial_rounds: int | None = 0  # The number of initial rounds
     sec_per_step: int | None = 3600
     start_order: str | None = ""
+    workflow: Dict[str, StageInfo] = field(default_factory=dict)
 
 
 def load_config_from_files(path: str) -> ReverieConfig:
@@ -201,6 +161,7 @@ def load_config_from_files(path: str) -> ReverieConfig:
         initial_rounds=0,  # You might want to add this to meta.json if needed
         sec_per_step=meta_data.get("sec_per_step", 3600),
         start_order=meta_data.get("start_order", ""),
+        workflow={key: StageInfo(**value) for key, value in meta_data.get("workflow", {})},
     )
 
     # Load LLMConfig if present in meta_data
@@ -229,9 +190,9 @@ def bootstrap_persona(path: str, config: ScratchData):
             scratch_data = json.load(f)
 
         # Update all fields from the Person model
-        for field, value in config.dict().items():
-            if field in scratch_data:
-                scratch_data[field] = value
+        for cfg, value in config.dict().items():
+            if cfg in scratch_data:
+                scratch_data[cfg] = value
 
         # Save the updated scratch.json
         with open(scratch_file_path, "w") as f:
@@ -419,17 +380,17 @@ class Reverie:
             if not self.is_offline_mode:
                 self.workflow_config = {
                     "plan": {
-                        "task": "Decide whether the agent should vote on a policy proposal.",
+                        "task": sim_config.workflow["plan"].task,
                         "output_format": {
-                            "reasoning": "Step-by-step reasoning...",
-                            "decision": "The decision made.",
+                            "reasoning": sim_config.workflow["plan"].ouput_format["reasoning"],
+                            "decision": sim_config.workflow["plan"].ouput_format["decision"],
                         },
                     },
                     "execute": {
-                        "task": "Execute the agent's plan.",
+                        "task": sim_config.workflow["execute"].task,
                         "output_format": {
-                            "reasoning": "Step-by-step reasoning...",
-                            "execution": "The action to take.",
+                            "reasoning": sim_config.workflow["execute"].ouput_format["reasoning"],
+                            "execution": sim_config.workflow["execute"].ouput_format["execution"],
                         },
                     },
                 }
@@ -506,7 +467,7 @@ class Reverie:
             self.maze.last_planning_day = self.curr_time + datetime.timedelta(days=-1)  # extend planning cycle
             self.maze.need_stagely_planning = True  # extend planning cycle
 
-            self.command_queue.put(f"{sim_config.start_order} {sim_config.initial_rounds}")
+            self.command_queue.put(f"run {sim_config.initial_rounds}")
 
             self.interested = False  # Whether current run is interested. If calls to large language model is generated in current run ,then current run is 'interested'.
         except Exception as e:
@@ -570,7 +531,7 @@ class Reverie:
             def _print_tree(tree, depth):
                 dash = " >" * depth
 
-                if type(tree) == type(list()):
+                if isinstance(tree, list):
                     if tree:
                         print(dash, tree)
                     return
@@ -633,7 +594,8 @@ class Reverie:
                     outfile.write(json.dumps(s_mem, indent=2))
                 print_tree(s_mem)
 
-            except:
+            except Exception as e:
+                L.warning(e)
                 pass
 
     def start_server(self, int_counter, agents=None, do_skip=False):
@@ -899,142 +861,6 @@ class Reverie:
                     self.save()
                     break
 
-                elif "custom-run legislative_council" in sim_command.lower():
-                    int_count = int(sim_command.split()[-1])
-                    self.workflow_config = {
-                        "plan": {
-                            "task": "分析并决定在讨论推动创新科技产业发展的政策框架时需要考量的关键方面。",
-                            "output_format": {
-                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如政策支持的全面性与可行性、财政投入的效率与透明度、区域合作的深度与广度、科技产业发展的长期可持续性、政策实施的公平性等。",
-                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。",
-                            },
-                        },
-                        "execute": {
-                            "task": "明确关于推动创新科技产业发展的政策框架的立场。",
-                            "output_format": {
-                                "reasoning": "首先，我会分析……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
-                                "execution": "支持/反对",
-                            },
-                        },
-                    }
-
-                    commands = "custom-run " + str(int_count)
-
-                    self.custom_run(commands)
-
-                elif "custom-run legislative_council_life" in sim_command.lower():
-                    int_count = int(sim_command.split()[-1])
-                    self.workflow_config = {
-                        "plan": {
-                            "task": "分析并决定在讨论维持生命治疗预作决定条例草案时需要考量的关键方面。",
-                            "output_format": {
-                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如条文是否明确、政策目标的达成可能性、法律保障的可操作性、电子化的实现风险与益处、公众教育的充分性等。",
-                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。",
-                            },
-                        },
-                        "execute": {
-                            "task": "针对维持生命治疗预作决定条例草案提出意见和问题，第一人称对话口吻，简体，每一个问题内的字数要多（充分描述问题），分点明确。",
-                            "output_format": {
-                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
-                                "execution": "说出具体的修改建议或意见，例如问题1的详细内容和对为什么提这个问题的解释、问题2的详细内容和对为什么提这个问题的解释等。",
-                            },
-                        },
-                    }
-
-                    commands = "custom-run " + str(int_count)
-
-                    self.custom_run(commands)
-
-                elif "custom-run shbz" in sim_command.lower():
-                    int_count = int(sim_command.split()[-1])
-
-                    self.workflow_config = {
-                        "plan": {
-                            "task": "基于你的背景(年龄、职业、性格、生活现状、生活经历等)分析你对西湖益联保的认知和态度。请考虑：1)你的医疗保障需求 2)你的收入和支付能力 3)你对西湖益联保的了解程度 4)你的健康状况和就医经历 5)你对医疗费用的承受能力",
-                            "output_format": {
-                                "reasoning": "从以下几个方面逐步分析：1. 个人基本情况(年龄、职业、收入、家庭状况等) 2. 医疗保险参保情况(基本医保、商业保险等) 3. 就医和医疗支出经历 4. 对西湖益联保的认知和态度 5. 参保决策的影响因素",
-                                "decision": "总结对西湖益联保的整体态度和参保意愿",
-                            },
-                        },
-                        "execute": {
-                            "task": "请以问卷形式回答以下问题(注意要符合你的身份背景和语气)：\n"
-                            # + "第一部分：西湖益联保参保情况\n"
-                            # + "19. 您是否参加了西湖益联保？\n"
-                            # + "20. 您参保后是否获得过理赔？如果是，请回答：\n"
-                            # + "    (1) 理赔情况您是否满意？如不满意，原因是什么？\n"
-                            # + "    (2) 获得的赔付数额是多少元？占总体医疗费用的比例是多少？基本医疗报销支付金额是多少元？经过各类保险报销后个人自付费用是多少元？\n\n"
-                            # + "第二部分：认知与了解\n"
-                            # + "21. 您对西湖益联保的了解程度是？(非常了解/了解/一般/不太了解/不了解)\n"
-                            # + "22. 您了解西湖益联保的途径是？(可多选：政府部门宣传/就职企业推广/社区宣传/保险公司推广/网络信息/家人或朋友推荐/其他)\n"
-                            # + "23. 对于西湖益联保您会重点关注哪方面的信息？(可多选：参保条件/保费/运行模式/报销额度/免赔责任/保障范围/免赔额度/免赔疾病范围)\n"
-                            # + "24. 对于西湖益联保的保费，您能接受的范围是？(<50元/年/50~100元/年/101~150元/年/151~200元/年/>200元/年)\n\n"
-                            + "第一部分：参保意愿\n"
-                            + "25. 您为自己购买西湖益联保的意愿是？(非常愿意/愿意/一般/不愿意/非常不愿意)\n"
-                            + "26. 您为父母购买西湖益联保的意愿是？(非常愿意/愿意/一般/不愿意/非常不愿意)\n"
-                            + "27. 您为子女购买西湖益联保的意愿是？(非常愿意/愿意/一般/不愿意/非常不愿意)\n",
-                            # + "28. 您愿意为自己和家人购买西湖益联保的原因是？(可多选：保费便宜/认为基本医疗保险可能不够/报销额度大/保障覆盖范围广/政府背书/有身边人推荐/身边有人因参加益联保化解了高额医疗费用风险)\n\n"
-                            # + "第四部分：后续意向\n"
-                            # + "29. 您是否会继续参加西湖益联保？(肯定会/可能会/不确定/可能不会/肯定不会)\n"
-                            # + "30. 您是否会向身边人推荐参加西湖益联保？(是/否)\n"
-                            # + "31. 您不愿意参加西湖益联保的原因是？(可多选：基本医疗保险已经足够/已参加了其他地区的普惠型商业补充医疗保险/对西湖益联保不够信任/已购入其他类型的商业医疗保险/西湖益联保的保费较贵/西湖益联保的理赔项目用不到/参保流程繁琐/其他原因)\n"
-                            # + "32. 您对西湖益联保还有什么看法和建议？",
-                            "output_format": {
-                                "reasoning": "基于计划阶段的分析，结合个人背景和经历，详细回答每个问题",
-                                "execution": "用第一人称口吻，按照问卷的部分依次作答。回答要真实自然，符合角色身份特征，并体现个人的真实想法和具体经历。对于选择题要明确选择选项，对于开放性问题要详细说明原因。",
-                            },
-                        },
-                    }
-
-                    commands = "custom-run " + str(int_count)
-
-                    self.custom_run(commands)
-
-                elif "custom-run base_the_ville_isabella_maria_klaus_online" in sim_command.lower():
-                    int_count = int(sim_command.split()[-1])
-                    self.workflow_config = {
-                        "plan": {
-                            "task": "分析并决定在讨论该新闻时需要考量的关键方面。",
-                            "output_format": {
-                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。公众和同行的意见也很重要……。最后，我会回顾……。注意逐步推理需要考虑的因素，例如条文是否明确、政策目标的达成可能性、法律保障的可操作性、电子化的实现风险与益处、公众教育的充分性等。",
-                                "decision": "需要关注的关键方面列表，例如方面1、方面2、方面3、方面4等。",
-                            },
-                        },
-                        "execute": {
-                            "task": "针对该新闻你将发表什么言论，第一人称对话口吻，简体。",
-                            "output_format": {
-                                "reasoning": "首先，我会考虑……（详细说明推理过程）。其次，我会……。此外，我会……。最后，我会回顾……。注意逐步推理需要考虑的因素。",
-                                "execution": "说出具体的修改建议或意见，例如问题1的详细内容和对为什么提这个问题的解释、问题2的详细内容和对为什么提这个问题的解释等。",
-                            },
-                        },
-                    }
-
-                    commands = "custom-run " + str(int_count)
-
-                    self.custom_run(commands)
-
-                elif "custom-run dragon_tv_demo" in sim_command.lower():
-                    int_count = int(sim_command.split()[-1])
-                    self.workflow_config = {
-                        "plan": {
-                            "task": "基于你的背景(年龄、职业、性格、生活现状、生活经历等)分析你对讨论的事件的态度和认知。请考虑:1)你对这个事件的看法2)你的工作/学习是否需要用到AI 3)你是否有使用AI的经验 4)你对新技术的接受程度 5)你的生活方式是否适合AI城市",
-                            "output_format": {
-                                "reasoning": "从个人背景、AI接触经验、生活需求等方面逐步分析对所讨论的事件的看法，AI城市与传统城市两种环境。AI城市全面整合了先进的人工智能技术，在交通、城市建筑设施、教育、医疗等方面都深度融入了人工智能技术，清洁能源与核能为主要能源供给方式，城市自动化程度高。传统城市仅有少量的工智能技术，实际应用很少。在交通、城市建筑设施、教育、医疗等方面都以人工和机械为主，化石能源与少量清洁能源为主要能源供给方式，城市自动化程度低。",
-                                "decision": "发表对正在讨论的事件的看法，描述个人使用AI的经历和体验",
-                            },
-                        },
-                        "execute": {
-                            "task": "从自身的角度，用符合你的口吻详细说明你对这个事件、以及其中AI和传统的操作模式的看法(200字以上)，",
-                            "output_format": {
-                                "reasoning": "基于计划阶段的分析,发表对事件的看法",
-                                "execution": "用符合你的语气发表你对正在讨论的事件的看法",
-                            },
-                        },
-                    }
-
-                    commands = "custom-run " + str(int_count)
-
-                    self.custom_run(commands)
-
                 elif sim_command.lower() == "start path tester mode":
                     # Starts the path tester and removes the currently forked sim files.
                     # Note that once you start this mode, you need to exit out of the
@@ -1057,8 +883,8 @@ class Reverie:
                 elif sim_command[:3].lower() == "run":  # base_the_ville_n25
                     # Runs the number of steps specified in the prompt.
                     # Example: run 1000
-                    int_count = int(sim_command.split()[-1])
-                    self.start_server(int_count)
+                    # int_count = int(sim_command.split()[-1])
+                    self.custom_run(sim_command)
 
                 elif sim_command[:10].lower() == "custom-run":
                     self.custom_run(sim_command)
@@ -1089,7 +915,7 @@ class Reverie:
                     for persona_name, persona in self.personas.items():
                         ret_str += f"{persona_name}\n"
                         ret_str += f"{persona.scratch.get_str_daily_schedule_summary()}\n"
-                        ret_str += f"---\n"
+                        ret_str += "---\n"
 
                 elif "print hourly org persona schedule" in sim_command.lower():
                     # Print the hourly schedule of the persona specified in the prompt.
@@ -1283,7 +1109,8 @@ class Reverie:
                     load_history_via_whisper(self.personas, clean_whispers)
 
                 elif "call -- run spp" in sim_command.lower():  # 插入spp模块。
-                    self.maze.institution = DaiInstitution()
+                    # self.maze.institution = DaiInstitution()
+                    self.maze.institution = None
                     # args = vars(parse_args())
                     # model_name = args['model']
 
@@ -1308,20 +1135,7 @@ class Reverie:
                         self.maze.policy = self.maze.institution.run(case=self.maze.content)
                     else:
                         # run(args, case=None)#
-                        self.maze.institution.run(case=None)  #
-
-                elif "init dk" in sim_command.lower():  # 初始化向量数据库。
-                    # Initialize domain knowledge
-                    content = "Recently, the Fukushima Daiichi Nuclear Power Plant in Japan initiated the discharge of contaminated water into the sea. Through a 1-kilometer underwater tunnel, nuclear contaminated water flows towards the Pacific Ocean. In the following decades, nuclear contaminated water will continue to be discharged into the ocean, affecting the entire Pacific and even global waters."
-                    # self.maze.vbase = Storage(content=content)
-                    # FIX: who told you to write like this?
-                    self.maze.vbase = Storage(case=content)
-                    query = "nuclear"
-                    texts = self.maze.vbase.get_texts(query, 2)
-                    print("################################")
-                    print(texts)
-                    print("################################")
-
+                        self.maze.institution.run(case=None)
                 elif "call -- load case" in sim_command.lower():  # 将事件广播给每个智能体。
                     curr_file = maze_assets_loc + "/" + sim_command[len("call -- load case") :].strip()
                     # call -- load case the_ville/agent_history_init_n3.csv
@@ -1347,7 +1161,7 @@ class Reverie:
                     self.tag = True  # case
 
                 elif "call -- release policy" in sim_command.lower():  # 将政策发布到所有智能体。
-                    if self.tag == True:
+                    if self.tag is True:
                         curr_file = maze_assets_loc + "/" + sim_command[len("call -- release policy") :].strip()
                         # call -- release policy the_ville/agent_history_init_n3.csv
 

@@ -86,11 +86,11 @@ def start_servers(quiet, dev_mode, compile=False):
 
     # Frontend command now uses Caddy
     if compile and not dev_mode:
-        frontend_command = "pnpm build && caddy run"
+        frontend_command = "bun run build && caddy run"
     elif not dev_mode:
         frontend_command = "caddy run"
     else:
-        frontend_command = "pnpm run dev --host"
+        frontend_command = "bun run dev --host"
 
     # Backend command now uses environment-specified parameters
     backend_command = "python3 reverie/backend_server/server.py"

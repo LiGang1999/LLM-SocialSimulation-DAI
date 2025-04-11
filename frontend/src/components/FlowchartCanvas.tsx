@@ -1,18 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { AutoResizeTextarea } from './autoResizeTextArea';
+import { apis } from "@/lib/api"
 
 interface FlowchartCanvasProps {
-    planText: string;
-    setPlanText: (text: string) => void;
-    executeText: string;
-    setExecuteText: (text: string) => void;
+    workflow: Record<string, apis.Stage>;
+    onUpdate: (workflow: Record<string, apis.Stage>) => void;
 }
 
 export const FlowchartCanvas = ({
-    planText,
-    setPlanText,
-    executeText,
-    setExecuteText
+    workflow,
+    onUpdate,
 }: FlowchartCanvasProps) => {
     // Refs for flowchart canvas
     const canvasRef = useRef<HTMLDivElement>(null);
@@ -136,15 +133,21 @@ export const FlowchartCanvas = ({
     return (
         <div
             ref={canvasRef}
-            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm relative mb-6"
-            style={{ height: "calc(100vh - 450px)", minHeight: "300px", overflow: "hidden" }}
+            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm relative grow-1 flex-1"
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
+            style={
+                {
+                    backgroundImage: "radial-gradient(circle at 1px 1px, grey 1px, transparent 0)",
+                    backgroundSize: "30px 30px",
+                    backgroundPosition: "10px 10px"
+                }
+            }
         >
             {/* 计划 Block */}
             <div
                 ref={planBlockRef}
-                className="absolute border-2 border-blue-500 rounded-md p-3 w-[45%] bg-blue-50 cursor-move"
+                className="absolute border-2 border-blue-500 rounded-md p-3 w-[35%] bg-blue-50 cursor-move"
                 style={{
                     left: `${planPosition.x}px`,
                     top: `${planPosition.y}px`,
@@ -156,10 +159,38 @@ export const FlowchartCanvas = ({
                 <div className="text-center font-medium text-blue-700 mb-2">计划</div>
                 <AutoResizeTextarea
                     placeholder="输入计划内容..."
-                    className="w-full border-gray-300 focus:border-blue-500"
+                    className="w-full border-gray-300 focus:border-blue-500 text-xs"
                     rows={3}
-                    value={planText}
-                    onChange={(e) => setPlanText(e.target.value)}
+                    value={workflow['plan'].task}
+                    onChange={(e) => {
+                        const newWorkflow = workflow;
+                        newWorkflow['plan'].task = e.target.value;
+                        onUpdate(newWorkflow);
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                />
+                <AutoResizeTextarea
+                    placeholder="计划推理格式"
+                    className="w-full border-gray-300 focus:border-blue-500 text-xs"
+                    rows={3}
+                    value={workflow['plan'].output_format['reasoning']}
+                    onChange={(e) => {
+                        const newWorkflow = workflow;
+                        newWorkflow['plan'].output_format['reasoning'] = e.target.value;
+                        onUpdate(newWorkflow);
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                />
+                <AutoResizeTextarea
+                    placeholder="计划结果格式..."
+                    className="w-full border-gray-300 focus:border-blue-500 text-xs"
+                    rows={3}
+                    value={workflow['plan'].output_format['decision']}
+                    onChange={(e) => {
+                        const newWorkflow = workflow;
+                        newWorkflow['plan'].output_format['decision'] = e.target.value;
+                        onUpdate(newWorkflow);
+                    }}
                     onMouseDown={(e) => e.stopPropagation()}
                 />
             </div>
@@ -170,10 +201,10 @@ export const FlowchartCanvas = ({
                 style={{ zIndex: 1, pointerEvents: 'none' }}
             >
                 <line
-                    x1={planPosition.x + (planBlockRef.current?.offsetWidth || 200) / 2}
-                    y1={planPosition.y + ((planBlockRef.current?.offsetHeight || 100))}
-                    x2={executePosition.x + ((executeBlockRef.current?.offsetWidth || 100) / 2)}
-                    y2={executePosition.y}
+                    x1={planPosition.x + (planBlockRef.current?.offsetWidth || 200)}
+                    y1={planPosition.y + ((planBlockRef.current?.offsetHeight || 100) / 2)}
+                    x2={executePosition.x}
+                    y2={executePosition.y + ((executeBlockRef.current?.offsetHeight || 100) / 2)}
                     stroke="#4F46E5"
                     strokeWidth="2"
                     markerEnd="url(#arrowhead)"
@@ -195,7 +226,7 @@ export const FlowchartCanvas = ({
             {/* 执行 Block */}
             <div
                 ref={executeBlockRef}
-                className="absolute border-2 border-green-500 rounded-md p-3 w-[45%] bg-green-50 cursor-move"
+                className="absolute border-2 border-green-500 rounded-md p-3 w-[35%] bg-green-50 cursor-move"
                 style={{
                     left: `${executePosition.x}px`,
                     top: `${executePosition.y}px`,
@@ -207,10 +238,38 @@ export const FlowchartCanvas = ({
                 <div className="text-center font-medium text-green-700 mb-2">执行</div>
                 <AutoResizeTextarea
                     placeholder="输入执行内容..."
-                    className="w-full border-gray-300 focus:border-green-500"
+                    className="w-full border-gray-300 focus:border-blue-500 text-xs"
                     rows={3}
-                    value={executeText}
-                    onChange={(e) => setExecuteText(e.target.value)}
+                    value={workflow['execute'].task}
+                    onChange={(e) => {
+                        const newWorkflow = workflow;
+                        newWorkflow['execute'].task = e.target.value;
+                        onUpdate(newWorkflow);
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                />
+                <AutoResizeTextarea
+                    placeholder="执行推理格式"
+                    className="w-full border-gray-300 focus:border-blue-500 text-xs"
+                    rows={3}
+                    value={workflow['execute'].output_format['reasoning']}
+                    onChange={(e) => {
+                        const newWorkflow = workflow;
+                        newWorkflow['execute'].output_format['reasoning'] = e.target.value;
+                        onUpdate(newWorkflow);
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                />
+                <AutoResizeTextarea
+                    placeholder="执行结果格式..."
+                    className="w-full border-gray-300 focus:border-blue-500 text-xs"
+                    rows={3}
+                    value={workflow['execute'].output_format['execution']}
+                    onChange={(e) => {
+                        const newWorkflow = workflow;
+                        newWorkflow['execute'].output_format['execution'] = e.target.value;
+                        onUpdate(newWorkflow);
+                    }}
                     onMouseDown={(e) => e.stopPropagation()}
                 />
             </div>
