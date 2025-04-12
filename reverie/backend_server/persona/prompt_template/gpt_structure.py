@@ -15,6 +15,7 @@ from openai import OpenAI
 from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model
 from utils.logs import L, get_outer_caller
 from utils.llm_function import llm_request
+from utils import thread_local
 
 client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
 
@@ -123,7 +124,6 @@ def generate_gpt_response(
     # If we are currently under web server environment, use the user's llm configuration
     # otherwise use our provided configuration.
 
-    thread_local = threading.local()
     instance = thread_local.reverie_instance
     if instance is None:
         llm_config = {
@@ -138,7 +138,7 @@ def generate_gpt_response(
             "chat": is_chat,
         }
     else:
-        reverie = thread_local.reveries
+        reverie = thread_local.reverie
         llm_config = reverie.llm_config
 
     def validate_fn(response, kwargs):

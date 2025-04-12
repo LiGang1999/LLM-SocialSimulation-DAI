@@ -108,7 +108,7 @@ class LLMConfig:
 @dataclass
 class StageInfo:
     task: str = ""
-    ouput_format: Dict[str, str] = field(default_factory=dict)
+    output_format: Dict[str, str] = field(default_factory=dict)
 
 
 # The data class representing the meta information of a simulation.
@@ -376,21 +376,22 @@ class Reverie:
             # This dictionary is meant to keep track of all personas who are part of
             # the Reverie instance.
             # e.g., ["Isabella Rodriguez"] = Persona("Isabella Rodriguezs")
+            print(sim_config.workflow)
             self.personas = dict()
             if not self.is_offline_mode:
                 self.workflow_config = {
                     "plan": {
                         "task": sim_config.workflow["plan"].task,
                         "output_format": {
-                            "reasoning": sim_config.workflow["plan"].ouput_format["reasoning"],
-                            "decision": sim_config.workflow["plan"].ouput_format["decision"],
+                            "reasoning": sim_config.workflow["plan"].output_format["reasoning"],
+                            "decision": sim_config.workflow["plan"].output_format["decision"],
                         },
                     },
                     "execute": {
                         "task": sim_config.workflow["execute"].task,
                         "output_format": {
-                            "reasoning": sim_config.workflow["execute"].ouput_format["reasoning"],
-                            "execution": sim_config.workflow["execute"].ouput_format["execution"],
+                            "reasoning": sim_config.workflow["execute"].output_format["reasoning"],
+                            "execution": sim_config.workflow["execute"].output_format["execution"],
                         },
                     },
                 }

@@ -8,6 +8,7 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 from queue import Queue
 from typing import Any, Dict, List, Optional, Tuple, Union
+from dacite import from_dict
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, APIRouter, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -582,6 +583,7 @@ async def start(sim_data: StartReq, current_user: User = Depends(get_current_act
         public_events = parse_public_events(
             template.get("events", []), [persona.name for persona in persona_configs.values()]
         )
+
         reverie_config = ReverieConfig(
             sim_code=sim_code,
             sim_mode=template.get("meta", {}).get("sim_mode", ""),
@@ -594,7 +596,9 @@ async def start(sim_data: StartReq, current_user: User = Depends(get_current_act
             public_events=public_events,
             direction=template.get("meta", {}).get("direction", ""),
             initial_rounds=initial_rounds or 0,
-            workflow={key: StageInfo(value) for key, value in template.get("workflow", {})},
+            workflow={
+                key: from_dict(data_class=StageInfo, data=value) for key, value in template.get("workflow", {}).items()
+            },
         )
         reverie_instance = reverie_pool.get_or_create(
             sim_code,

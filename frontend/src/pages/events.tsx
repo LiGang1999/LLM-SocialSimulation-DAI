@@ -38,8 +38,23 @@ export const EventsPage = () => {
     const [selectedEvent, setSelectedEvent] = useState<(Event & { id: number }) | null>(null);
     const [nextEventId, setNextEventId] = useState(1);
     const [eventDescriptionError, setEventDescriptionError] = useState('');
-    const [workflow, setWorkflow] = useState<Record<string, apis.Stage> | undefined>(
-        ctx.data.currentTemplate?.workflow
+    const [workflow, setWorkflow] = useState<Record<string, apis.Stage>>(
+        ctx.data.currentTemplate?.workflow || {
+            "plan": {
+                task: "",
+                output_format: {
+                    "reasoning": "",
+                    "decision": ""
+                }
+            },
+            "execute": {
+                task: "",
+                output_format: {
+                    "reasoning": "",
+                    "decision": ""
+                }
+            }
+        }
     )
 
     useEffect(() => {
@@ -216,7 +231,8 @@ export const EventsPage = () => {
                         ...ctx.data,
                         currentTemplate: {
                             ...templateData,
-                            events: events
+                            events: events,
+                            workflow: templateData.workflow
                         }
                     });
                     setEvents(events);
