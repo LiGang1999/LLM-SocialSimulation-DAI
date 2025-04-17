@@ -9,6 +9,7 @@ import start3 from '@/assets/start3.jpg'
 import backgroundImage from '@/assets/background2.jpg';  // 替换成你的背景图片路径
 import { Navbar } from '@/components/Navbar';
 import { Link } from 'react-router-dom';
+import zjulogo from '@/assets/Zhejiang_University_Logo.svg'
 
 const carouselData = [
     { id: 0, src: start1, alt: "Platform Simulation 1" },
@@ -69,7 +70,10 @@ export const WelcomePage = () => {
                             {/* <h1 className="text-5xl font-bold mb-6">欢迎来到</h1> */}
                             <h1 className="text-7xl font-bold mb-8">基于大语言模型的 <br /> 社会科学实验装置</h1>
                             {/* <h1 className="text-7xl font-bold mb-8">社会科学实验装置</h1> */}
-                            <p className="text-2xl text-gray-300 mb-8">Developed by DAI Lab, Zhejiang Gongshang University</p>
+                            <div className="flex items-center mb-8">
+                                <img src={zjulogo} alt="Zhejiang University Logo" className="h-20 mr-4" />
+                                <p className="text-2xl text-white ">Developed by DAI Lab, <br></br> Zhejiang University</p>
+                            </div>
                         </div>
 
                         <div className="flex flex-wrap items-center space-x-6 mb-12">
