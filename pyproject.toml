@@ -35,6 +35,7 @@ dependencies = [
     "databases[postgresql]>=0.7.0",
     "bcrypt>=4.3.0",
     "websockets>=15.0.1",
+    "dacite>=1.9.2",
 ]
 
 [tool.uv.workspace]

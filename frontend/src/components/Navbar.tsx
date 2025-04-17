@@ -20,6 +20,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
+const docs_link = 'https://github.com/ZJUCSS/social-experiment-platform/blob/master/README_cn.md'
 
 interface RouteProps {
     href: string;
@@ -32,7 +33,7 @@ const routeList: RouteProps[] = [
         label: "首页",
     },
     {
-        href: "#documents",
+        href: docs_link,
         label: "文档",
     },
     {
@@ -52,7 +53,7 @@ const routeList: RouteProps[] = [
 export const Navbar = () => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const { user, isAuthenticated, logout } = useAuth();
-    
+
     return (
         <header className="sticky top-0 z-40 w-full border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background">
             <NavigationMenu className="mx-auto">
