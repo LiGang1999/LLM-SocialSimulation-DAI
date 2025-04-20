@@ -6,10 +6,12 @@ import re
 import time
 
 import openai
-from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model
+from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model, per_instance_llm_config
 from utils.logs import L
 from jinja2 import Template
 from utils import thread_local
+
+from typing import Dict, List, Optional
 
 default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
 default_async_client = openai.AsyncClient(api_key=openai_api_key, base_url=openai_api_base)
@@ -20,6 +22,17 @@ print_raw_log = False
 print_short_log = True
 dir_path = os.path.dirname(os.path.abspath(__file__))
 template_storage_dir = os.path.join(dir_path, "../prompt_templates")
+
+
+def get_llm_config():
+    if not per_instance_llm_config:
+        return default_llm_config
+    else:
+        r = thread_local.reverie
+        if r is not None:
+            return r.llm_config
+        else:
+            raise ValueError("Cannot find llm config!")
 
 
 def llm_logging_repr(object):
@@ -224,7 +237,7 @@ def llm_request(
                 result = response.choices[0].text
 
                 # result = response["choices"][0]["text"]
-            valid = validate_fn(result, kwargs)
+            valid = validate_fn(result, kwargs) if validate_fn else True
             L.stats(
                 function_name=func_name,
                 model=model,
@@ -238,7 +251,7 @@ def llm_request(
             L.debug(f"[{func_name}] LLM RESPONSE: {llm_logging_repr(result)}")
             if valid:
                 L.debug(f"[{func_name}] LLM Request succeeded.")
-                return cleanup_fn(result, kwargs)
+                return cleanup_fn(result ,kwargs) if cleanup_fn else result
             else:
                 L.warning(f"[{func_name}] LLM Response validation failed, retry scheduled")
                 # continue
@@ -255,8 +268,7 @@ def llm_request(
                 result = ""
                 # raise e
         attempt += 1
-
-    return failsafe_fn(result, kwargs)
+    return failsafe_fn(result ,kwargs) if failsafe_fn else result
 
 
 async def async_llm_request(
@@ -376,7 +388,7 @@ async def async_llm_request(
                 result = response.choices[0].text
 
                 # result = response["choices"][0]["text"]
-            valid = validate_fn(result, kwargs)
+            valid = validate_fn(result, kwargs) if validate_fn else True
             L.stats(
                 function_name=func_name,
                 model=model,
@@ -390,7 +402,7 @@ async def async_llm_request(
             L.debug(f"[{func_name}] LLM RESPONSE: {llm_logging_repr(result)}")
             if valid:
                 L.debug(f"[{func_name}] LLM Request succeeded.")
-                return cleanup_fn(result, kwargs)
+                return cleanup_fn(result, kwargs) if cleanup_fn else result
             else:
                 L.warning(f"[{func_name}] LLM Response validation failed, retry scheduled")
                 # continue
@@ -408,7 +420,7 @@ async def async_llm_request(
                 # raise e
         attempt += 1
 
-    return failsafe_fn(result, kwargs)
+    return failsafe_fn(result, kwargs) if failsafe_fn else result
 
 
 def insert_prompt_args(prompt: str, kwargs):
@@ -554,7 +566,7 @@ def llm_function(
                     example_args.append(None)  # Default for unknown types
 
         @functools.wraps(desc_func)
-        def wrapper(*args, _llm_config=default_llm_config, **kwargs):
+        def wrapper(*args, _llm_config=get_llm_config(), **kwargs):
             bound_args = signature.bind(*args, **kwargs)
             bound_args.apply_defaults()
             bound_example_args = signature.bind(*example_args)
@@ -661,7 +673,7 @@ def async_llm_function(
                     example_args.append(None)
 
         @functools.wraps(desc_func)
-        async def wrapper(*args, _llm_config=default_llm_config, **kwargs):
+        async def wrapper(*args, _llm_config=get_llm_config(), **kwargs):
             bound_args = signature.bind(*args, **kwargs)
             bound_args.apply_defaults()
             bound_example_args = signature.bind(*example_args)
@@ -719,3 +731,36 @@ def async_llm_function(
         return wrapper
 
     return decorator
+
+
+def get_completion(sys_prompt: str, user_prompt: str, temperature: float = 0.2) -> Optional[str]:
+    """调用OpenAI API获取回复。
+
+    使用配置的OpenAI客户端发送请求并获取回复。支持自定义模型和temperature参数。
+
+    Args:
+        messages (List[Dict[str, str]]): 消息列表，每个消息包含role和content
+        model (str, optional): 使用的GPT模型名称。默认为配置中的GPT_MODEL
+        temperature (float, optional): 采样温度，控制输出的随机性。默认为0.2
+
+    Returns:
+        Optional[str]: API返回的文本回复。如果请求失败则返回None
+    """
+    return llm_request(usr_prompt=user_prompt, sys_prompt=sys_prompt, llm_config=get_llm_config(),kwargs={}, func_name="get_completion")
+
+
+async def get_completion_async(sys_prompt: str, user_prompt: str, temperature: float = 0.2) -> Optional[str]:
+    """调用OpenAI API获取回复。
+
+    使用配置的OpenAI客户端发送请求并获取回复。支持自定义模型和temperature参数。
+
+    Args:
+        messages (List[Dict[str, str]]): 消息列表，每个消息包含role和content
+        model (str, optional): 使用的GPT模型名称。默认为配置中的GPT_MODEL
+        temperature (float, optional): 采样温度，控制输出的随机性。默认为0.2
+
+    Returns:
+        Optional[str]: API返回的文本回复。如果请求失败则返回None
+    """
+    result = await async_llm_request(usr_prompt=user_prompt, sys_prompt=sys_prompt, llm_config=get_llm_config(),kwargs={}, func_name="get_completion")
+    return result

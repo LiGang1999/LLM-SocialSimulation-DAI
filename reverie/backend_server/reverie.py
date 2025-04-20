@@ -293,6 +293,7 @@ class Reverie:
         self.sim_code = sim_config.sim_code
         sim_folder = f"{storage_path}/user_templates/{user_hash}/{self.sim_code}"
         self.storage_path = sim_folder
+        self.llm_config = sim_config.llm_config
 
         if check_if_dir_exists(sim_folder):
             if self.sim_code in BASE_TEMPLATES:

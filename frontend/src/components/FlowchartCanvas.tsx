@@ -73,16 +73,6 @@ export const FlowchartCanvas = ({
             const newX = e.clientX - canvasRect.left - dragOffset.x - viewportOffset.x;
             const newY = e.clientY - canvasRect.top - dragOffset.y - viewportOffset.y;
 
-            // Ensure the element stays within reasonable boundaries
-            // Note: We're not strictly enforcing canvas boundaries when panning is enabled
-            const elementWidth = activeDragElement === 'plan'
-                ? planBlockRef.current?.offsetWidth || 0
-                : executeBlockRef.current?.offsetWidth || 0;
-
-            const elementHeight = activeDragElement === 'plan'
-                ? planBlockRef.current?.offsetHeight || 0
-                : executeBlockRef.current?.offsetHeight || 0;
-
             // Update the position of the active element
             if (activeDragElement === 'plan') {
                 setPlanPosition({ x: newX, y: newY });
@@ -125,16 +115,6 @@ export const FlowchartCanvas = ({
                     // We need to subtract viewport offset because the visual position includes this transform
                     const newX = e.clientX - canvasRect.left - dragOffset.x - viewportOffset.x;
                     const newY = e.clientY - canvasRect.top - dragOffset.y - viewportOffset.y;
-
-                    // Ensure the element stays within reasonable boundaries
-                    // Note: We're not strictly enforcing canvas boundaries when panning is enabled
-                    const elementWidth = activeDragElement === 'plan'
-                        ? planBlockRef.current?.offsetWidth || 0
-                        : executeBlockRef.current?.offsetWidth || 0;
-
-                    const elementHeight = activeDragElement === 'plan'
-                        ? planBlockRef.current?.offsetHeight || 0
-                        : executeBlockRef.current?.offsetHeight || 0;
 
                     // Update the position of the active element
                     if (activeDragElement === 'plan') {

@@ -1,9 +1,7 @@
 import argparse
 import os
 import re
-import shutil
 import subprocess
-import sys
 import threading
 import time
 
@@ -136,12 +134,6 @@ def start_servers(quiet, dev_mode, compile=False):
 
 
 def main(quiet, dev_mode, compile):
-    # Check whether backend_server/utils/config.py exists. If not, exit program
-    if not os.path.exists("reverie/backend_server/utils/config.py"):
-        print(
-            f"{COLORS['manage']} ERROR: backend_server/utils/config.py not found. You should manually create it. Refer to config_template.py. Exiting..."
-        )
-        sys.exit(1)
 
     threads = start_servers(quiet, dev_mode, compile)
 
