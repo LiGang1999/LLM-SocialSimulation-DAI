@@ -236,7 +236,7 @@ export const EventsPage = () => {
                         }
                     });
                     setEvents(events);
-                    // setPlanText(templateData.workflow['plan'])
+                    setWorkflow(templateData.workflow);
                 }
             } catch (err) {
                 console.error("Failed to fetch template detail:", err);

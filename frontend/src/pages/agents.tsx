@@ -179,7 +179,7 @@ export const AgentsPage = () => {
                     const templateData = await apis.fetchTemplate(ctx.data.templateCode);
                     ctx.setData({
                         ...ctx.data,
-                        currentTemplate: templateData
+                        currentTemplate: templateData,
                     });
                 }
             } catch (err) {
