@@ -10,6 +10,8 @@ services:
       - LISTEN_PORT=8080             # Port to listen on
       - BACKEND_PORT=8081
       - LISTEN_PREFIX="/css/socialsim"
+      - LOG_RAW=False
+      - LOG_SHORT=True
 
       # Storage Configuration
       - STORAGE_PATH=/app/storage  # Path where files will be stored

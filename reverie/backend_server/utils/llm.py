@@ -19,8 +19,8 @@ default_async_client = openai.AsyncClient(api_key=openai_api_key, base_url=opena
 
 default_llm_config = override_gpt_param
 
-print_raw_log = True
-print_short_log = False
+print_raw_log = (os.environ.get("LOG_RAW", "False").lower() == "false")
+print_short_log = (os.environ.get("LOG_SHORT", "True").lower() == "true")
 dir_path = os.path.dirname(os.path.abspath(__file__))
 template_storage_dir = os.path.join(dir_path, "../prompt_templates")
 
