@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from dacite import from_dict
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, APIRouter, status
+from reverie.backend_server.persona.profile.generate_profile import generate_scratch_profile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
@@ -482,42 +483,68 @@ class ReveriePool:
     # ReveriePool definition (unchanged)
     def __init__(self, max_instances: int = 1000):
         self.max_instances = max_instances
-        self.pool: OrderedDict[str, ReverieInstance] = OrderedDict()
+        self.pool: OrderedDict[str, OrderedDict[str, ReverieInstance]] = OrderedDict()
         self.lock = threading.Lock()
 
     def get_or_create(
-        self, session_id: str, username: str, template_config: Dict, sim_config: ReverieConfig
+        self, sim_code: str, username: str, template_config: Dict, sim_config: ReverieConfig
     ) -> ReverieInstance:
         with self.lock:
-            if session_id in self.pool:
-                reverie = self.pool.pop(session_id)
-                self.pool[session_id] = reverie
+            if username not in self.pool:
+                self.pool[username] = OrderedDict()
+
+            if sim_code in self.pool[username]:
+                # Move accessed item to the end (most recently used)
+                reverie = self.pool[username].pop(sim_code)
+                self.pool[username][sim_code] = reverie
             else:
-                if len(self.pool) >= self.max_instances:
-                    _, oldest_reverie = self.pool.popitem(last=False)
-                    oldest_reverie.shutdown()  # Shutdown the removed instance
+                # Check total instance count before creating a new one
+                total_instances = sum(len(user_pool) for user_pool in self.pool.values())
+                if total_instances >= self.max_instances:
+                    # Find and remove the oldest instance across all users
+                    oldest_user = None
+                    oldest_sim_code = None
+                    oldest_time = datetime.now()
+
+                    for user, user_pool in self.pool.items():
+                        if user_pool:
+                            # The first item in OrderedDict is the oldest
+                            first_sim_code, first_reverie = next(iter(user_pool.items()))
+                            if first_reverie.last_accessed < oldest_time:
+                                oldest_time = first_reverie.last_accessed
+                                oldest_user = user
+                                oldest_sim_code = first_sim_code
+
+                    if oldest_user and oldest_sim_code:
+                        oldest_reverie = self.pool[oldest_user].pop(oldest_sim_code)
+                        oldest_reverie.shutdown()
+                        if not self.pool[oldest_user]:
+                            self.pool.pop(oldest_user) # Remove user if no more instances
+
                 reverie = ReverieInstance(username, template_config, sim_config)
-                self.pool[session_id] = reverie
+                self.pool[username][sim_code] = reverie
             return reverie
 
-    def remove(self, session_id: str) -> None:
+    def remove(self, username: str, sim_code: str) -> None:
         with self.lock:
-            if session_id in self.pool:
-                reverie = self.pool.pop(session_id)
+            if username in self.pool and sim_code in self.pool[username]:
+                reverie = self.pool[username].pop(sim_code)
                 reverie.shutdown()  # Shutdown the removed instance
+                if not self.pool[username]:
+                    self.pool.pop(username) # Remove user if no more instances
 
-    def get(self, session_id: str) -> ReverieInstance | None:
+    def get(self, username: str, sim_code: str) -> ReverieInstance | None:
         with self.lock:
-            if session_id in self.pool:
+            if username in self.pool and sim_code in self.pool[username]:
                 # Move accessed item to the end (most recently used)
-                reverie = self.pool.pop(session_id)
-                self.pool[session_id] = reverie
+                reverie = self.pool[username].pop(sim_code)
+                self.pool[username][sim_code] = reverie
                 return reverie
             return None
 
     def __len__(self) -> int:
         with self.lock:
-            return len(self.pool)
+            return sum(len(user_pool) for user_pool in self.pool.values())
 
 
 reverie_pool = ReveriePool()
@@ -544,11 +571,15 @@ class ChatReq(BaseModel):
     content: str
 
 
-def get_reverie_instance(sim_code: str):
-    instance = reverie_pool.get(sim_code)
+class ProfileReq(BaseModel):
+    description: str
+
+
+def get_reverie_instance(username: str, sim_code: str):
+    instance = reverie_pool.get(username, sim_code)
     if not instance:
-        L.warning(f"Simulation with code {sim_code} not found")
-        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} not found")
+        L.warning(f"Simulation with code {sim_code} for user {username} not found")
+        raise HTTPException(status_code=404, detail=f"Simulation with code {sim_code} for user {username} not found")
     return instance
 
 
@@ -619,7 +650,7 @@ async def start(sim_data: StartReq, current_user: User = Depends(get_current_act
 
 @router.post("/publish_events")
 async def publish_event(event: EventPublishReq, sim_code: str, current_user: User = Depends(get_current_active_user)):
-    reverie_instance = get_reverie_instance(sim_code)
+    reverie_instance = get_reverie_instance(current_user.username, sim_code)
     try:
         event_access_list = [name.strip() for name in event.access_list.split(",")]
         q = reverie_instance.reverie.command_queue
@@ -639,7 +670,7 @@ async def publish_event(event: EventPublishReq, sim_code: str, current_user: Use
 
 @router.get("/status")
 async def query_status(sim_code: str, current_user: User = Depends(get_current_active_user)):
-    instance = reverie_pool.get(sim_code)
+    instance = reverie_pool.get(current_user.username, sim_code)
     if not instance:
         return {"status": "terminated"}
     return {
@@ -650,7 +681,7 @@ async def query_status(sim_code: str, current_user: User = Depends(get_current_a
 
 @router.get("/command")
 async def add_command(sim_code: str, command: str, current_user: User = Depends(get_current_active_user)):
-    reverie_instance = get_reverie_instance(sim_code)
+    reverie_instance = get_reverie_instance(current_user.username, sim_code)
     if not command:
         L.warning("add_command: No command provided")
         raise HTTPException(status_code=400, detail="Missing command parameter")
@@ -660,7 +691,7 @@ async def add_command(sim_code: str, command: str, current_user: User = Depends(
 
 @router.get("/run")
 async def run(sim_code: str, count: int, current_user: User = Depends(get_current_active_user)):
-    reverie_instance = get_reverie_instance(sim_code)
+    reverie_instance = get_reverie_instance(current_user.username, sim_code)
     if not count:
         L.warning("run: No count provided")
         raise HTTPException(status_code=400, detail="Missing count parameter")
@@ -682,7 +713,7 @@ async def run(sim_code: str, count: int, current_user: User = Depends(get_curren
 
 @router.post("/chat")
 async def chat(chat_request: ChatReq, sim_code: str, current_user: User = Depends(get_current_active_user)):
-    reverie_instance = get_reverie_instance(sim_code)
+    reverie_instance = get_reverie_instance(current_user.username, sim_code)
     try:
         q = reverie_instance.reverie.command_queue
         q.put(f"call -- chat to persona {chat_request.agent_name}")
@@ -701,10 +732,21 @@ async def chat(chat_request: ChatReq, sim_code: str, current_user: User = Depend
         raise HTTPException(status_code=404, detail="Invalid simulation or persona")
 
 
+@router.post("/generate_profile")
+async def generate_profile(profile_req: ProfileReq, current_user: User = Depends(get_current_active_user)):
+    """Generate a profile based on a description"""
+    try:
+        profile = await generate_scratch_profile(profile_req.description)
+        return profile
+    except Exception as e:
+        L.error(f"Error generating profile: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating profile: {str(e)}")
+
+
 # Public endpoints (no authentication required)
 @router.get("/get_persona/{sim_code}")
-async def get_persona(sim_code: str):
-    reverie_instance = get_reverie_instance(sim_code)
+async def get_persona(sim_code: str, current_user: User = Depends(get_current_active_user)):
+    reverie_instance = get_reverie_instance(current_user.username, sim_code)
     personas_path = os.path.join(STORAGE_PATH, reverie_instance.template_sim_code, "personas")
     persona_names = set(
         name
@@ -716,8 +758,8 @@ async def get_persona(sim_code: str):
 
 
 @router.get("/personas_info")
-async def personas_info(sim_code: str):
-    reverie_instance = get_reverie_instance(sim_code)
+async def personas_info(sim_code: str, current_user: User = Depends(get_current_active_user)):
+    reverie_instance = get_reverie_instance(current_user.username, sim_code)
     r = reverie_instance.reverie
     persona_info = []
 
@@ -745,8 +787,8 @@ async def personas_info(sim_code: str):
 
 
 @router.get("/persona_detail")
-async def persona_detail(sim_code: str, agent_name: str):
-    r = get_reverie_instance(sim_code)
+async def persona_detail(sim_code: str, agent_name: str, current_user: User = Depends(get_current_active_user)):
+    r = get_reverie_instance(current_user.username, sim_code)
     r = r.reverie
     persona_path = os.path.join(STORAGE_PATH, r.template_sim_code, "personas", agent_name)
     scratch = r.personas[agent_name].scratch
@@ -916,9 +958,9 @@ async def websocket_endpoint(
         await websocket.close(code=1008)  # General authentication failure
         return
 
-    reverie_instance = get_reverie_instance(sim_code)
+    reverie_instance = get_reverie_instance(username, sim_code)
     if not reverie_instance:
-        L.warning(f"No reverie instance found for sim_code: {sim_code}")
+        L.warning(f"No reverie instance found for sim_code: {sim_code} for user {username}")
         await websocket.close(code=1003)  # Can't accept
         return
 
@@ -942,6 +984,18 @@ async def websocket_endpoint(
 
 
 app.include_router(router)
+
+
+@router.get("/sessions")
+async def list_sessions(current_user: User = Depends(get_current_active_user)):
+    """
+    Returns the list of sim_code for all running reverie instances under the current user.
+    """
+    user_sessions = []
+    with reverie_pool.lock:
+        if current_user.username in reverie_pool.pool:
+            user_sessions = list(reverie_pool.pool[current_user.username].keys())
+    return {"sessions": user_sessions}
 
 
 if __name__ == "__main__":

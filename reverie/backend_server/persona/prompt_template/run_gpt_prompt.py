@@ -17,7 +17,7 @@ import string
 from persona.prompt_template.gpt_structure import *
 from persona.prompt_template.print_prompt import *
 from utils import *
-from utils.llm_function import llm_function, async_llm_function
+from reverie.backend_server.utils.llm import llm_function, async_llm_function
 
 dir_path = os.path.dirname(os.path.abspath(__file__))
 template_storage_dir = os.path.join(dir_path, "./")

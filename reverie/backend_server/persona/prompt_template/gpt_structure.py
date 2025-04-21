@@ -14,7 +14,7 @@ import threading
 from openai import OpenAI
 from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model
 from utils.logs import L, get_outer_caller
-from utils.llm_function import llm_request
+from reverie.backend_server.utils.llm import llm_request
 from utils import thread_local
 
 client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
