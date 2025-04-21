@@ -169,7 +169,7 @@ export const ConfirmPage = () => {
                             {llmConfig ? (
                                 <>
                                     <p><strong>模型类型:</strong> {llmConfig.type}</p>
-                                    <p><strong>模型URL:</strong> {llmConfig.baseUrl}</p>
+                                    <p><strong>模型URL:</strong> {llmConfig.base_url}</p>
                                     <p><strong>引擎:</strong> {llmConfig.engine}</p>
                                     <p><strong>最大Token数量:</strong> {llmConfig.maxTokens}</p>
                                 </>

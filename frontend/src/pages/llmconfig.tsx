@@ -17,9 +17,9 @@ import backgroundImage from '@/assets/Untitled.png'
 
 const defaultConfig: apis.LLMConfig = {
     type: 'default',
-    // baseUrl: 'https://api.openai.com/v1',
-    baseUrl: '',
-    key: '',
+    // base_url: 'https://api.openai.com/v1',
+    base_url: '',
+    api_key: '',
     // engine: 'gpt-3.5-turbo',
     engine: '',
     temperature: 0.7,
@@ -112,8 +112,8 @@ export const ConfigPage = () => {
                                 </div>
                                 <Input
                                     id="apiBase"
-                                    value={config.baseUrl}
-                                    onChange={(e) => updateConfig('baseUrl', e.target.value)}
+                                    value={config.base_url}
+                                    onChange={(e) => updateConfig('base_url', e.target.value)}
                                     placeholder="请输入url"
                                 />
                             </div>
@@ -131,8 +131,8 @@ export const ConfigPage = () => {
                                 <Input
                                     id="apiKey"
                                     type="password"
-                                    value={config.key}
-                                    onChange={(e) => updateConfig('key', e.target.value)}
+                                    value={config.api_key}
+                                    onChange={(e) => updateConfig('api_key', e.target.value)}
                                     placeholder="您的 API 密钥"
                                 />
                             </div>

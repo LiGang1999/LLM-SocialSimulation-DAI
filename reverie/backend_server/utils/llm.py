@@ -33,6 +33,7 @@ def get_llm_config():
         if r is not None:
             cfg =  asdict(r.llm_config)
             cfg["chat"] = True
+            print("LLMCONFIG", cfg)
             return cfg
         else:
             raise ValueError("Cannot find llm config!")
@@ -172,13 +173,10 @@ def llm_request(
     if not is_chat and not model.endswith("-instruct"):
         model += "-instruct"
 
-    if "base_url" in llm_config or "api_key" in llm_config:
-        client = default_client.copy(
-            base_url=llm_config["base_url"] if "base_url" in llm_config else openai_api_base,
-            api_key=llm_config["api_key"] if "api_key" in llm_config else openai_api_key,
-        )
-    else:
-        client = default_client
+    client = default_client.copy(
+        base_url=llm_config.get("base_url", ""),
+        api_key=llm_config.get("api_key", ""),
+    )
 
     attempt = 0
     L.debug(
@@ -209,8 +207,6 @@ def llm_request(
                     frequency_penalty=frequency_penalty,
                     presence_penalty=presence_penalty,
                     stop=stop,
-                    # api_key=llm_config.get("api_key"),
-                    # base_url=llm_config.get("base_url"),
                 )
                 if raw_response:
                     return response
@@ -323,13 +319,10 @@ async def async_llm_request(
     if not is_chat and not model.endswith("-instruct"):
         model += "-instruct"
 
-    if "base_url" in llm_config or "api_key" in llm_config:
-        client = default_async_client.copy(
-            base_url=llm_config["base_url"] if "base_url" in llm_config else openai_api_base,
-            api_key=llm_config["api_key"] if "api_key" in llm_config else openai_api_key,
-        )
-    else:
-        client = default_async_client
+    client = default_client.copy(
+        base_url=llm_config.get("base_url", ""),
+        api_key=llm_config.get("api_key", ""),
+    )
 
     attempt = 0
     L.debug(
@@ -360,8 +353,6 @@ async def async_llm_request(
                     frequency_penalty=frequency_penalty,
                     presence_penalty=presence_penalty,
                     stop=stop,
-                    # api_key=llm_config.get("api_key"),
-                    # base_url=llm_config.get("base_url"),
                 )
                 if raw_response:
                     return response

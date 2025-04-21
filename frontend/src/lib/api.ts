@@ -177,8 +177,8 @@ export namespace apis {
 
     export interface LLMConfig {
         type: string;
-        baseUrl: string;
-        key: string;
+        base_url: string;
+        api_key: string;
         engine: string;
         temperature: number;
         maxTokens: number;
