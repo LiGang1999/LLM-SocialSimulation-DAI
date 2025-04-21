@@ -388,9 +388,9 @@ def save_json_file(file_path: str, data: Dict[str, Any]) -> None:
 
 def parse_llm_config(llm_config_data: Dict[str, Any]) -> LLMConfig:
     return LLMConfig(
-        base_url=llm_config_data.get("base_url", ""),
-        api_key=llm_config_data.get("api_key", ""),
-        model=llm_config_data.get("model", ""),
+        base_url=llm_config_data.get("base_url", "").strip(),
+        api_key=llm_config_data.get("api_key", "").strip(),
+        model=llm_config_data.get("model", "").strip(),
         tempreature=float(llm_config_data.get("temperature", 1.0)),
         max_tokens=int(llm_config_data.get("max_tokens", 512)),
         top_p=float(llm_config_data.get("top_p", 0.7)),
