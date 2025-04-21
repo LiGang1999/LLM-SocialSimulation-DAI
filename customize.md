@@ -39,7 +39,7 @@ def new_prompt_function(param1: str, param2: str) -> Dict[str, Any]:
 a. 在 `reverie/backend_server/persona/persona.py` 中创建新的Persona类:
 
 ```python
-from reverie.backend_server.persona.persona import Persona
+from persona.persona import Persona
 
 class NewPersona(Persona):
     def __init__(self, *args, **kwargs):
@@ -140,8 +140,8 @@ if sim_config.persona_type == "new_persona":
 在 `reverie/backend_server/maze.py` 文件中,我们可以扩展现有的 `OnlineMaze` 类或创建一个新的类。例如,我们可以创建一个新的 `DynamicMaze` 类:
 
 ```python
-from reverie.backend_server.maze import OnlineMaze
-from reverie.backend_server.utils.logs import L
+from maze import OnlineMaze
+from utils.logs import L
 
 class DynamicMaze(OnlineMaze):
     def __init__(self, maze_name):
@@ -172,7 +172,7 @@ class DynamicMaze(OnlineMaze):
 
 ```python
 from fastapi import FastAPI, HTTPException
-from reverie.backend_server.maze import DynamicMaze
+from maze import DynamicMaze
 
 app = FastAPI()
 

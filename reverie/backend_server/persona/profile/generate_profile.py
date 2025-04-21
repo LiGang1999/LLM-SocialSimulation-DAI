@@ -22,7 +22,7 @@ from utils.llm import get_completion
 from utils.logs import L
 
 # 导入基础摘要生成函数
-from generate_based_summary import generate_simple_summary
+from persona.profile.generate_based_summary import generate_simple_summary
 
 def get_project_root() -> str:
     """获取项目根目录的路径"""

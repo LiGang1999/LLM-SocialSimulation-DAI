@@ -5,6 +5,7 @@ import os
 import re
 import time
 
+from dataclasses import asdict
 import openai
 from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model, per_instance_llm_config
 from utils.logs import L
@@ -18,8 +19,8 @@ default_async_client = openai.AsyncClient(api_key=openai_api_key, base_url=opena
 
 default_llm_config = override_gpt_param
 
-print_raw_log = False
-print_short_log = True
+print_raw_log = True
+print_short_log = False
 dir_path = os.path.dirname(os.path.abspath(__file__))
 template_storage_dir = os.path.join(dir_path, "../prompt_templates")
 
@@ -30,7 +31,9 @@ def get_llm_config():
     else:
         r = thread_local.reverie
         if r is not None:
-            return r.llm_config
+            cfg =  asdict(r.llm_config)
+            cfg["chat"] = True
+            return cfg
         else:
             raise ValueError("Cannot find llm config!")
 
@@ -439,7 +442,7 @@ Here is the example user input and the answer:
     prompt = f"""\n
  
 You MUST reply the answer in the following json format (the values for each key are for reference only):
-{example_ret_json if example_ret_json else json.dumps(example_retval, indent=4)}
+{example_ret_json if example_ret_json else json.dumps(example_retval, indent=4, ensure_ascii=False)}
 
 You should not give any explanation unless it is required in your answer.
 You MUST not add additional formats (headers, footers, points ) in your answer.

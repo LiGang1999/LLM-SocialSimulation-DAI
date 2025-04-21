@@ -22,7 +22,7 @@ from typing import Dict, List, Optional, Union, Any
 
 # 导入必要的生成函数
 from utils.llm import get_completion
-from based_data import (
+from persona.profile.based_data import (
     generate_age_info,
     generate_location,
     generate_gender,

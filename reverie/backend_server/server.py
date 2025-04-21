@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from dacite import from_dict
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, APIRouter, status
-from reverie.backend_server.persona.profile.generate_profile import generate_scratch_profile
+from persona.profile.generate_profile import generate_scratch_profile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt

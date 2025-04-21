@@ -184,7 +184,7 @@ class DaiPersona(Persona):
             vbase: 向量数据库
             input_queue: 命令队列
         """
-        # from reverie.backend_server.persona.cognitive_modules.converse import open_convo_session
+        # from persona.cognitive_modules.converse import open_convo_session
 
         from persona.cognitive_modules.converse import open_convo_session
 

@@ -17,7 +17,7 @@ import string
 from persona.prompt_template.gpt_structure import *
 from persona.prompt_template.print_prompt import *
 from utils import *
-from reverie.backend_server.utils.llm import llm_function, async_llm_function
+from utils.llm import llm_function, async_llm_function
 
 dir_path = os.path.dirname(os.path.abspath(__file__))
 template_storage_dir = os.path.join(dir_path, "./")
@@ -4288,4 +4288,4 @@ def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, v
     #     file.write(persona.name + ":" + p1 + "\n" + p2 + "\n")  # 每个 comment 后加一个换行符，便于区分不同的 comment
 
     # GOD knows how this works
-    return p1
+    return p2
