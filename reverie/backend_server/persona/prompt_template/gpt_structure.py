@@ -13,12 +13,10 @@ import threading
 
 from dataclasses import asdict
 from openai import OpenAI
-from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model
+from utils.config import override_gpt_param, override_model
 from utils.logs import L, get_outer_caller
 from utils.llm import llm_request, get_llm_config
 from utils import thread_local
-
-client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
 
 print_raw_log = False
 print_short_log = True
@@ -249,7 +247,7 @@ def get_embedding(text, model="text-embedding-ada-002"):
     model = "text-embedding-ada-002"
 
     llm_config = get_llm_config()
-    client_tmp = client.copy(
+    client_tmp = OpenAI(
         api_key=llm_config.get("api_key", ""),
         base_url=llm_config.get("base_url", "")
     )

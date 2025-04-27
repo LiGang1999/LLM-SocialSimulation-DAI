@@ -7,15 +7,12 @@ import time
 
 from dataclasses import asdict
 import openai
-from utils.config import openai_api_base, openai_api_key, override_gpt_param, override_model, per_instance_llm_config
+from utils.config import override_gpt_param, override_model, per_instance_llm_config
 from utils.logs import L
 from jinja2 import Template
 from utils import thread_local
 
 from typing import Dict, List, Optional
-
-default_client = openai.Client(api_key=openai_api_key, base_url=openai_api_base)
-default_async_client = openai.AsyncClient(api_key=openai_api_key, base_url=openai_api_base)
 
 default_llm_config = override_gpt_param
 
@@ -173,7 +170,7 @@ def llm_request(
     if not is_chat and not model.endswith("-instruct"):
         model += "-instruct"
 
-    client = default_client.copy(
+    client = openai.OpenAI(
         base_url=llm_config.get("base_url", ""),
         api_key=llm_config.get("api_key", ""),
     )
@@ -319,7 +316,7 @@ async def async_llm_request(
     if not is_chat and not model.endswith("-instruct"):
         model += "-instruct"
 
-    client = default_client.copy(
+    client = openai.AsyncOpenAI(
         base_url=llm_config.get("base_url", ""),
         api_key=llm_config.get("api_key", ""),
     )

@@ -56,7 +56,6 @@ from utils.logs import L
 from utils import config
 from utils.config import (
     openai_api_base,
-    openai_api_key,
     storage_path,
     temp_storage_path,
     BASE_TEMPLATES,
@@ -1280,7 +1279,7 @@ if __name__ == "__main__":
     # Create a default ReverieConfig
     cfg = load_config_from_files(f"{storage_path}/{template_sim_code}")
     cfg.sim_code = sim_code
-    cfg.llm_config = LLMConfig(base_url=openai_api_base, api_key=openai_api_key, model=override_gpt_param["model"])
+    cfg.llm_config = LLMConfig(base_url=openai_api_base, api_key=config.openai_api_key, model=override_gpt_param["model"])
 
     rs = Reverie(template_sim_code, cfg)
 
