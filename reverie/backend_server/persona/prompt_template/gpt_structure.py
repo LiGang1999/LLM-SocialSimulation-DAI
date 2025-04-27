@@ -248,10 +248,16 @@ def get_embedding(text, model="text-embedding-ada-002"):
     model = model if not override_model else override_model
     model = "text-embedding-ada-002"
 
+    llm_config = get_llm_config()
+    client_tmp = client.copy(
+        api_key=llm_config.get("api_key", ""),
+        base_url=llm_config.get("base_url", "")
+    )
+
     text = text.replace("\n", " ")
     if not text:
         text = "this is blank"
-    return client.embeddings.create(input=[text], model=model).data[0].embedding
+    return client_tmp.embeddings.create(input=[text], model=model).data[0].embedding
 
 
 if __name__ == "__main__":

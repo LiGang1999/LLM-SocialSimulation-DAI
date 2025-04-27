@@ -94,8 +94,8 @@ class EventInfo:
 
 @dataclass
 class LLMConfig:
-    base_url: str = config.openai_api_base
-    api_key: str = config.openai_api_key
+    base_url: str = ""
+    api_key: str = ""
     model: str = ""
     tempreature: float = 1.0
     max_tokens: int = 512
