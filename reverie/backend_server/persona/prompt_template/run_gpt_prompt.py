@@ -4268,7 +4268,7 @@ def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, v
     task_info = persona.get_workflow_stage_config()["execute"]
     task_description = task_info.get("task", "Execute the agent's plan.")
     output_format = task_info.get(
-        "output_format", {"reasoning": "Step-by-step reasoning...", "execution": "The action to take."}
+        "output_format", {"reasoning": "Step-by-step reasoning...", "execution": "The action to take.", "emoji": "😊", "Emotion":"happy"}
     )
 
     @llm_function(prompt_file="execute_cn.md", is_chat=True, stop="---")
@@ -4277,16 +4277,8 @@ def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, v
         return output_format
 
     output = execute_action(pm, curr_time, retrieved_context, persona.name, init_iss, task_description, plan)
-    p1 = output.get("reasoning", "").lower()
-    p2 = output.get("execution", "").lower()
-    # Extract and return the execution result from the output
-    with open("comments.csv", mode="a", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file)
-        # 将 persona.name, p1, p2 写入 CSV 文件
-        writer.writerow([persona.name,plan, p1, p2])
 
-    # GOD knows how this works
-    return p2
+    return output
 
 def run_gpt_generate_agent_from_text(text, test_input=None, verbose=False):
     """

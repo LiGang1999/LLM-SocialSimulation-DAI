@@ -196,22 +196,24 @@ def execute_dai(persona, maze: OnlineMaze, retrived, plan, all_news):
 
 def execute_dai_custom(persona, maze: OnlineMaze, retrived, plan):
     ###如果plan返回yes，则进行评论，判断在reverie里
-    comments = dict()
+    contents = dict()
     for event_name, plan in plan.items():
         sub_retrived = {}
         sub_retrived[event_name] = retrived[event_name]
-        comment = run_gpt_generate_execute_custom(persona, sub_retrived, plan)
+        output = run_gpt_generate_execute_custom(persona, sub_retrived, plan)
+        content = output["execution"]
 
         s = sub_retrived[event_name]["curr_event"].subject
         p = sub_retrived[event_name]["curr_event"].predicate
         o = sub_retrived[event_name]["curr_event"].object
 
-        event_trigger("agent_comment", {"name": persona.name, "content": comment, "subject": s})
+        event_trigger("agent_content", {"name": persona.name, "content": content, "subject": s})
 
-        memory_node = MemoryNode(persona.name, s, p, o, comment, True)
+        memory_node = MemoryNode(persona.name, s, p, o, content, True)
         maze.add_memory_to_event(event_name, memory_node)
-
-        comments[event_name] = comment
         
-        persona.action_log.append(comment)
-    return comments
+        contents[event_name] = content
+        
+        persona.action_log.append(output)
+        print(output)
+    return contents
