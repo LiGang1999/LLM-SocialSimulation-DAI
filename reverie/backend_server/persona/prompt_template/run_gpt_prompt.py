@@ -4280,8 +4280,52 @@ def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, v
     p1 = output.get("reasoning", "").lower()
     p2 = output.get("execution", "").lower()
     # Extract and return the execution result from the output
-    with open("comments.txt", "a") as file:  # 'a' 模式可以让你把内容追加到文件末尾
-        file.write(persona.name + ":" + p1 + "\n" + p2 + "\n")  # 每个 comment 后加一个换行符，便于区分不同的 comment
+    with open("comments.csv", mode="a", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        # 将 persona.name, p1, p2 写入 CSV 文件
+        writer.writerow([persona.name,plan, p1, p2])
 
     # GOD knows how this works
-    return p1
+    return p2
+
+def run_gpt_generate_agent_from_text(text, test_input=None, verbose=False):
+    """
+    解析输入的文本并生成一个智能体的结构化 JSON 表达。
+
+    Parameters:
+    - text (str): 用户提供的文本描述。
+    - test_input (optional): 测试用输入。
+    - verbose (bool): 是否打印调试信息。
+
+    Returns:
+    - dict: 智能体定义的 JSON 对象。
+    """
+    output_format = {
+        "daily_plan_req": "...",
+        "name": "...",
+        "first_name": "...",
+        "last_name": "...",
+        "age": 25,
+        "innate": "...",
+        "learned": "...",
+        "currently": "...",
+        "lifestyle": "...",
+        "living_area": "..."
+    }
+    @llm_function(is_chat=True, prompt_file="generate_agent_from_text.md")
+    def llm_generate_agent_from_text(text_description):
+        return output_format
+    print(text)
+    output = llm_generate_agent_from_text(text)
+    return {
+    "daily_plan_req": output["daily_plan_req"],
+    "name": output["name"],
+    "first_name": output["first_name"],
+    "last_name": output["last_name"],
+    "age": output["age"],
+    "innate": output["innate"],
+    "learned": output["learned"],
+    "currently": output["currently"],
+    "lifestyle": output["lifestyle"],
+    "living_area": output["living_area"]
+    }
