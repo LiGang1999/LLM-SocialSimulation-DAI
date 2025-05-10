@@ -856,8 +856,23 @@ class Reverie:
 
         return text.strip()  # 返回去除两端空白的最终文本
 
-
-
+    def generate_summary_from_action_log(self):
+        combine_text = []
+        for persona_name, persona in self.personas.items():
+            for log_entry in persona.action_log:
+                if isinstance(log_entry, str):
+                    combine_text.append(f"{persona_name}: {log_entry}")
+                elif isinstance(log_entry, dict):
+                    details = "; ".join([f"{k}: {v}" for k, v in log_entry.items()])
+                    combine_text.append(f"{persona_name}: {details}")
+                else:
+                    combine_text.append(f"{persona_name}: Unknown log format: {log_entry}")
+        
+        full_text = "\n".join(combine_text)
+        output = generate_summary_from_actions(full_text)  # 你自己实现的英文大模型总结函数
+        print(output)
+        return output
+    
     def custom_run(self, sim_command):
         # Parses the command to extract the number of steps and the included/excluded agents.
         # Example: custom-run 1 lisa candy -> only 'lisa' and 'candy' participate in 1 step.

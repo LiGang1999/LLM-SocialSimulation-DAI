@@ -4329,3 +4329,26 @@ def run_gpt_generate_agent_from_text(text, test_input=None, verbose=False):
     "lifestyle": output["lifestyle"],
     "living_area": output["living_area"]
     }
+    
+def run_gpt_generate_summary_from_actions(text, test_input=None, verbose=False):
+    """
+    解析输入的文本并生成一个智能体的结构化 JSON 表达。
+
+    Parameters:
+    - text (str): 用户提供的文本描述。
+    - test_input (optional): 测试用输入。
+    - verbose (bool): 是否打印调试信息。
+
+    Returns:
+    - dict: 智能体定义的 JSON 对象。
+    """
+    output_format = {
+    "output": "..."
+    }
+    
+    @llm_function(is_chat=True, prompt_file="generate_summary_from_actions.md")
+    def llm_generate_summary_from_actions(text_description):
+        return output_format
+    print(text)
+    output = llm_generate_summary_from_actions(text)
+    return output["output"]

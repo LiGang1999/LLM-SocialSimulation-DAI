@@ -211,6 +211,7 @@ def execute_dai_custom(persona, maze: OnlineMaze, retrived, plan):
         memory_node = MemoryNode(persona.name, s, p, o, comment, True)
         maze.add_memory_to_event(event_name, memory_node)
 
-        print(comment)
         comments[event_name] = comment
+        
+        persona.action_log.append(comment)
     return comments

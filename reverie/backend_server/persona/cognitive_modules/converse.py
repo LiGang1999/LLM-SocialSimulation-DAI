@@ -482,3 +482,19 @@ def generate_agent_from_text(text):
     if debug:
         print("GNS FUNCTION: <generate_agent_from_text>")
     return run_gpt_generate_agent_from_text(text)
+
+
+def generate_summary_from_actions(text):
+    # """TODO
+
+    # INPUT:
+    #   act_desp: the description of the action (e.g., "sleeping")
+    #   persona: The Persona class instance
+    # OUTPUT:
+    #   a string of emoji that translates action description.
+    # EXAMPLE OUTPUT:
+    #   "🧈🍞"
+    # """
+    if debug:
+        print("GNS FUNCTION: <llm_generate_summary_from_actions>")
+    return run_gpt_generate_summary_from_actions(text)
