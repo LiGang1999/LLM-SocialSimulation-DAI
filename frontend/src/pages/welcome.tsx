@@ -10,6 +10,7 @@ import backgroundImage from '@/assets/background2.jpg';  // 替换成你的背�
 import { Navbar } from '@/components/Navbar';
 import { Link } from 'react-router-dom';
 import zjulogo from '@/assets/Zhejiang_University_Logo.svg'
+import { useAuth } from '@/contexts/AuthContext';
 
 const carouselData = [
     { id: 0, src: start1, alt: "Platform Simulation 1" },
@@ -27,6 +28,7 @@ export const WelcomePage = () => {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
     const [prevBtnEnabled, setPrevBtnEnabled] = useState(false)
     const [nextBtnEnabled, setNextBtnEnabled] = useState(false)
+    const auth = useAuth();
 
     const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi])
     const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi])
@@ -39,6 +41,7 @@ export const WelcomePage = () => {
 
     const clearLocalStorage = () => {
         localStorage.clear();
+        auth.logout();
         alert('Local storage has been cleared.');
     }
     useEffect(() => {

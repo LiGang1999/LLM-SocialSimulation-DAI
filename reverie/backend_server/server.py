@@ -21,6 +21,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import PyJWTError
 from persona.profile.generate_profile import generate_scratch_profile
 from pydantic import BaseModel, EmailStr, ValidationError
+from pydantic_core import PydanticUndefined
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -401,7 +402,65 @@ def parse_llm_config(llm_config_data: Dict[str, Any]) -> LLMConfig:
 
 
 def parse_persona_configs(personas_data: List[Dict[str, Any]]) -> Dict[str, ScratchData]:
-    return {persona["name"]: ScratchData(**persona) for persona in personas_data}
+    parsed_personas: Dict[str, ScratchData] = {}
+    for persona_config_original in personas_data:
+        persona_name = persona_config_original.get("name")
+        if not persona_name:
+            L.warning("Persona data missing 'name', skipping.")
+            continue
+
+        # Attempt to parse with the original configuration first
+        try:
+            instance = ScratchData(**persona_config_original)
+            parsed_personas[persona_name] = instance
+        except ValidationError as e:
+            L.warning(f"Validation error for persona '{persona_name}'. Errors: {e.errors()}. Attempting to apply defaults.")
+            
+            # If validation fails, create a copy to modify with defaults
+            corrected_config = persona_config_original.copy()
+            
+            for error_detail in e.errors():
+                # error_detail['loc'] is a tuple representing the path to the field
+                # e.g., ('simple_field',) or ('nested_object', 'field_in_nested')
+                if not error_detail['loc']:
+                    L.warning(f"Validation error for persona '{persona_name}' without specific field location: {error_detail['msg']}. Skipping this error's handling.")
+                    continue
+                
+                # Assuming errors are for top-level fields of ScratchData for simplicity
+                field_key = str(error_detail['loc'][0]) 
+
+                # Check if the field exists in the model's fields
+                if field_key not in ScratchData.model_fields:
+                    L.warning(f"Field '{field_key}' from validation error for persona '{persona_name}' not found in ScratchData.model_fields.")
+                    continue
+                    
+                field_info = ScratchData.model_fields[field_key]
+                
+                applied_default = False
+                # Check if the field has an explicit default value
+                if field_info.default is not PydanticUndefined:
+                    corrected_config[field_key] = field_info.default
+                    L.info(f"Applied default value for field '{field_key}' in persona '{persona_name}'. Original error: {error_detail['type']}:{error_detail['msg']}.")
+                    applied_default = True
+                # Else, check if the field has a default_factory
+                elif field_info.default_factory is not None:
+                    default_value = field_info.default_factory()
+                    corrected_config[field_key] = default_value
+                    L.info(f"Applied default_factory generated value for field '{field_key}' in persona '{persona_name}'. Original error: {error_detail['type']}:{error_detail['msg']}.")
+                    applied_default = True
+                
+                if not applied_default:
+                    L.warning(f"Field '{field_key}' in persona '{persona_name}' failed validation (type: {error_detail['type']}, msg: {error_detail['msg']}) but has no default value or factory. Original value was '{persona_config_original.get(field_key)}'. This field may cause validation to fail again.")
+
+            try:
+                # Attempt to validate again with the corrected configuration
+                instance = ScratchData(**corrected_config)
+                parsed_personas[persona_name] = instance
+                L.info(f"Successfully parsed persona '{persona_name}' after applying defaults for validated fields.")
+            except ValidationError as e2:
+                L.error(f"Failed to parse persona '{persona_name}' even after attempting to apply defaults. Final errors: {e2.errors()}. Skipping this persona.")
+                
+    return parsed_personas
 
 
 def parse_public_events(events_data: List[Dict[str, Any]], personas: List[str]) -> List[Dict[str, Any]]:
