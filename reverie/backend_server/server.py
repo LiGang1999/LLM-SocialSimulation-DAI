@@ -1,34 +1,34 @@
 import asyncio
 import json
+import logging
 import os
 import threading
 import time
-import logging
+import traceback
 from collections import OrderedDict
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from queue import Queue
 from typing import Any, Dict, List, Optional, Tuple, Union
-from dacite import from_dict
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, APIRouter, status
-from persona.profile.generate_profile import generate_scratch_profile
+import jwt
+from dacite import from_dict
+from database import User as DBUser
+from database import get_db, init_db
+from fastapi import APIRouter, BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-import jwt
 from jwt.exceptions import PyJWTError
-
-from pydantic import BaseModel, ValidationError, EmailStr
-from sqlalchemy.future import select
+from persona.profile.generate_profile import generate_scratch_profile
+from pydantic import BaseModel, EmailStr, ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from utils import config, check_if_dir_exists, get_password_hash, get_user_hash
+from sqlalchemy.future import select
+from utils import check_if_dir_exists, config, get_password_hash, get_user_hash
 from utils.config import BASE_TEMPLATES
 from utils.logs import L
-from contextlib import asynccontextmanager
-
 
 from reverie import LLMConfig, Reverie, ReverieConfig, ScratchData, StageInfo
-from database import User as DBUser, get_db, init_db
 
 # Security configuration
 SECRET_KEY = "8f42a73d98f3118bcc9dd52fc4e53fce983e5f7f7acfeffeeb67a49e47f66673"
@@ -608,6 +608,7 @@ async def start(sim_data: StartReq, current_user: User = Depends(get_current_act
         if check_if_dir_exists(sim_folder):
             raise HTTPException(status_code=400, detail="Simulation already exists")
         parsed_llm_config = parse_llm_config(llm_config)
+        L.debug(f"Persona configs: {template.get("personas", [])}")
         persona_configs = parse_persona_configs(template.get("personas", []))
         public_events = parse_public_events(
             template.get("events", []), [persona.name for persona in persona_configs.values()]
@@ -642,7 +643,7 @@ async def start(sim_data: StartReq, current_user: User = Depends(get_current_act
 
         return {"status": "success", "message": "Simulation started"}
     except Exception as e:
-        L.error(f"Error in start endpoint: {str(e)}")
+        L.error(f"Error in start endpoint: {str(e)}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
