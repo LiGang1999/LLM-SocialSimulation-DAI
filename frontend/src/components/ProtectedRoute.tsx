@@ -1,43 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { apis } from '../lib/api';
+import React from 'react';
+import { Navigate } from 'react-router-dom'; // Outlet removed
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  isAdminRoute?: boolean;
+  children: React.ReactNode; // Explicitly define children
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  const location = useLocation();
-  const [authChecked, setAuthChecked] = useState(false);
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isAdminRoute = false, children }) => {
+  const { isAuthenticated, user, loading } = useAuth();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      // Explicitly check auth status with backend
-      apis.getCurrentUser()
-        .then(() => setAuthChecked(true))
-        .catch(() => setAuthChecked(true));
-    } else {
-      setAuthChecked(true);
-    }
-  }, [isAuthenticated]);
-
-  if (!isAuthenticated && authChecked) {
-    // Redirect to login page with message and current location for redirect after login
-    return (
-      <Navigate
-        to="/login"
-        state={{
-          from: location,
-          message: "您需要登录才能查看此页面" // "You should be logged in to view this page"
-        }}
-        replace
-      />
-    );
+  if (loading) {
+    // You might want to show a loading spinner here
+    return <div>Loading...</div>;
   }
 
-  return <>{children}</>;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (isAdminRoute && !user?.is_admin) {
+    // If it's an admin route and user is not admin, redirect to home or a "not authorized" page
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>; // Render children directly
 };
 
 export default ProtectedRoute;

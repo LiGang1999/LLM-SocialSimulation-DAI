@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { apis, RegisterRequest, User } from '../lib/api';
 
 interface AuthContextType {
-  user: User | null;
+  user: User | null; // User type now includes is_admin?
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   register: (

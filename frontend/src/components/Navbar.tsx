@@ -11,13 +11,25 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
-
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogFooter,
+    DialogClose,
+    DialogDescription,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Button, buttonVariants } from "./ui/button";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { buttonVariants } from "./ui/button";
-import { Menu } from "lucide-react";
+import { Menu, MessageSquareText } from "lucide-react";
 import { LogoIcon } from "./Icons";
 import { Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { apis } from "@/lib/api"; // Import apis
 
 const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
 const docs_link = 'https://github.com/ZJUCSS/social-experiment-platform/blob/master/README_cn.md'
@@ -52,7 +64,50 @@ const routeList: RouteProps[] = [
 
 export const Navbar = () => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
+    const [feedbackText, setFeedbackText] = useState<string>("");
     const { user, isAuthenticated, logout } = useAuth();
+
+    const handleFeedbackSubmit = async () => {
+        if (!feedbackText.trim()) {
+            alert("反馈内容不能为空");
+            return;
+        }
+        if (!isAuthenticated || !user) {
+            alert("请先登录再提交反馈");
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert("认证失败，请重新登录。");
+            return;
+        }
+
+        try {
+            // Use the new apis.submitFeedback function
+            await apis.submitFeedback({
+                username: user.username,
+                feedback: feedbackText,
+            });
+            alert("反馈提交成功！感谢您的反馈。");
+            setFeedbackText("");
+            setIsFeedbackOpen(false);
+        } catch (error) {
+            // The apis.submitFeedback function already logs the error
+            // and throws it, so we can catch it here for the alert.
+            // Check if error has a response and a message property for more specific error messages
+            let errorMessage = "提交反馈时发生错误。";
+            if (error && typeof error === 'object' && 'response' in error && error.response && 
+                typeof error.response === 'object' && 'data' in error.response && error.response.data &&
+                typeof error.response.data === 'object' && 'message' in error.response.data) {
+                errorMessage = `提交失败: ${error.response.data.message}`;
+            } else if (error && typeof error === 'object' && 'message' in error) {
+                errorMessage = `提交失败: ${error.message}`;
+            }
+            alert(errorMessage);
+        }
+    };
 
     return (
         <header className="sticky top-0 z-40 w-full border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background">
@@ -149,6 +204,27 @@ export const Navbar = () => {
                                         <GitHubLogoIcon className="mr-2 w-5 h-5" />
                                         Github
                                     </Link>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => {
+                                            setIsFeedbackOpen(true);
+                                            setIsOpen(false);
+                                        }}
+                                        className="w-[110px] border-[1px] bg-gray-50 border-white border-opacity-40"
+                                    >
+                                        <MessageSquareText className="mr-2 w-5 h-5" />
+                                        反馈
+                                    </Button>
+                                    {isAuthenticated && user?.is_admin && (
+                                        <Link
+                                            rel="noreferrer noopener"
+                                            to="/admin"
+                                            onClick={() => setIsOpen(false)}
+                                            className="w-[110px] border-[1px] bg-gray-50 border-white border-opacity-40"
+                                        >
+                                            管理后台
+                                        </Link>
+                                    )}
                                 </nav>
                             </SheetContent>
                         </Sheet>
@@ -168,6 +244,17 @@ export const Navbar = () => {
                                 {route.label}
                             </Link>
                         ))}
+                         {isAuthenticated && user?.is_admin && (
+                            <Link
+                                rel="noreferrer noopener"
+                                to="/admin"
+                                className={`text-[17px] ${buttonVariants({
+                                    variant: "ghost",
+                                })} bg-opacity-50`}
+                            >
+                                管理后台
+                            </Link>
+                        )}
                     </nav>
 
                     <div className="hidden md:flex gap-2">
@@ -217,6 +304,50 @@ export const Navbar = () => {
                             <GitHubLogoIcon className="mr-2 w-5 h-5" />
                             Github
                         </Link>
+                        <Dialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen}>
+                            <DialogTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    className={`border bg-white bg-opacity-20 border-opacity-40 border-white`}
+                                >
+                                    <MessageSquareText className="mr-2 w-5 h-5" />
+                                    反馈
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-lg">
+                                <DialogHeader>
+                                    <DialogTitle>提交您的宝贵意见</DialogTitle>
+                                    <DialogDescription>
+                                        我们非常重视您的反馈，请告诉我们如何改进。
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-6 py-4">
+                                    <div className="grid w-full gap-2">
+                                        <Label htmlFor="feedback-text" className="text-base font-medium">
+                                            反馈内容：
+                                        </Label>
+                                        <Textarea
+                                            id="feedback-text"
+                                            value={feedbackText}
+                                            onChange={(e) => setFeedbackText(e.target.value)}
+                                            placeholder="请在此处详细描述您遇到的问题或建议..."
+                                            className="min-h-[120px] text-sm p-3"
+                                            rows={6}
+                                        />
+                                    </div>
+                                </div>
+                                <DialogFooter className="gap-2 sm:justify-end">
+                                    <DialogClose asChild>
+                                        <Button type="button" variant="outline">
+                                            取消
+                                        </Button>
+                                    </DialogClose>
+                                    <Button type="submit" onClick={handleFeedbackSubmit}>
+                                        提交反馈
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </NavigationMenuList>
             </NavigationMenu>

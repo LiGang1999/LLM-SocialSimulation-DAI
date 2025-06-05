@@ -38,6 +38,20 @@ export interface User {
     email?: string;
     full_name?: string;
     disabled?: boolean;
+    is_admin?: boolean; // Add is_admin
+}
+
+export interface FeedbackRequest {
+    username: string;
+    feedback: string;
+}
+
+export interface FeedbackAdminItem {
+    id: number;
+    user_username: string;
+    user_email: string;
+    feedback_text: string;
+    timestamp: string; // Assuming timestamp is a string from backend, adjust if it's Date
 }
 
 
@@ -484,5 +498,25 @@ export namespace apis {
         const token = localStorage.getItem('token');
         const uriToken = encodeURIComponent(token || "");
         return new WebSocket(`api/ws?sim_code=${simCode}${token ? `&token=${uriToken}` : ''}`);
-    }
+    };
+
+    export const submitFeedback = async (feedbackData: FeedbackRequest): Promise<any> => {
+        try {
+            const response = await api.post('/feedback', feedbackData);
+            return response.data;
+        } catch (error) {
+            console.error("Error submitting feedback:", error);
+            throw error;
+        }
+    };
+
+    export const getFeedbacks = async (): Promise<FeedbackAdminItem[]> => {
+        try {
+            const response = await api.get<FeedbackAdminItem[]>('/admin/feedbacks');
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching feedbacks:", error);
+            throw error;
+        }
+    };
 }

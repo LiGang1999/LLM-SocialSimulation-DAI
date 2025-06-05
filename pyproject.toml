@@ -36,6 +36,7 @@ dependencies = [
     "dacite>=1.9.2",
     "pyjwt>=2.10.1",
     "geonamescache>=2.0.0",
+    "watchdog>=6.0.0",
 ]
 
 [tool.uv.workspace]
