@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Github, Play, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Play, Trash2 } from 'lucide-react'
 
 import start1 from '@/assets/start1.jpg'
 import start2 from '@/assets/start2.jpg'
@@ -19,7 +19,7 @@ const carouselData = [
 ];
 
 
-const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
+// const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
 
 // TODO:
 // 1. background image
@@ -85,11 +85,11 @@ export const WelcomePage = () => {
                                     <Play size={20} className='mr-2' /> 立即开始
                                 </Button>
                             </Link>
-                            <Link to={github_link}>
+                            {/* <Link to={github_link}>
                                 <Button variant="outline" className="text-2xl h-16 px-8 font-bold border-2 border-purple-400 bg-white backdrop-filter backdrop-blur-lg bg-opacity-50 text-purple-900 hover:bg-purple-400 hover:text-white rounded-lg transform transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center justify-center">
                                     <Github className="mr-2 h-6 w-6" /> GitHub
                                 </Button>
-                            </Link>
+                            </Link> */}
                             <Button
                                 variant="ghost"
                                 size="icon"

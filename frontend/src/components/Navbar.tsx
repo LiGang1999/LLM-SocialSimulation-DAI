@@ -24,14 +24,14 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button, buttonVariants } from "./ui/button";
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
+// import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { Menu, MessageSquareText } from "lucide-react";
 import { LogoIcon } from "./Icons";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { apis } from "@/lib/api"; // Import apis
 
-const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
+// const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
 const docs_link = 'https://github.com/ZJUCSS/social-experiment-platform/blob/master/README_cn.md'
 
 interface RouteProps {
@@ -196,14 +196,14 @@ export const Navbar = () => {
                                             </Link>
                                         </>
                                     )}
-                                    <Link
+                                    {/* <Link
                                         rel="noreferrer noopener"
                                         to={github_link}
                                         className="w-[110px] border-[1px] bg-gray-50 border-white border-opacity-40"
                                     >
                                         <GitHubLogoIcon className="mr-2 w-5 h-5" />
                                         Github
-                                    </Link>
+                                    </Link> */}
                                     <Button
                                         variant="ghost"
                                         onClick={() => {
@@ -295,7 +295,7 @@ export const Navbar = () => {
                             </>
                         )}
 
-                        <Link
+                        {/* <Link
                             rel="noreferrer noopener"
                             to={github_link}
                             target="_blank"
@@ -303,7 +303,7 @@ export const Navbar = () => {
                         >
                             <GitHubLogoIcon className="mr-2 w-5 h-5" />
                             Github
-                        </Link>
+                        </Link> */}
                         <Dialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen}>
                             <DialogTrigger asChild>
                                 <Button
