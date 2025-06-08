@@ -38,7 +38,8 @@ export interface User {
     email?: string;
     full_name?: string;
     disabled?: boolean;
-    is_admin?: boolean; // Add is_admin
+    is_admin?: boolean;
+    is_sso?: boolean;
 }
 
 export interface FeedbackRequest {
@@ -96,6 +97,21 @@ export namespace apis {
             return response.data;
         } catch (error) {
             console.error("Error fetching current user:", error);
+            throw error;
+        }
+    };
+
+    export const ssoLogin = async (params: {
+        appId: string;
+        username: string;
+        time: string;
+        sign: string;
+    }): Promise<AuthResponse> => {
+        try {
+            const response = await api.post<AuthResponse>('/ssologin', params);
+            return response.data;
+        } catch (error) {
+            console.error("SSO login error:", error);
             throw error;
         }
     };

@@ -5,6 +5,7 @@ interface AuthContextType {
   user: User | null; // User type now includes is_admin?
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<boolean>;
+  ssoLogin: (accessToken: string) => Promise<void>;
   register: (
     username: string,
     password: string,
@@ -64,6 +65,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const ssoLogin = async (accessToken: string) => {
+    localStorage.setItem('token', accessToken);
+    await fetchCurrentUser();
+  };
+
   const register = async (
     username: string,
     password: string,
@@ -109,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, ssoLogin, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
