@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -7,14 +8,14 @@ import time
 import traceback
 from collections import OrderedDict
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta # Ensure datetime is imported from datetime
+from datetime import datetime, timedelta  # Ensure datetime is imported from datetime
 from queue import Queue
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import jwt
 from dacite import from_dict
+from database import Feedback as DBFeedback  # Import Feedback model
 from database import User as DBUser
-from database import Feedback as DBFeedback # Import Feedback model
 from database import get_db, init_db
 from fastapi import APIRouter, BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -33,9 +34,12 @@ from utils.logs import L
 from reverie import LLMConfig, Reverie, ReverieConfig, ScratchData, StageInfo
 
 # Security configuration
-SECRET_KEY = "8f42a73d98f3118bcc9dd52fc4e53fce983e5f7f7acfeffeeb67a49e47f66673"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 3600
+SECRET_KEY = os.environ["SECRET_KEY"]
+ALGORITHM = os.environ["ALGORITHM"]
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"])
+
+# SSO configuration
+SSO_APP_SECRETS = json.loads(os.environ["SSO_APP_SECRETS"])
 
 
 # User management
@@ -63,11 +67,11 @@ class UserCreate(UserBase):
 class User(UserBase):
     disabled: Optional[bool] = False
     is_admin: Optional[bool] = False
+    is_sso: Optional[bool] = False
 
 
 class UserInDB(User):
     hashed_password: str
-    # is_admin is inherited from User and will be present
 
 
 # User storage paths
@@ -236,7 +240,8 @@ def get_current_user(required: bool = True):
             email=user.email,
             full_name=user.full_name,
             disabled=user.disabled,
-            is_admin=user.is_admin, # Include is_admin
+            is_admin=user.is_admin,
+            is_sso=user.is_sso,
             hashed_password=user.hashed_password,
         )
 
@@ -294,7 +299,8 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         institution=user_data.institution,
         hashed_password=hashed_password,
         disabled=False,
-        is_admin=False, # Default to False for new registrations
+        is_admin=False,  # Default to False for new registrations
+        is_sso=False,
     )
 
     try:
@@ -310,11 +316,132 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     os.makedirs(user_template_dir, exist_ok=True)
 
     return User(
-        username=new_user.username, email=new_user.email, full_name=new_user.full_name, disabled=new_user.disabled, is_admin=new_user.is_admin
+        username=new_user.username,
+        email=new_user.email,
+        full_name=new_user.full_name,
+        disabled=new_user.disabled,
+        is_admin=new_user.is_admin,
+        is_sso=new_user.is_sso,
     )
 
 
 from fastapi.responses import JSONResponse
+
+
+class SSOLoginRequest(BaseModel):
+    appId: str
+    username: str
+    time: str
+    sign: str
+
+
+def verify_sso_signature(app_id: str, username: str, time: str, sign: str) -> bool:
+    """Verify SSO signature"""
+    # Get the app secret
+    app_secret = SSO_APP_SECRETS.get(app_id)
+    if not app_secret:
+        return False
+
+    # Construct the string to hash
+    string_to_hash = f"appId={app_id}&appSecret={app_secret}&username={username}&time={time}"
+
+    # Calculate MD5 hash
+    calculated_sign = hashlib.md5(string_to_hash.encode()).hexdigest()
+
+    # Compare signatures (case-insensitive)
+    return calculated_sign.lower() == sign.lower()
+
+
+@router.post("/ssologin")
+async def sso_login(sso_data: SSOLoginRequest, db: AsyncSession = Depends(get_db)):
+    """SSO login endpoint"""
+    # Verify signature
+    if not verify_sso_signature(sso_data.appId, sso_data.username, sso_data.time, sso_data.sign):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid SSO signature",
+        )
+
+    # Check if timestamp is not too old (e.g., within 5 minutes)
+    try:
+        request_time = int(sso_data.time)
+        current_time = int(time.time())
+        if abs(current_time - request_time) > 300:  # 5 minutes
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="SSO request expired",
+            )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid time format",
+        )
+
+    # Get or create user
+    user = await get_user(db, sso_data.username)
+    if not user:
+        # Create a new user for SSO login
+        # Generate a random password (user won't use it for SSO)
+        import secrets
+
+        random_password = secrets.token_urlsafe(32)
+        hashed_password = get_password_hash(random_password)
+
+        new_user = DBUser(
+            username=sso_data.username,
+            email=f"{sso_data.username}@zjgsu.edu.cn",  # Default email for SSO users
+            full_name=sso_data.username,  # Default to username
+            phone="",  # Empty phone for SSO users
+            institution="zjgsu",  # Mark as SSO user
+            hashed_password=hashed_password,
+            disabled=False,
+            is_admin=False,
+            is_sso=True,
+        )
+
+        try:
+            db.add(new_user)
+            await db.commit()
+            await db.refresh(new_user)
+            user = new_user
+
+            # Create user's template directory
+            user_template_dir = os.path.join(USER_TEMPLATES_PATH, get_user_hash(sso_data.username))
+            os.makedirs(user_template_dir, exist_ok=True)
+        except IntegrityError:
+            await db.rollback()
+            # Try to get the user again in case of race condition
+            user = await get_user(db, sso_data.username)
+            if not user:
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create user")
+
+    # Create access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+
+    # Create response with token in body
+    response = JSONResponse(content={"access_token": access_token, "token_type": "bearer"})
+
+    # Set cookie with the same token
+    response.set_cookie(
+        key="auth_token",
+        value=f"Bearer {access_token}",
+        httponly=True,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        expires=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        samesite="lax",
+        secure=False,  # Set to True in production with HTTPS
+    )
+
+    return response
+
+
+@router.get("/ssologin")
+async def sso_login_get(appId: str, username: str, time: str, sign: str, db: AsyncSession = Depends(get_db)):
+    """SSO login endpoint for GET requests (redirect from portal)"""
+    # Use the same logic as POST
+    sso_data = SSOLoginRequest(appId=appId, username=username, time=time, sign=sign)
+    return await sso_login(sso_data, db)
 
 
 @router.post("/login", response_model=Token)
@@ -419,43 +546,55 @@ def parse_persona_configs(personas_data: List[Dict[str, Any]]) -> Dict[str, Scra
             instance = ScratchData(**persona_config_original)
             parsed_personas[persona_name] = instance
         except ValidationError as e:
-            L.warning(f"Validation error for persona '{persona_name}'. Errors: {e.errors()}. Attempting to apply defaults.")
-            
+            L.warning(
+                f"Validation error for persona '{persona_name}'. Errors: {e.errors()}. Attempting to apply defaults."
+            )
+
             # If validation fails, create a copy to modify with defaults
             corrected_config = persona_config_original.copy()
-            
+
             for error_detail in e.errors():
                 # error_detail['loc'] is a tuple representing the path to the field
                 # e.g., ('simple_field',) or ('nested_object', 'field_in_nested')
-                if not error_detail['loc']:
-                    L.warning(f"Validation error for persona '{persona_name}' without specific field location: {error_detail['msg']}. Skipping this error's handling.")
+                if not error_detail["loc"]:
+                    L.warning(
+                        f"Validation error for persona '{persona_name}' without specific field location: {error_detail['msg']}. Skipping this error's handling."
+                    )
                     continue
-                
+
                 # Assuming errors are for top-level fields of ScratchData for simplicity
-                field_key = str(error_detail['loc'][0]) 
+                field_key = str(error_detail["loc"][0])
 
                 # Check if the field exists in the model's fields
                 if field_key not in ScratchData.model_fields:
-                    L.warning(f"Field '{field_key}' from validation error for persona '{persona_name}' not found in ScratchData.model_fields.")
+                    L.warning(
+                        f"Field '{field_key}' from validation error for persona '{persona_name}' not found in ScratchData.model_fields."
+                    )
                     continue
-                    
+
                 field_info = ScratchData.model_fields[field_key]
-                
+
                 applied_default = False
                 # Check if the field has an explicit default value
                 if field_info.default is not PydanticUndefined:
                     corrected_config[field_key] = field_info.default
-                    L.info(f"Applied default value for field '{field_key}' in persona '{persona_name}'. Original error: {error_detail['type']}:{error_detail['msg']}.")
+                    L.info(
+                        f"Applied default value for field '{field_key}' in persona '{persona_name}'. Original error: {error_detail['type']}:{error_detail['msg']}."
+                    )
                     applied_default = True
                 # Else, check if the field has a default_factory
                 elif field_info.default_factory is not None:
                     default_value = field_info.default_factory()
                     corrected_config[field_key] = default_value
-                    L.info(f"Applied default_factory generated value for field '{field_key}' in persona '{persona_name}'. Original error: {error_detail['type']}:{error_detail['msg']}.")
+                    L.info(
+                        f"Applied default_factory generated value for field '{field_key}' in persona '{persona_name}'. Original error: {error_detail['type']}:{error_detail['msg']}."
+                    )
                     applied_default = True
-                
+
                 if not applied_default:
-                    L.warning(f"Field '{field_key}' in persona '{persona_name}' failed validation (type: {error_detail['type']}, msg: {error_detail['msg']}) but has no default value or factory. Original value was '{persona_config_original.get(field_key)}'. This field may cause validation to fail again.")
+                    L.warning(
+                        f"Field '{field_key}' in persona '{persona_name}' failed validation (type: {error_detail['type']}, msg: {error_detail['msg']}) but has no default value or factory. Original value was '{persona_config_original.get(field_key)}'. This field may cause validation to fail again."
+                    )
 
             try:
                 # Attempt to validate again with the corrected configuration
@@ -463,8 +602,10 @@ def parse_persona_configs(personas_data: List[Dict[str, Any]]) -> Dict[str, Scra
                 parsed_personas[persona_name] = instance
                 L.info(f"Successfully parsed persona '{persona_name}' after applying defaults for validated fields.")
             except ValidationError as e2:
-                L.error(f"Failed to parse persona '{persona_name}' even after attempting to apply defaults. Final errors: {e2.errors()}. Skipping this persona.")
-                
+                L.error(
+                    f"Failed to parse persona '{persona_name}' even after attempting to apply defaults. Final errors: {e2.errors()}. Skipping this persona."
+                )
+
     return parsed_personas
 
 
@@ -581,7 +722,7 @@ class ReveriePool:
                         oldest_reverie = self.pool[oldest_user].pop(oldest_sim_code)
                         oldest_reverie.shutdown()
                         if not self.pool[oldest_user]:
-                            self.pool.pop(oldest_user) # Remove user if no more instances
+                            self.pool.pop(oldest_user)  # Remove user if no more instances
 
                 reverie = ReverieInstance(username, template_config, sim_config)
                 self.pool[username][sim_code] = reverie
@@ -593,7 +734,7 @@ class ReveriePool:
                 reverie = self.pool[username].pop(sim_code)
                 reverie.shutdown()  # Shutdown the removed instance
                 if not self.pool[username]:
-                    self.pool.pop(username) # Remove user if no more instances
+                    self.pool.pop(username)  # Remove user if no more instances
 
     def get(self, username: str, sim_code: str) -> ReverieInstance | None:
         with self.lock:
@@ -638,13 +779,14 @@ class ProfileReq(BaseModel):
 
 
 class FeedbackCreate(BaseModel):
-    username: str # Included as per frontend payload
+    username: str  # Included as per frontend payload
     feedback: str
+
 
 class FeedbackAdminResponse(BaseModel):
     id: int
     user_username: str
-    user_email: EmailStr # Add email
+    user_email: EmailStr  # Add email
     feedback_text: str
     timestamp: datetime
 
@@ -684,7 +826,7 @@ async def start(sim_data: StartReq, current_user: User = Depends(get_current_act
         if check_if_dir_exists(sim_folder):
             raise HTTPException(status_code=400, detail="Simulation already exists")
         parsed_llm_config = parse_llm_config(llm_config)
-        L.debug(f"Persona configs: {template.get("personas", [])}")
+        L.debug(f"Persona configs: {template.get('personas', [])}")
         persona_configs = parse_persona_configs(template.get("personas", []))
         public_events = parse_public_events(
             template.get("events", []), [persona.name for persona in persona_configs.values()]
@@ -1061,7 +1203,7 @@ async def websocket_endpoint(
 @router.post("/feedback")
 async def submit_feedback(
     feedback_data: FeedbackCreate,
-    current_user: UserInDB = Depends(get_current_active_user), # Use UserInDB for consistency
+    current_user: UserInDB = Depends(get_current_active_user),  # Use UserInDB for consistency
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -1072,9 +1214,9 @@ async def submit_feedback(
     # or simply rely on current_user.username if that's the desired behavior.
     # For now, we'll use current_user.username as the source of truth.
     new_feedback = DBFeedback(
-        user_username=current_user.username, # Use username from the authenticated user
+        user_username=current_user.username,  # Use username from the authenticated user
         feedback_text=feedback_data.feedback,
-        timestamp=datetime.utcnow(), # Use datetime from the datetime module
+        timestamp=datetime.utcnow(),  # Use datetime from the datetime module
     )
     try:
         db.add(new_feedback)
@@ -1085,6 +1227,7 @@ async def submit_feedback(
         await db.rollback()
         L.error(f"Error submitting feedback: {str(e)}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="Could not submit feedback.")
+
 
 @router.get("/admin/feedbacks", response_model=List[FeedbackAdminResponse])
 async def get_all_feedbacks(
@@ -1099,7 +1242,9 @@ async def get_all_feedbacks(
 
     try:
         result = await db.execute(
-            select(DBFeedback.id, DBFeedback.user_username, DBUser.email, DBFeedback.feedback_text, DBFeedback.timestamp)
+            select(
+                DBFeedback.id, DBFeedback.user_username, DBUser.email, DBFeedback.feedback_text, DBFeedback.timestamp
+            )
             .join(DBUser, DBFeedback.user_username == DBUser.username)
             .order_by(DBFeedback.timestamp.desc())
         )
@@ -1117,6 +1262,7 @@ async def get_all_feedbacks(
     except Exception as e:
         L.error(f"Error fetching all feedbacks: {str(e)}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="Could not retrieve feedbacks.")
+
 
 app.include_router(router)
 
@@ -1148,6 +1294,8 @@ if __name__ == "__main__":
     port = int(os.environ.get("BACKEND_PORT", 11544))
 
     if args.dev:
-        uvicorn.run("__main__:app", host=host, port=port, reload=True, reload_includes="*.py", reload_excludes="storage")
+        uvicorn.run(
+            "__main__:app", host=host, port=port, reload=True, reload_includes="*.py", reload_excludes="storage"
+        )
     else:
         uvicorn.run(app, host=host, port=port)

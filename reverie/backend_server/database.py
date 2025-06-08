@@ -1,13 +1,22 @@
-import os
-from typing import Optional
-import datetime # Added for timestamp
-from sqlalchemy import Column, String, Boolean, Integer, Text, DateTime, ForeignKey # Added Integer, Text, DateTime, ForeignKey
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from passlib.context import CryptContext
+import datetime  # Added for timestamp
 import hashlib
 import logging
+import os
+from typing import Optional
+
+from passlib.context import CryptContext
+from sqlalchemy import (  # Added Integer, Text, DateTime, ForeignKey
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 logging.getLogger("sqlalchemy.engine.Engine").setLevel(logging.WARNING)
 
@@ -39,7 +48,8 @@ class User(Base):
     institution = Column(String(100), nullable=False)
     hashed_password = Column(String(100), nullable=False)
     disabled = Column(Boolean, default=False)
-    is_admin = Column(Boolean, default=False, nullable=False) # Add is_admin field
+    is_admin = Column(Boolean, default=False, nullable=False)
+    is_sso = Column(Boolean, default=False, nullable=False)
 
     @staticmethod
     def get_password_hash(password: str) -> str:
