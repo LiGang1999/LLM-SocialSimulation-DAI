@@ -8,19 +8,20 @@ interface with the safe_generate_response function.
 
 import ast
 import datetime
-import re
-import sys
 import os
 import random
+import re
 import string
+import sys
 
 from persona.prompt_template.gpt_structure import *
 from persona.prompt_template.print_prompt import *
 from utils import *
-from utils.llm import llm_function, async_llm_function
+from utils.llm import async_llm_function, llm_function
 
 dir_path = os.path.dirname(os.path.abspath(__file__))
 template_storage_dir = os.path.join(dir_path, "./")
+
 
 def get_legacy_prompt(filename):
     return os.path.join(template_storage_dir, filename)
@@ -4272,7 +4273,13 @@ def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, v
     task_info = persona.get_workflow_stage_config()["execute"]
     task_description = task_info.get("task", "Execute the agent's plan.")
     output_format = task_info.get(
-        "output_format", {"reasoning": "Step-by-step reasoning...", "execution": "The action to take."}
+        "output_format",
+        {
+            "reasoning": "Step-by-step reasoning...",
+            "execution": "The action to take.",
+            "emoji": "😊",
+            "Emotion": "happy",
+        },
     )
 
     @llm_function(prompt_file="execute_cn.md", is_chat=True, stop="---")
@@ -4281,11 +4288,73 @@ def run_gpt_generate_execute_custom(persona, retrieved, plan, test_input=None, v
         return output_format
 
     output = execute_action(pm, curr_time, retrieved_context, persona.name, init_iss, task_description, plan)
-    p1 = output.get("reasoning", "").lower()
-    p2 = output.get("execution", "").lower()
-    # Extract and return the execution result from the output
-    # with open("comments.txt", "a") as file:  # 'a' 模式可以让你把内容追加到文件末尾
-    #     file.write(persona.name + ":" + p1 + "\n" + p2 + "\n")  # 每个 comment 后加一个换行符，便于区分不同的 comment
 
-    # GOD knows how this works
-    return p2
+    return output
+
+
+def run_gpt_generate_agent_from_text(text, test_input=None, verbose=False):
+    """
+    解析输入的文本并生成一个智能体的结构化 JSON 表达。
+
+    Parameters:
+    - text (str): 用户提供的文本描述。
+    - test_input (optional): 测试用输入。
+    - verbose (bool): 是否打印调试信息。
+
+    Returns:
+    - dict: 智能体定义的 JSON 对象。
+    """
+    output_format = {
+        "daily_plan_req": "...",
+        "name": "...",
+        "first_name": "...",
+        "last_name": "...",
+        "age": 25,
+        "innate": "...",
+        "learned": "...",
+        "currently": "...",
+        "lifestyle": "...",
+        "living_area": "...",
+    }
+
+    @llm_function(is_chat=True, prompt_file="generate_agent_from_text.md")
+    def llm_generate_agent_from_text(text_description):
+        return output_format
+
+    print(text)
+    output = llm_generate_agent_from_text(text)
+    return {
+        "daily_plan_req": output["daily_plan_req"],
+        "name": output["name"],
+        "first_name": output["first_name"],
+        "last_name": output["last_name"],
+        "age": output["age"],
+        "innate": output["innate"],
+        "learned": output["learned"],
+        "currently": output["currently"],
+        "lifestyle": output["lifestyle"],
+        "living_area": output["living_area"],
+    }
+
+
+def run_gpt_generate_summary_from_actions(text, test_input=None, verbose=False):
+    """
+    解析输入的文本并生成一个智能体的结构化 JSON 表达。
+
+    Parameters:
+    - text (str): 用户提供的文本描述。
+    - test_input (optional): 测试用输入。
+    - verbose (bool): 是否打印调试信息。
+
+    Returns:
+    - dict: 智能体定义的 JSON 对象。
+    """
+    output_format = {"output": "..."}
+
+    @llm_function(is_chat=True, prompt_file="generate_summary_from_actions.md")
+    def llm_generate_summary_from_actions(text_description):
+        return output_format
+
+    print(text)
+    output = llm_generate_summary_from_actions(text)
+    return output["output"]

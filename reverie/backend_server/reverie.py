@@ -777,7 +777,62 @@ class Reverie:
             self.maze.add_events_policy(event_id, policy)
         if websearch:
             self.maze.add_events_websearch(event_id, websearch)
+    
+    def gather_new_agent_with_description(self, text_input="黄医生每天需要查房、看诊、写病历，业余时间喜欢跳舞和保证充足的睡眠。", file="/home/tyn/newagent/responses/huang.txt"):
+        """
+        汇总文本描述和上传文件中的内容，返回一个统一的字符串描述。
 
+        参数:
+        - text_input (str): 用户在输入框中输入的文本描述
+        - file (File-like or str): 用户上传的文件对象或文件路径（支持 .txt 或 .json）
+
+        返回:
+        - str: 汇总后的文本描述
+        """
+        content_parts = []
+
+        # 添加文本输入
+        if text_input:
+            content_parts.append(text_input.strip())  # 去除 text_input 中的多余空白字符
+
+        # 添加文件内容
+        if file:
+            try:
+                if isinstance(file, str):  # 如果 file 是字符串（文件路径）
+                    with open(file, "r", encoding="utf-8") as f:  # 打开文件并读取内容
+                        file_content = f.read()
+                else:  # 如果 file 是文件对象
+                    file_content = file.read().decode("utf-8")  # 适用于 Flask/Django 上传的文件，解码为文本
+
+                content_parts.append(file_content.strip())  # 去除文件内容中的多余空白字符
+
+            except Exception as e:
+                raise ValueError(f"文件读取失败: {e}")
+
+        # 拼接为一段完整文本
+        text = "\n".join(content_parts)  # 合并文本内容
+        output = generate_agent_from_text(text)
+
+
+        return text.strip()  # 返回去除两端空白的最终文本
+
+    def generate_summary_from_action_log(self):
+        combine_text = []
+        for persona_name, persona in self.personas.items():
+            for log_entry in persona.action_log:
+                if isinstance(log_entry, str):
+                    combine_text.append(f"{persona_name}: {log_entry}")
+                elif isinstance(log_entry, dict):
+                    details = "; ".join([f"{k}: {v}" for k, v in log_entry.items()])
+                    combine_text.append(f"{persona_name}: {details}")
+                else:
+                    combine_text.append(f"{persona_name}: Unknown log format: {log_entry}")
+        
+        full_text = "\n".join(combine_text)
+        output = generate_summary_from_actions(full_text)  # 你自己实现的英文大模型总结函数
+        print(output)
+        return output
+    
     def custom_run(self, sim_command):
         # Parses the command to extract the number of steps and the included/excluded agents.
         # Example: custom-run 1 lisa candy -> only 'lisa' and 'candy' participate in 1 step.

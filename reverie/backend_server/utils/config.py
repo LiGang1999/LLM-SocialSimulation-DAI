@@ -32,7 +32,7 @@ collision_block_id = "32125"
 
 # Verbose
 debug = True
-per_instance_llm_config = True
+per_instance_llm_config = os.environ.get("ENABLE_PUBLIC_LLM", "False").lower() == "true"
 
 BASE_TEMPLATES = [
     # "base_the_villie_isabella_maria_klaus",

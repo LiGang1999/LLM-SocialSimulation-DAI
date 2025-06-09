@@ -8,9 +8,8 @@ Description: An extra cognitive module for generating conversations.
 import datetime
 import math
 import random
-import sys
 import re
-
+import sys
 
 sys.path.append("../")
 
@@ -445,3 +444,35 @@ def generate_one_utterance_for_comment_custom(persona, retrieved, plan):
     print("正在执行环节")
     x = run_gpt_generate_execute_custom(persona, retrieved, plan)
     return x
+
+
+def generate_agent_from_text(text):
+    # """TODO
+
+    # INPUT:
+    #   act_desp: the description of the action (e.g., "sleeping")
+    #   persona: The Persona class instance
+    # OUTPUT:
+    #   a string of emoji that translates action description.
+    # EXAMPLE OUTPUT:
+    #   "🧈🍞"
+    # """
+    if debug:
+        print("GNS FUNCTION: <generate_agent_from_text>")
+    return run_gpt_generate_agent_from_text(text)
+
+
+def generate_summary_from_actions(text):
+    # """TODO
+
+    # INPUT:
+    #   act_desp: the description of the action (e.g., "sleeping")
+    #   persona: The Persona class instance
+    # OUTPUT:
+    #   a string of emoji that translates action description.
+    # EXAMPLE OUTPUT:
+    #   "🧈🍞"
+    # """
+    if debug:
+        print("GNS FUNCTION: <llm_generate_summary_from_actions>")
+    return run_gpt_generate_summary_from_actions(text)

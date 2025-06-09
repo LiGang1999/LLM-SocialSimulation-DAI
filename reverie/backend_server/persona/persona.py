@@ -138,6 +138,8 @@ class DaiPersona(Persona):
                 },
             },
         }
+        
+        self.action_log = []
 
     def get_workflow_stage_config(self):
         return self.workflow_config
