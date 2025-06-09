@@ -13,13 +13,13 @@ import sys
 
 sys.path.append("../")
 
-# from persona.cognitive_modules.base_sentiment import *
-from persona.cognitive_modules.retrieve import *
-from persona.memory_structures.associative_memory import *
-from persona.memory_structures.scratch import *
-from persona.memory_structures.spatial_memory import *
-from persona.prompt_template.run_gpt_prompt import *
-from utils import *
+# from backend_server.persona.cognitive_modules.base_sentiment import *
+from backend_server.persona.cognitive_modules.retrieve import *
+from backend_server.persona.memory_structures.associative_memory import *
+from backend_server.persona.memory_structures.scratch import *
+from backend_server.persona.memory_structures.spatial_memory import *
+from backend_server.persona.prompt_template.run_gpt_prompt import *
+from backend_server.utils import *
 
 
 def generate_agent_chat_summarize_ideas(init_persona, target_persona, retrieved, curr_context):

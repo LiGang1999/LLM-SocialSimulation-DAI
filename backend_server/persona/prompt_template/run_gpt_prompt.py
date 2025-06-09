@@ -14,10 +14,10 @@ import re
 import string
 import sys
 
-from persona.prompt_template.gpt_structure import *
-from persona.prompt_template.print_prompt import *
-from utils import *
-from utils.llm import async_llm_function, llm_function
+from backend_server.persona.prompt_template.gpt_structure import *
+from backend_server.persona.prompt_template.print_prompt import *
+from backend_server.utils import *
+from backend_server.utils.llm import async_llm_function, llm_function
 
 dir_path = os.path.dirname(os.path.abspath(__file__))
 template_storage_dir = os.path.join(dir_path, "./")

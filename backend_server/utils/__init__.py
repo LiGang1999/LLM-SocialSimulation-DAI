@@ -14,20 +14,11 @@ import shutil
 import threading
 from os import listdir
 
-from utils.config import storage_path
-
+import numpy
 from passlib.context import CryptContext
 
-import numpy
-
-thread_local = threading.local()
-
-
-def create_thread_local():
-    """
-    Creates a thread-local storage object.
-    """
-    return threading.local()
+from .config import storage_path
+from .context import ctx
 
 
 def create_folder_if_not_there(curr_path):

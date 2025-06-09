@@ -7,11 +7,11 @@ Description: This defines the "Retrieve" module for generative agents.
 
 import sys
 
-from utils import *
-from persona.prompt_template.gpt_structure import *
-
 from numpy import dot
 from numpy.linalg import norm
+
+from backend_server.persona.prompt_template.gpt_structure import *
+from backend_server.utils import *
 
 
 def retrieve(persona, perceived):

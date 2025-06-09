@@ -8,15 +8,16 @@ Description: Wrapper functions for calling OpenAI APIs.
 import json
 import random
 import re
-import time
 import threading
-
+import time
 from dataclasses import asdict
+
 from openai import OpenAI
-from utils.config import override_gpt_param, override_model
-from utils.logs import L, get_outer_caller
-from utils.llm import llm_request, get_llm_config
-from utils import thread_local
+
+from backend_server.utils import ctx
+from backend_server.utils.config import override_gpt_param, override_model
+from backend_server.utils.llm import get_llm_config, llm_request
+from backend_server.utils.logs import L, get_outer_caller
 
 print_raw_log = False
 print_short_log = True
@@ -125,6 +126,7 @@ def generate_gpt_response(
 
     llm_config = get_llm_config()
     print("abcdefgh", llm_config)
+
     def validate_fn(response, kwargs):
         return func_validate(response, prompt="")
 
@@ -247,10 +249,7 @@ def get_embedding(text, model="text-embedding-ada-002"):
     model = "text-embedding-ada-002"
 
     llm_config = get_llm_config()
-    client_tmp = OpenAI(
-        api_key=llm_config.get("api_key", ""),
-        base_url=llm_config.get("base_url", "")
-    )
+    client_tmp = OpenAI(api_key=llm_config.get("api_key", ""), base_url=llm_config.get("base_url", ""))
 
     text = text.replace("\n", " ")
     if not text:

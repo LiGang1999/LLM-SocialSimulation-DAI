@@ -14,24 +14,24 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import jwt
 from dacite import from_dict
-from database import Feedback as DBFeedback  # Import Feedback model
-from database import User as DBUser
-from database import get_db, init_db
 from fastapi import APIRouter, BackgroundTasks, Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import PyJWTError
-from persona.profile.generate_profile import generate_profiles, generate_profiles_plan
 from pydantic import BaseModel, EmailStr, ValidationError
 from pydantic_core import PydanticUndefined
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from utils import check_if_dir_exists, config, get_password_hash, get_user_hash
-from utils.config import BASE_TEMPLATES
-from utils.logs import L
 
-from reverie import LLMConfig, Reverie, ReverieConfig, ScratchData, StageInfo
+from backend_server.database import Feedback as DBFeedback  # Import Feedback model
+from backend_server.database import User as DBUser
+from backend_server.database import get_db, init_db
+from backend_server.persona.profile.generate_profile import generate_profiles, generate_profiles_plan
+from backend_server.reverie import LLMConfig, Reverie, ReverieConfig, ScratchData, StageInfo
+from backend_server.utils import check_if_dir_exists, config, get_password_hash, get_user_hash
+from backend_server.utils.config import BASE_TEMPLATES
+from backend_server.utils.logs import L
 
 # Security configuration
 SECRET_KEY = os.environ["SECRET_KEY"]

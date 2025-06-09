@@ -6,7 +6,8 @@ import aiohttp
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from utils.llm_function import *
+
+from backend_server.utils.llm_function import *
 
 app = FastAPI()
 

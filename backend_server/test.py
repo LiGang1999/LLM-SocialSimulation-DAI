@@ -1,6 +1,7 @@
-from reverie import *
-from datetime import datetime
 import threading
+from datetime import datetime
+
+from backend_server.reverie import *
 
 storage_path = "../storage"
 template_code = "base_the_ville_isabella_maria_klaus_online"

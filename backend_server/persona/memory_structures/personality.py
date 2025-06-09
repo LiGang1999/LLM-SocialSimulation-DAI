@@ -1,6 +1,6 @@
 import sys
 
-from persona.memory_structures.memory import *
+from backend_server.persona.memory_structures.memory import *
 
 
 class BigFiveTree:

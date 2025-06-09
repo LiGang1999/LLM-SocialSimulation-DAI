@@ -3,17 +3,16 @@ Author: Joon Sung Park (joonspk@stanford.edu)
 
 File: spatial_memory.py
 Description: Defines the MemoryTree class that serves as the agents' spatial
-memory that aids in grounding their behavior in the game world. 
+memory that aids in grounding their behavior in the game world.
 """
 
 import json
 import sys
 
-
-from utils import *
-from persona.memory_structures.memory import *
-from utils.config import *
-from utils.logs import L
+from backend_server.persona.memory_structures.memory import *
+from backend_server.utils import *
+from backend_server.utils.config import *
+from backend_server.utils.logs import L
 
 
 class MemoryTree(Memory):

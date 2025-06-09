@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from reverie.backend_server.utils.llm import async_llm_function
+from backend_server.utils.llm import async_llm_function
 
 
 @async_llm_function(prompt_file="generate_agent_profile_plan.md")

@@ -6,10 +6,11 @@ import re
 import time
 
 import openai
-from utils.config import  override_gpt_param, override_model
-from utils.logs import L
 from jinja2 import Template
-from utils import thread_local
+
+from backend_server.utils import ctx
+from backend_server.utils.config import override_gpt_param, override_model
+from backend_server.utils.logs import L
 
 default_llm_config = override_gpt_param
 
@@ -136,7 +137,7 @@ def llm_request(
     if "model" not in llm_config or "chat" not in llm_config:
         raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
 
-    r = thread_local.reverie
+    r = ctx.reverie
     r.interested = True
 
     # Provide default values for optional fields

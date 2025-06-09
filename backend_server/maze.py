@@ -3,7 +3,7 @@ Author: Joon Sung Park (joonspk@stanford.edu)
 
 File: maze.py
 Description: Defines the Maze class, which represents the map of the simulated
-world in a 2-dimensional matrix. 
+world in a 2-dimensional matrix.
 """
 
 import datetime
@@ -13,10 +13,11 @@ import pickle
 import time
 
 import numpy
-from event import Event
-from utils import *
-from utils.config import *
-from utils.logs import L
+
+from backend_server.event import Event
+from backend_server.utils import *
+from backend_server.utils.config import *
+from backend_server.utils.logs import L
 
 
 class Maze:
@@ -198,22 +199,22 @@ class OfflineMaze(Maze):
             for j in range(self.maze_width):
                 addresses = []
                 if self.tiles[i][j]["sector"]:
-                    add = f'{self.tiles[i][j]["world"]}:'
-                    add += f'{self.tiles[i][j]["sector"]}'
+                    add = f"{self.tiles[i][j]['world']}:"
+                    add += f"{self.tiles[i][j]['sector']}"
                     addresses += [add]
                 if self.tiles[i][j]["arena"]:
-                    add = f'{self.tiles[i][j]["world"]}:'
-                    add += f'{self.tiles[i][j]["sector"]}:'
-                    add += f'{self.tiles[i][j]["arena"]}'
+                    add = f"{self.tiles[i][j]['world']}:"
+                    add += f"{self.tiles[i][j]['sector']}:"
+                    add += f"{self.tiles[i][j]['arena']}"
                     addresses += [add]
                 if self.tiles[i][j]["game_object"]:
-                    add = f'{self.tiles[i][j]["world"]}:'
-                    add += f'{self.tiles[i][j]["sector"]}:'
-                    add += f'{self.tiles[i][j]["arena"]}:'
-                    add += f'{self.tiles[i][j]["game_object"]}'
+                    add = f"{self.tiles[i][j]['world']}:"
+                    add += f"{self.tiles[i][j]['sector']}:"
+                    add += f"{self.tiles[i][j]['arena']}:"
+                    add += f"{self.tiles[i][j]['game_object']}"
                     addresses += [add]
                 if self.tiles[i][j]["spawning_location"]:
-                    add = f'<spawn_loc>{self.tiles[i][j]["spawning_location"]}'
+                    add = f"<spawn_loc>{self.tiles[i][j]['spawning_location']}"
                     addresses += [add]
 
                 for add in addresses:

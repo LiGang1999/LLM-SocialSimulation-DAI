@@ -91,11 +91,11 @@ def start_servers(quiet, dev_mode, compile=False):
         frontend_command = "bun run dev --host"
 
     # Backend command now uses environment-specified parameters
-    backend_command = "python3 backend_server/server.py"
+    backend_command = "python3 -m uvicorn backend_server.server:app"
 
     # Add dev mode flag if specified
     if dev_mode:
-        backend_command += " --dev"
+        backend_command += " --reload"
 
     commands = [
         {

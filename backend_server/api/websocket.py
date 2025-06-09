@@ -11,8 +11,8 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 
-from utils import thread_local
-from utils.logs import L
+from backend_server.utils import ctx
+from backend_server.utils.logs import L
 
 # Dictionary to store registered handlers
 socket_handlers = {}
@@ -91,8 +91,8 @@ def sock_send(message, message_type):
     Send a message to a specific socket group.
     """
     # sock_name is deprecated.
-    if hasattr(thread_local, "reverie_instance"):
-        reverie_instance = thread_local.reverie_instance
+    if hasattr(ctx, "reverie_instance"):
+        reverie_instance = ctx.instance
         if reverie_instance:
             message = json.dumps({"type": message_type, "message": message})
             reverie_instance.reverie.message_queue.put(message)

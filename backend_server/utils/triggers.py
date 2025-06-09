@@ -1,8 +1,8 @@
 from collections import defaultdict
 from functools import wraps
 
-from api.websocket import sock_send
-from utils.logs import L
+from backend_server.api.websocket import sock_send
+from backend_server.utils.logs import L
 
 # Dictionary to store event handlers, organized by event name and priority
 event_registry = defaultdict(list)

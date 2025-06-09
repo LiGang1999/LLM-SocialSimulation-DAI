@@ -5,17 +5,17 @@ File: reflect.py
 Description: This defines the "Reflect" module for generative agents.
 """
 
-import sys
-
 import datetime
 import random
+import sys
 
-from utils import *
 from numpy import dot
 from numpy.linalg import norm
-from persona.cognitive_modules.retrieve import *
-from persona.prompt_template.gpt_structure import *
-from persona.prompt_template.run_gpt_prompt import *
+
+from backend_server.persona.cognitive_modules.retrieve import *
+from backend_server.persona.prompt_template.gpt_structure import *
+from backend_server.persona.prompt_template.run_gpt_prompt import *
+from backend_server.utils import *
 
 
 def generate_focal_points(persona, n=3):

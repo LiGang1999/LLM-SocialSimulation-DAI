@@ -8,10 +8,12 @@ Description: Defines the short-term memory module for generative agents.
 import datetime
 import json
 import sys
-from utils import *
-from typing import List, Optional, Tuple, Dict
-from persona.memory_structures.memory import *
+from typing import Dict, List, Optional, Tuple
+
 from pydantic import BaseModel, Field
+
+from backend_server.persona.memory_structures.memory import *
+from backend_server.utils import *
 
 
 class ScratchData(BaseModel):

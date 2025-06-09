@@ -2,8 +2,8 @@ import datetime  # extend planning cycle
 import pprint
 import sys
 
-from persona.action import *
-from utils.logs import L
+from backend_server.persona.action import *
+from backend_server.utils.logs import L
 
 
 class WorkFlow:
@@ -30,9 +30,7 @@ class GaWorkFlow(WorkFlow):
             new_day = "First day"
         elif persona.scratch.curr_time.strftime("%A %B %d") != curr_time.strftime("%A %B %d"):
             new_day = "New day"
-            if curr_time.strftime("%A %B %d") > maze.last_planning_day.strftime(
-                "%A %B %d"
-            ):  # extend planning cycle
+            if curr_time.strftime("%A %B %d") > maze.last_planning_day.strftime("%A %B %d"):  # extend planning cycle
                 maze.need_stagely_planning = True
         persona.scratch.curr_time = curr_time
         perceived = self.perceive.action(persona, maze)
@@ -52,7 +50,6 @@ class DaiWorkFlow(WorkFlow):
         self.reflect = DaiReflect()
 
     def work(self, persona, maze, curr_time):
-
         new_day = False
         if not persona.scratch.curr_time:
             new_day = "First day"

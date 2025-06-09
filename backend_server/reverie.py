@@ -32,37 +32,38 @@ from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
 from typing import Dict, List, Optional, Tuple
 
+from pydantic import BaseModel, Field
+
 # 然后是其他的导入语句
-from maze import OfflineMaze, OnlineMaze, maze_assets_loc
-from persona.cognitive_modules.converse import (
+from backend_server.maze import OfflineMaze, OnlineMaze, maze_assets_loc
+from backend_server.persona.cognitive_modules.converse import (
     generate_action_event_triple_new,
     generate_agent_from_text,
     generate_summary_from_actions,
     load_history_via_whisper,
 )
-from persona.persona import DaiPersona, GaPersona, MemoryNode, ScratchData
-from pydantic import BaseModel, Field
-from utils import (
+from backend_server.persona.persona import DaiPersona, GaPersona, MemoryNode, ScratchData
+from backend_server.utils import (
     check_if_dir_exists,
     check_if_file_exists,
     config,
     copyanything,
+    ctx,
     ensure_directories,
     ensure_files_with_default_content,
     get_user_hash,
     read_file_to_list,
     removeanything,
-    thread_local,
 )
-from utils.config import (
+from backend_server.utils.config import (
     BASE_TEMPLATES,
     openai_api_base,
     override_gpt_param,
     storage_path,
     temp_storage_path,
 )
-from utils.logs import L
-from utils.triggers import event_trigger
+from backend_server.utils.logs import L
+from backend_server.utils.triggers import event_trigger
 
 # from institution import DaiInstitution
 
@@ -892,8 +893,8 @@ class Reverie:
         sim_folder = f"{storage_path}/{self.sim_code}"
 
         # set instance to thread local storage
-        thread_local.reverie_instance = reverie_instance
-        thread_local.reverie = self
+        ctx.instance = reverie_instance
+        ctx.reverie = self
         # Load all online events
         self.is_running = True
         if self.sim_mode == "online":

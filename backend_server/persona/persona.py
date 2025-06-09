@@ -2,10 +2,10 @@
 Author: Joon Sung Park (joonspk@stanford.edu)
 
 File: persona.py
-Description: Defines the Persona class that powers the agents in Reverie. 
+Description: Defines the Persona class that powers the agents in Reverie.
 
 Note (May 1, 2023) -- this is effectively GenerativeAgent class. Persona was
-the term we used internally back in 2022, taking from our Social Simulacra 
+the term we used internally back in 2022, taking from our Social Simulacra
 paper.
 """
 
@@ -16,19 +16,19 @@ import sys
 
 sys.path.append("../")
 
-from persona.cognitive_modules.converse import *
-from persona.cognitive_modules.execute import *
-from persona.cognitive_modules.perceive import *
-from persona.cognitive_modules.plan import *
-from persona.cognitive_modules.reflect import *
-from persona.cognitive_modules.retrieve import *
-from persona.memory_structures.associative_memory import *
-from persona.memory_structures.scratch import *
-from persona.memory_structures.spatial_memory import *
-from persona.workflow import *
-from utils import *
-from utils.logs import L
-from persona.cognitive_modules.converse import open_convo_session
+from backend_server.persona.cognitive_modules.converse import *
+from backend_server.persona.cognitive_modules.converse import open_convo_session
+from backend_server.persona.cognitive_modules.execute import *
+from backend_server.persona.cognitive_modules.perceive import *
+from backend_server.persona.cognitive_modules.plan import *
+from backend_server.persona.cognitive_modules.reflect import *
+from backend_server.persona.cognitive_modules.retrieve import *
+from backend_server.persona.memory_structures.associative_memory import *
+from backend_server.persona.memory_structures.scratch import *
+from backend_server.persona.memory_structures.spatial_memory import *
+from backend_server.persona.workflow import *
+from backend_server.utils import *
+from backend_server.utils.logs import L
 
 
 class Persona:
@@ -138,7 +138,7 @@ class DaiPersona(Persona):
                 },
             },
         }
-        
+
         self.action_log = []
 
     def get_workflow_stage_config(self):
@@ -173,7 +173,7 @@ class DaiPersona(Persona):
 
     def chat_to_persona(self, mode, vbase, prev_msgs, msg):
         return chat_to_persona(self, mode, vbase, prev_msgs, msg)
-    
+
     async def run_survey(self, questions):
         return await survey_persona(self, questions)
 
@@ -186,8 +186,8 @@ class DaiPersona(Persona):
             vbase: 向量数据库
             input_queue: 命令队列
         """
-        # from persona.cognitive_modules.converse import open_convo_session
+        # from backend_server.persona.cognitive_modules.converse import open_convo_session
 
-        from persona.cognitive_modules.converse import open_convo_session
+        from backend_server.persona.cognitive_modules.converse import open_convo_session
 
         open_convo_session(self, convo_mode, vbase, input_queue)

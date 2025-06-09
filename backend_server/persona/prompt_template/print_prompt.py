@@ -14,9 +14,10 @@ import json
 import random
 
 import numpy
-from utils import *
-from persona.prompt_template.gpt_structure import *
-from utils.config import *
+
+from backend_server.persona.prompt_template.gpt_structure import *
+from backend_server.utils import *
+from backend_server.utils.config import *
 
 ##############################################################################
 #                    PERSONA Chapter 1: Prompt Structures                    #

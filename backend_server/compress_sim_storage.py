@@ -2,12 +2,13 @@
 Author: Joon Sung Park (joonspk@stanford.edu)
 
 File: compress_sim_storage.py
-Description: Compresses a simulation for replay demos. 
+Description: Compresses a simulation for replay demos.
 """
 
-import shutil
 import json
-from utils import *
+import shutil
+
+from backend_server.utils import *
 
 
 def compress(sim_code):
@@ -23,9 +24,7 @@ def compress(sim_code):
         if x[0] != ".":
             persona_names += [x]
 
-    max_move_count = max(
-        [int(i.split("/")[-1].split(".")[0]) for i in find_filenames(move_folder, "json")]
-    )
+    max_move_count = max([int(i.split("/")[-1].split(".")[0]) for i in find_filenames(move_folder, "json")])
 
     persona_last_move = dict()
     master_move = dict()

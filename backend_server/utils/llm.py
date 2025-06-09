@@ -4,20 +4,20 @@ import json
 import os
 import re
 import time
-
 from dataclasses import asdict
-import openai
-from utils.config import override_gpt_param, override_model, per_instance_llm_config
-from utils.logs import L
-from jinja2 import Template
-from utils import thread_local
-
 from typing import Dict, List, Optional
+
+import openai
+from jinja2 import Template
+
+from backend_server.utils import ctx
+from backend_server.utils.config import override_gpt_param, override_model, per_instance_llm_config
+from backend_server.utils.logs import L
 
 default_llm_config = override_gpt_param
 
-print_raw_log = (os.environ.get("LOG_RAW", "False").lower() == "false")
-print_short_log = (os.environ.get("LOG_SHORT", "True").lower() == "true")
+print_raw_log = os.environ.get("LOG_RAW", "False").lower() == "false"
+print_short_log = os.environ.get("LOG_SHORT", "True").lower() == "true"
 dir_path = os.path.dirname(os.path.abspath(__file__))
 template_storage_dir = os.path.join(dir_path, "../prompt_templates")
 
@@ -26,9 +26,9 @@ def get_llm_config():
     if not per_instance_llm_config:
         return default_llm_config
     else:
-        r = thread_local.reverie
+        r = ctx.reverie
         if r is not None:
-            cfg =  asdict(r.llm_config)
+            cfg = asdict(r.llm_config)
             cfg["chat"] = True
             print("LLMCONFIG", cfg)
             return cfg
@@ -155,7 +155,7 @@ def llm_request(
     if "model" not in llm_config or "chat" not in llm_config:
         raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
 
-    r = thread_local.reverie
+    r = ctx.reverie
     r.interested = True
 
     # Provide default values for optional fields
@@ -247,7 +247,7 @@ def llm_request(
             L.debug(f"[{func_name}] LLM RESPONSE: {llm_logging_repr(result)}")
             if valid:
                 L.debug(f"[{func_name}] LLM Request succeeded.")
-                return cleanup_fn(result ,kwargs) if cleanup_fn else result
+                return cleanup_fn(result, kwargs) if cleanup_fn else result
             else:
                 L.warning(f"[{func_name}] LLM Response validation failed, retry scheduled")
                 # continue
@@ -264,7 +264,7 @@ def llm_request(
                 result = ""
                 # raise e
         attempt += 1
-    return failsafe_fn(result ,kwargs) if failsafe_fn else result
+    return failsafe_fn(result, kwargs) if failsafe_fn else result
 
 
 async def async_llm_request(
@@ -301,7 +301,7 @@ async def async_llm_request(
     if "model" not in llm_config or "chat" not in llm_config:
         raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
 
-    r = thread_local.reverie
+    r = ctx.reverie
     r.interested = True
 
     # Provide default values for optional fields
@@ -737,7 +737,13 @@ def get_completion(sys_prompt: str, user_prompt: str, temperature: float = 0.2) 
     Returns:
         Optional[str]: API返回的文本回复。如果请求失败则返回None
     """
-    return llm_request(usr_prompt=user_prompt, sys_prompt=sys_prompt, llm_config=get_llm_config(),kwargs={}, func_name="get_completion")
+    return llm_request(
+        usr_prompt=user_prompt,
+        sys_prompt=sys_prompt,
+        llm_config=get_llm_config(),
+        kwargs={},
+        func_name="get_completion",
+    )
 
 
 async def get_completion_async(sys_prompt: str, user_prompt: str, temperature: float = 0.2) -> Optional[str]:
@@ -753,5 +759,11 @@ async def get_completion_async(sys_prompt: str, user_prompt: str, temperature: f
     Returns:
         Optional[str]: API返回的文本回复。如果请求失败则返回None
     """
-    result = await async_llm_request(usr_prompt=user_prompt, sys_prompt=sys_prompt, llm_config=get_llm_config(),kwargs={}, func_name="get_completion")
+    result = await async_llm_request(
+        usr_prompt=user_prompt,
+        sys_prompt=sys_prompt,
+        llm_config=get_llm_config(),
+        kwargs={},
+        func_name="get_completion",
+    )
     return result

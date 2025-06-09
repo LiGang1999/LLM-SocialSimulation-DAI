@@ -2,18 +2,17 @@
 Author: Joon Sung Park (joonspk@stanford.edu)
 
 File: perceive.py
-Description: This defines the "Perceive" module for generative agents. 
+Description: This defines the "Perceive" module for generative agents.
 """
 
-import sys
 import math
-
+import sys
 from operator import itemgetter
 
-from utils import *
-from persona.prompt_template.gpt_structure import *
-from persona.prompt_template.run_gpt_prompt import *
-from utils.logs import L
+from backend_server.persona.prompt_template.gpt_structure import *
+from backend_server.persona.prompt_template.run_gpt_prompt import *
+from backend_server.utils import *
+from backend_server.utils.logs import L
 
 
 def generate_poig_score(persona, event_type, description):
@@ -84,9 +83,7 @@ def perceive(persona, maze):
             if maze.get_tile_path(tile, "arena") == curr_arena_path:
                 # This calculates the distance between the persona's current tile,
                 # and the target tile.
-                dist = math.dist(
-                    [tile[0], tile[1]], [persona.scratch.curr_tile[0], persona.scratch.curr_tile[1]]
-                )
+                dist = math.dist([tile[0], tile[1]], [persona.scratch.curr_tile[0], persona.scratch.curr_tile[1]])
                 # Add any relevant events to our temp set/list with the distant info.
                 for event in tile_details["events"]:
                     if event not in percept_events_set:
@@ -134,7 +131,7 @@ def perceive(persona, maze):
             desc_embedding_in = desc
             if "(" in desc:
                 desc_embedding_in = desc_embedding_in.split("(")[1].split(")")[0].strip()
-            
+
             # Get embedding vector - either from memory or generate new one
             event_embedding = persona.a_mem.get_embedding(desc_embedding_in)
             if event_embedding is None:
@@ -149,16 +146,14 @@ def perceive(persona, maze):
             chat_node_ids = []
             if p_event[0] == f"{persona.name}" and p_event[1] == "chat with":
                 curr_event = persona.scratch.act_event
-                
+
                 # Get chat embedding - either from memory or generate new one
                 chat_embedding = persona.a_mem.get_embedding(persona.scratch.act_description)
                 if chat_embedding is None:
                     chat_embedding = get_embedding(persona.scratch.act_description)
                 chat_embedding_pair = (persona.scratch.act_description, chat_embedding)
-                
-                chat_poignancy = generate_poig_score(
-                    persona, "chat", persona.scratch.act_description
-                )
+
+                chat_poignancy = generate_poig_score(persona, "chat", persona.scratch.act_description)
                 chat_node = persona.a_mem.add_chat(
                     persona.scratch.curr_time,
                     None,
@@ -240,7 +235,7 @@ def perceive_dai(persona, maze):
                 perceive_node.name + " said, " + perceive_node.description,
                 keywords,
                 event_poignancy,
-                perceive_node.description, 
+                perceive_node.description,
                 get_embedding(perceive_node.description),
                 None,
             )

@@ -8,13 +8,14 @@ Note (May 1, 2023) -- this class is the Memory Stream module in the generative
 agents paper.
 """
 
-import json
 import datetime
-from pathlib import Path
-import numpy as np
+import json
 import os
+from pathlib import Path
 
-from persona.memory_structures.memory import Memory
+import numpy as np
+
+from backend_server.persona.memory_structures.memory import Memory
 
 
 class ConceptNode:

@@ -16,7 +16,7 @@ from os import listdir
 
 import numpy
 
-thread_local = threading.local()
+ctx = threading.local()
 
 
 def create_thread_local():

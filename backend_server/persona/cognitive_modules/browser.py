@@ -9,7 +9,8 @@ import sys
 
 import requests
 from bs4 import BeautifulSoup
-from utils.config import google_api_cx, google_api_key
+
+from backend_server.utils.config import google_api_cx, google_api_key
 
 
 class SearchEngine:
@@ -29,13 +30,10 @@ class SearchEngine:
             [ {"link" : link , "title" : title, "snippet" : snippet } ... ]
             where link is the URL of the search result, title is the title of the search result, and snippet is the snippet of the search result.
         """
-        raise NotImplementedError(
-            "Method 'search' not implemented in abstract class 'SearchEngine'."
-        )
+        raise NotImplementedError("Method 'search' not implemented in abstract class 'SearchEngine'.")
 
 
 class GoogleSearch(SearchEngine):
-
     def __init__(self, api_key=google_api_key, cx=google_api_cx):
         self.api_key = api_key
         self.cx = cx
@@ -50,8 +48,7 @@ class GoogleSearch(SearchEngine):
             try:
                 json = response.json()
                 return [
-                    {"link": item["link"], "title": item["title"], "snippet": item["snippet"]}
-                    for item in json["items"]
+                    {"link": item["link"], "title": item["title"], "snippet": item["snippet"]} for item in json["items"]
                 ]
             except Exception as e:
                 return []
@@ -61,7 +58,6 @@ class GoogleSearch(SearchEngine):
 
 
 class Browser:
-
     def __init__(self):
         pass
 
