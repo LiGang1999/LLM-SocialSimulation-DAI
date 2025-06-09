@@ -173,7 +173,7 @@ wheels = [
 [[package]]
 name = "backend-server"
 version = "0.1.0"
-source = { virtual = "reverie/backend_server" }
+source = { virtual = "backend_server" }
 
 [[package]]
 name = "bcrypt"

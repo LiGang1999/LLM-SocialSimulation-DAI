@@ -4,7 +4,7 @@
 
 ## 1. Prompt开发
 
-a. 在 `reverie/backend_server/prompt_templates/` 目录下创建新的 `.md` 文件作为prompt模板。例如 `new_prompt.md`:
+a. 在 `backend_server/prompt_templates/` 目录下创建新的 `.md` 文件作为prompt模板。例如 `new_prompt.md`:
 
 ```markdown
 ## description
@@ -24,7 +24,7 @@ You are {persona_name}. You should introduce yourself using the information give
 Information: {param2}
 ```
 
-b. 在 `reverie/backend_server/persona/prompt_template/run_gpt_structure.py` 文件中添加新的函数来调用这个prompt:
+b. 在 `backend_server/persona/prompt_template/run_gpt_structure.py` 文件中添加新的函数来调用这个prompt:
 
 ```python
 @llm_function(prompt_file="new_prompt.md", is_chat=True)
@@ -36,7 +36,7 @@ def new_prompt_function(param1: str, param2: str) -> Dict[str, Any]:
 
 ## 2. Persona, Workflow, Behavior开发
 
-a. 在 `reverie/backend_server/persona/persona.py` 中创建新的Persona类:
+a. 在 `backend_server/persona/persona.py` 中创建新的Persona类:
 
 ```python
 from persona.persona import Persona
@@ -51,7 +51,7 @@ class NewPersona(Persona):
         pass
 ```
 
-b. 在 `reverie/backend_server/persona/workflow.py` 中为新的Persona类定义工作流:
+b. 在 `backend_server/persona/workflow.py` 中为新的Persona类定义工作流:
 
 ```python
 def new_persona_workflow(persona):
@@ -64,7 +64,7 @@ def new_persona_workflow(persona):
     persona.custom_method()  # 调用新增的方法
 ```
 
-c. 在 `reverie/backend_server/persona/action.py` 中添加新的行为:
+c. 在 `backend_server/persona/action.py` 中添加新的行为:
 
 ```python
 def new_behavior(persona):
@@ -72,7 +72,7 @@ def new_behavior(persona):
     pass
 ```
 
-d. 如果需要新的记忆模块,在 `reverie/backend_server/persona/memory_structures/` 目录下创建新文件,例如 `new_memory.py`:
+d. 如果需要新的记忆模块,在 `backend_server/persona/memory_structures/` 目录下创建新文件,例如 `new_memory.py`:
 
 ```python
 class NewMemory:
@@ -86,7 +86,7 @@ class NewMemory:
         return self.data.get(key)
 ```
 
-e. 在 `reverie/backend_server/persona/cognitive_modules/` 目录下修改或添加新的认知模块:
+e. 在 `backend_server/persona/cognitive_modules/` 目录下修改或添加新的认知模块:
 
 * 修改 `perceive.py`:
 ```python
@@ -126,7 +126,7 @@ def execute_new(persona):
 
 ## 3. 集成新的Persona
 
-在 `reverie/backend_server/reverie.py` 文件中,修改 `__init__` 方法以支持新的Persona类型:
+在 `backend_server/reverie.py` 文件中,修改 `__init__` 方法以支持新的Persona类型:
 
 ```python
 if sim_config.persona_type == "new_persona":
@@ -137,7 +137,7 @@ if sim_config.persona_type == "new_persona":
 ```
 
 ## 4. 地图开发 
-在 `reverie/backend_server/maze.py` 文件中,我们可以扩展现有的 `OnlineMaze` 类或创建一个新的类。例如,我们可以创建一个新的 `DynamicMaze` 类:
+在 `backend_server/maze.py` 文件中,我们可以扩展现有的 `OnlineMaze` 类或创建一个新的类。例如,我们可以创建一个新的 `DynamicMaze` 类:
 
 ```python
 from maze import OnlineMaze
@@ -168,7 +168,7 @@ class DynamicMaze(OnlineMaze):
 这个新类添加了动态元素的功能,允许我们在地图中添加和移动元素。
 
 ## 5. 后端接口开发 
-在 `reverie/backend_server/server.py` 文件中,我们可以添加新的 FastAPI 路由来支持 `DynamicMaze` 的功能:
+在 `backend_server/server.py` 文件中,我们可以添加新的 FastAPI 路由来支持 `DynamicMaze` 的功能:
 
 ```python
 from fastapi import FastAPI, HTTPException

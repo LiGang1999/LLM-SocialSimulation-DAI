@@ -29,4 +29,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
 # Run the FastAPI application by default
-CMD ["python", "reverie/backend_server/server.py"]
+CMD ["python", "backend_server/server.py"]

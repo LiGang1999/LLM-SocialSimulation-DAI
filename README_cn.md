@@ -129,7 +129,7 @@ back_port: <后端端口>
 
 ### LLM 配置
 
-将 `config_template.py` 复制到 `config.py`，路径为 `reverie/backend_server/utils`。使用以下模板，并用您的实际 API 密钥和偏好替换占位符：
+将 `config_template.py` 复制到 `config.py`，路径为 `backend_server/utils`。使用以下模板，并用您的实际 API 密钥和偏好替换占位符：
 
 ```python
 openai_api_base = "https://api.openai.com/v1"
@@ -160,7 +160,7 @@ python start.py
 
 3. 如果你想直接在终端中运行：
 ```bash
-cd reverie/backend_server
+cd backend_server
 python reverie.py
 ```
 

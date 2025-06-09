@@ -40,7 +40,7 @@ dependencies = [
 ]
 
 [tool.uv.workspace]
-members = ["reverie/backend_server"]
+members = ["backend_server"]
 
 [tool.ruff]
 line-length = 120
