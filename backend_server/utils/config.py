@@ -4,7 +4,7 @@ from string import Template
 import yaml
 
 # Load default provider configurations from YAML file
-with open("default_providers.yaml", "r") as f:
+with open("providers.yaml", "r") as f:
     default_providers = yaml.safe_load(f)
 
 # Substitute environment variables
