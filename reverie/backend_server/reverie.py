@@ -19,48 +19,51 @@ to the memory stream, and "reverie" to refer to the overarching simulation
 framework.
 """
 
-import sys
-
+import asyncio
 import datetime
 import json
 import math
 import os
 import shutil
+import sys
 import threading
+import traceback
 from dataclasses import asdict, dataclass, field, fields, replace
 from queue import Queue
-from typing import List, Optional, Tuple, Dict
-import asyncio
-
-from pydantic import BaseModel, Field
-import traceback
-
+from typing import Dict, List, Optional, Tuple
 
 # 然后是其他的导入语句
 from maze import OfflineMaze, OnlineMaze, maze_assets_loc
+from persona.cognitive_modules.converse import (
+    generate_action_event_triple_new,
+    generate_agent_from_text,
+    generate_summary_from_actions,
+    load_history_via_whisper,
+)
 from persona.persona import DaiPersona, GaPersona, MemoryNode, ScratchData
-from persona.cognitive_modules.converse import generate_action_event_triple_new, load_history_via_whisper
+from pydantic import BaseModel, Field
 from utils import (
+    check_if_dir_exists,
+    check_if_file_exists,
+    config,
+    copyanything,
     ensure_directories,
     ensure_files_with_default_content,
     get_user_hash,
-    check_if_dir_exists,
-    check_if_file_exists,
-    copyanything,
-    removeanything,
     read_file_to_list,
+    removeanything,
     thread_local,
 )
-from utils.triggers import event_trigger
-from utils.logs import L
-from utils import config
 from utils.config import (
+    BASE_TEMPLATES,
     openai_api_base,
+    override_gpt_param,
     storage_path,
     temp_storage_path,
-    BASE_TEMPLATES,
-    override_gpt_param,
 )
+from utils.logs import L
+from utils.triggers import event_trigger
+
 # from institution import DaiInstitution
 
 # 获取当前文件所在的目录（backend_server）
@@ -777,8 +780,12 @@ class Reverie:
             self.maze.add_events_policy(event_id, policy)
         if websearch:
             self.maze.add_events_websearch(event_id, websearch)
-    
-    def gather_new_agent_with_description(self, text_input="黄医生每天需要查房、看诊、写病历，业余时间喜欢跳舞和保证充足的睡眠。", file="/home/tyn/newagent/responses/huang.txt"):
+
+    def gather_new_agent_with_description(
+        self,
+        text_input="黄医生每天需要查房、看诊、写病历，业余时间喜欢跳舞和保证充足的睡眠。",
+        file="/home/tyn/newagent/responses/huang.txt",
+    ):
         """
         汇总文本描述和上传文件中的内容，返回一个统一的字符串描述。
 
@@ -813,7 +820,6 @@ class Reverie:
         text = "\n".join(content_parts)  # 合并文本内容
         output = generate_agent_from_text(text)
 
-
         return text.strip()  # 返回去除两端空白的最终文本
 
     def generate_summary_from_action_log(self):
@@ -827,12 +833,12 @@ class Reverie:
                     combine_text.append(f"{persona_name}: {details}")
                 else:
                     combine_text.append(f"{persona_name}: Unknown log format: {log_entry}")
-        
+
         full_text = "\n".join(combine_text)
         output = generate_summary_from_actions(full_text)  # 你自己实现的英文大模型总结函数
         print(output)
         return output
-    
+
     def custom_run(self, sim_command):
         # Parses the command to extract the number of steps and the included/excluded agents.
         # Example: custom-run 1 lisa candy -> only 'lisa' and 'candy' participate in 1 step.
@@ -1334,7 +1340,9 @@ if __name__ == "__main__":
     # Create a default ReverieConfig
     cfg = load_config_from_files(f"{storage_path}/{template_sim_code}")
     cfg.sim_code = sim_code
-    cfg.llm_config = LLMConfig(base_url=openai_api_base, api_key=config.openai_api_key, model=override_gpt_param["model"])
+    cfg.llm_config = LLMConfig(
+        base_url=openai_api_base, api_key=config.openai_api_key, model=override_gpt_param["model"]
+    )
 
     rs = Reverie(template_sim_code, cfg)
 
