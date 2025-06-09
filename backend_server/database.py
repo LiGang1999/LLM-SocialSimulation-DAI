@@ -9,6 +9,7 @@ from sqlalchemy import (  # Added Integer, Text, DateTime, ForeignKey
     Boolean,
     Column,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -63,6 +64,24 @@ class User(Base):
     def get_email_hash(email: str) -> str:
         """Generate consistent hash from email for storage folder naming"""
         return hashlib.sha256(email.encode()).hexdigest()
+
+
+class Provider(Base):
+    """Provider model for PostgreSQL database"""
+
+    __tablename__ = "providers"
+
+    username = Column(String(50), ForeignKey("users.username"), primary_key=True)
+    usage = Column(String(50), primary_key=True)
+    model = Column(String(100), nullable=False)
+    api_key = Column(String(100), nullable=False)
+    base_url = Column(String(200))
+    temperature = Column(Float, default=1.0)
+    max_tokens = Column(Integer, default=512)
+    top_p = Column(Float, default=0.7)
+    frequency_penalty = Column(Float, default=0.0)
+    presence_penalty = Column(Float, default=0.0)
+    stream = Column(Boolean, default=False)
 
 
 class Feedback(Base):

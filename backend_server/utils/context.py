@@ -32,11 +32,11 @@ def set_user(user: "User"):
     _thread_local.user = user
 
 
-def get_providers() -> Optional[Dict[str, "LLMConfig"]]:
+def get_providers() -> Optional[Dict[str, Dict[str, str]]]:
     return getattr(_thread_local, "providers", None)
 
 
-def set_providers(providers: Dict[str, "LLMConfig"]):
+def set_providers(providers: Dict[str, Dict[str, str]]):
     _thread_local.providers = providers
 
 
@@ -66,11 +66,11 @@ class ThreadContext:
         set_user(value)
 
     @property
-    def providers(self) -> Optional[Dict[str, "LLMConfig"]]:
+    def providers(self) -> Optional[Dict[str, Dict[str, str]]]:
         return get_providers()
 
     @providers.setter
-    def providers(self, value: Dict[str, "LLMConfig"]):
+    def providers(self, value: Dict[str, Dict[str, str]]):
         set_providers(value)
 
 

@@ -5,16 +5,31 @@ import os
 import re
 import time
 from dataclasses import asdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TypedDict
 
 import openai
 from jinja2 import Template
 
 from backend_server.utils import ctx
-from backend_server.utils.config import override_gpt_param, override_model, per_instance_llm_config
+from backend_server.utils.config import default_providers, per_instance_llm_config
 from backend_server.utils.logs import L
 
-default_llm_config = override_gpt_param
+
+class LLMConfig(TypedDict, total=False):
+    base_url: str
+    api_key: str
+    model: str
+    temperature: float
+    max_tokens: int
+    top_p: float
+    frequency_penalty: float
+    presence_penalty: float
+    stream: bool
+    chat: bool
+
+
+default_llm_config: Dict[str, LLMConfig] = default_providers
+
 
 print_raw_log = os.environ.get("LOG_RAW", "False").lower() == "false"
 print_short_log = os.environ.get("LOG_SHORT", "True").lower() == "true"
@@ -22,18 +37,37 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 template_storage_dir = os.path.join(dir_path, "../prompt_templates")
 
 
-def get_llm_config():
-    if not per_instance_llm_config:
-        return default_llm_config
+def get_llm_config(usage: str = "chat") -> LLMConfig:
+    if per_instance_llm_config:
+        return default_llm_config[usage]
     else:
-        r = ctx.reverie
-        if r is not None:
-            cfg = asdict(r.llm_config)
-            cfg["chat"] = True
-            print("LLMCONFIG", cfg)
-            return cfg
+        if ctx.providers is not None:
+            provider = ctx.providers[usage]
+            return {
+                "base_url": provider["base_url"],
+                "api_key": provider["api_key"],
+                "model": provider["model"],
+                "temperature": provider["temperature"],
+                "max_tokens": provider["max_tokens"],
+                "top_p": provider["top_p"],
+                "frequency_penalty": provider["frequency_penalty"],
+                "presence_penalty": provider["presence_penalty"],
+                "stream": provider["stream"],
+                "chat": True,
+            }
         else:
+            L.warning(f"Unable to get llm config for user {ctx.user.username} for usage {usage if usage else 'None'}")
             raise ValueError("Cannot find llm config!")
+
+
+def get_embedding(text: str, model: str = "text-embedding-ada-002"):
+    text = text.replace("\n", " ")
+    llm_config = get_llm_config("embedding")
+    client = openai.OpenAI(
+        base_url=llm_config.get("base_url"),
+        api_key=llm_config.get("api_key"),
+    )
+    return client.embeddings.create(input=[text], model=llm_config["model"]).data[0].embedding
 
 
 def llm_logging_repr(object):
@@ -165,7 +199,7 @@ def llm_request(
     frequency_penalty = llm_config.get("frequency_penalty", 0.0)  # Default frequency penalty
     presence_penalty = llm_config.get("presence_penalty", 0.0)  # Default presence penalty
     stop = llm_config.get("stop", None)  # Default stop sequence
-    model = override_model if override_model else llm_config["model"]
+    model = llm_config["model"]
     is_chat = llm_config["chat"]
     if not is_chat and not model.endswith("-instruct"):
         model += "-instruct"
@@ -311,7 +345,7 @@ async def async_llm_request(
     frequency_penalty = llm_config.get("frequency_penalty", 0.0)  # Default frequency penalty
     presence_penalty = llm_config.get("presence_penalty", 0.0)  # Default presence penalty
     stop = llm_config.get("stop", None)  # Default stop sequence
-    model = override_model if override_model else llm_config["model"]
+    model = llm_config["model"]
     is_chat = llm_config["chat"]
     if not is_chat and not model.endswith("-instruct"):
         model += "-instruct"

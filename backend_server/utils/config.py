@@ -1,19 +1,19 @@
 import os
+from string import Template
 
-# Copy and paste your OpenAI API Key
-openai_api_base = os.environ.get("LLM_BASE_URL")
-openai_api_key = os.environ.get("LLM_API_KEY")
+import yaml
 
-override_model = os.environ.get("LLM_MODEL_NAME")
-override_gpt_param = {
-    "model": override_model,
-    "temperature": 1.0,
-    "max_tokens": 512,
-    "top_p": 0.7,
-    "frequency_penalty": 0.0,
-    "presence_penalty": 0.0,
-    "stream": False,
-}
+# Load default provider configurations from YAML file
+with open("default_providers.yaml", "r") as f:
+    default_providers = yaml.safe_load(f)
+
+# Substitute environment variables
+for provider_name, config in default_providers.items():
+    for key, value in config.items():
+        if isinstance(value, str):
+            template = Template(value)
+            config[key] = template.safe_substitute(os.environ)
+
 
 google_api_key = "<Google API Key>"  # search model key
 google_api_cx = "<Google API CX>"  # search model id

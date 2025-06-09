@@ -874,7 +874,7 @@ class Reverie:
         # Execute the simulation with the filtered agents
         self.start_server(int_count, participating_agents)
 
-    def open_server(self, reverie_instance):
+    def open_server(self, reverie_instance, user=None, providers=None):
         """
         Open up an interactive terminal prompt that lets you run the simulation
         step by step and probe agent state.
@@ -895,6 +895,9 @@ class Reverie:
         # set instance to thread local storage
         ctx.instance = reverie_instance
         ctx.reverie = self
+        ctx.user = user
+        ctx.providers = providers
+
         # Load all online events
         self.is_running = True
         if self.sim_mode == "online":
