@@ -11,3 +11,12 @@ declare module 'virtual:docs-tree' {
   }[];
   export default tree;
 }
+
+declare module 'virtual:docs-routes' {
+  import type { LazyExoticComponent } from 'react';
+  const routes: {
+    path: string;
+    Component: LazyExoticComponent<() => JSX.Element>;
+  }[];
+  export default routes;
+}

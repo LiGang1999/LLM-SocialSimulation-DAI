@@ -1,4 +1,4 @@
-import { StrictMode, lazy, Suspense } from 'react';
+import { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import DashboardPage from './pages/dashboard.tsx';
@@ -19,18 +19,7 @@ import AdminPage from './pages/AdminPage.tsx'; // Import AdminPage
 import ProtectedRoute from './components/ProtectedRoute.tsx'; // Corrected import name
 import SSOLogin from './pages/ssologin.tsx';
 import DocPage from './pages/DocPage.tsx';
-import docTree from 'virtual:docs-tree';
-
-const docRoutes = docTree.flatMap(item => item.type === 'file' ? [item] : item.children)
-  .filter(item => item?.type === 'file')
-  .map(item => {
-    const path = item!.path.replace(/\.mdx$/, '');
-    const Component = lazy(() => import(`./doc/${item!.path}`));
-    return {
-      path: path,
-      Component: Component
-    };
-  });
+import docRoutes from 'virtual:docs-routes';
 
 
 createRoot(document.getElementById('root')!).render(

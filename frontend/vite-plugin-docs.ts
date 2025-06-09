@@ -21,12 +21,17 @@ interface DocTreeItem {
   url?: string;
 }
 
+let cachedDocTree: DocTreeItem[] = [];
+
 /**
  * Custom Vite Plugin to handle documentation needs.
  */
 export default function customDocPlugin(): Plugin {
   const virtualModuleId = 'virtual:docs-tree';
   const resolvedVirtualModuleId = '\0' + virtualModuleId;
+
+  const virtualRoutesModuleId = 'virtual:docs-routes';
+  const resolvedVirtualRoutesModuleId = '\0' + virtualRoutesModuleId;
 
   // Define the root directory for documentation
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -80,18 +85,63 @@ export default function customDocPlugin(): Plugin {
     // The name of the plugin
     name: 'vite-plugin-custom-docs',
 
+    buildStart() {
+      cachedDocTree = getDirectoryTree(docRoot);
+    },
+
     // --- Part 1: Virtual Module for Folder Hierarchy ---
     resolveId(id) {
       if (id === virtualModuleId) {
         return resolvedVirtualModuleId;
       }
+      if (id === virtualRoutesModuleId) {
+        return resolvedVirtualRoutesModuleId;
+      }
     },
     load(id) {
       if (id === resolvedVirtualModuleId) {
-        // Scan the directory and create the tree object
-        const tree = getDirectoryTree(docRoot);
-        // Expose the tree as the default export of our virtual module
-        return `export default ${JSON.stringify(tree)};`;
+        return `export default ${JSON.stringify(cachedDocTree)};`;
+      }
+      if (id === resolvedVirtualRoutesModuleId) {
+        const files = cachedDocTree.flatMap(item => (item.type === 'file' ? [item] : item.children) ?? [])
+          .filter((item): item is DocTreeItem & { type: 'file' } => !!item && item.type === 'file');
+
+        const routeImports = files.map(file => {
+          const componentPath = `/src/doc/${file.path}`;
+          const routePath = file.path.replace(/\.mdx$/, '');
+          return `{
+            path: '${routePath}',
+            Component: lazy(() => import('${componentPath}'))
+          }`;
+        }).join(',\n');
+
+        return `
+          import { lazy } from 'react';
+          const docRoutes = [${routeImports}];
+          export default docRoutes;
+        `;
+      }
+    },
+
+    handleHotUpdate({ file, server }) {
+      if (file.startsWith(docRoot + path.sep)) {
+        const newTree = getDirectoryTree(docRoot);
+        if (JSON.stringify(newTree) !== JSON.stringify(cachedDocTree)) {
+          cachedDocTree = newTree;
+          const { moduleGraph } = server;
+          const module = moduleGraph.getModuleById(resolvedVirtualModuleId);
+          if (module) {
+            moduleGraph.invalidateModule(module);
+          }
+          const routesModule = moduleGraph.getModuleById(resolvedVirtualRoutesModuleId);
+          if (routesModule) {
+            moduleGraph.invalidateModule(routesModule);
+          }
+          server.ws.send({
+            type: 'full-reload',
+            path: '*'
+          });
+        }
       }
     },
 
