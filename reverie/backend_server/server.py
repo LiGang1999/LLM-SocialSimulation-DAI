@@ -21,7 +21,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, FastAPI, HTTPException,
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import PyJWTError
-from persona.profile.generate_profile import generate_scratch_profile
+from persona.profile.generate_profile import generate_profiles, generate_profiles_plan
 from pydantic import BaseModel, EmailStr, ValidationError
 from pydantic_core import PydanticUndefined
 from sqlalchemy.exc import IntegrityError
@@ -778,6 +778,16 @@ class ProfileReq(BaseModel):
     description: str
 
 
+class ProfilePlanReq(BaseModel):
+    scenario: str
+    request: str
+    agent_count: int
+
+
+class ProfilesReq(BaseModel):
+    plan: Dict[str, str]
+
+
 class FeedbackCreate(BaseModel):
     username: str  # Included as per frontend payload
     feedback: str
@@ -949,15 +959,26 @@ async def chat(chat_request: ChatReq, sim_code: str, current_user: User = Depend
         raise HTTPException(status_code=404, detail="Invalid simulation or persona")
 
 
-@router.post("/generate_profile")
-async def generate_profile(profile_req: ProfileReq, current_user: User = Depends(get_current_active_user)):
-    """Generate a profile based on a description"""
+@router.post("/generate_profiles_plan")
+async def generate_profiles_plan_endpoint(req: ProfilePlanReq, current_user: User = Depends(get_current_active_user)):
+    """Generate a plan for multiple profiles based on a description"""
     try:
-        profile = await generate_scratch_profile(profile_req.description)
-        return profile
+        plan = await generate_profiles_plan(req.scenario, req.request, req.agent_count)
+        return plan
     except Exception as e:
-        L.error(f"Error generating profile: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error generating profile: {str(e)}")
+        L.error(f"Error generating profile plan: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating profile plan: {str(e)}")
+
+
+@router.post("/generate_profiles")
+async def generate_profiles_endpoint(req: ProfilesReq, current_user: User = Depends(get_current_active_user)):
+    """Generate multiple profiles based on descriptions"""
+    try:
+        profiles = await generate_profiles(req.plan)
+        return {"profiles": profiles}
+    except Exception as e:
+        L.error(f"Error generating profiles: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating profiles: {str(e)}")
 
 
 # Public endpoints (no authentication required)
