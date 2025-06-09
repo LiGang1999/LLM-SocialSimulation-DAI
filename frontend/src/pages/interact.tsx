@@ -864,7 +864,7 @@ export const InteractPage: React.FC = () => {
 
     return (
         <div className="flex flex-col min-h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
-            <Navbar />
+            <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background" />
             <div className="container flex w-full mx-auto mt-4 mb-4 px-4 flex-grow">
                 {/* Left panel with tabs and status bar */}
                 <div className="w-2/3 pr-4 flex flex-col">

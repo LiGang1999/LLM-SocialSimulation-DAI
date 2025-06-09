@@ -32,7 +32,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { apis } from "@/lib/api"; // Import apis
 
 const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
-const docs_link = 'https://github.com/ZJUCSS/social-experiment-platform/blob/master/README_cn.md'
+const docs_link = '/doc/getting_started'
 
 interface RouteProps {
     href: string;
@@ -62,7 +62,11 @@ const routeList: RouteProps[] = [
     },
 ];
 
-export const Navbar = () => {
+interface NavbarProps {
+    className?: string;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ className }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
     const [feedbackText, setFeedbackText] = useState<string>("");
@@ -110,7 +114,7 @@ export const Navbar = () => {
     };
 
     return (
-        <header className="sticky top-0 z-40 w-full border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background">
+        <header className={`sticky top-0 z-40 w-full ${className}`}>
             <NavigationMenu className="mx-auto">
                 <NavigationMenuList className="container h-14 px-4 w-screen flex justify-between ">
                     <NavigationMenuItem className="font-bold flex">

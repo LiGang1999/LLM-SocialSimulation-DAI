@@ -53,7 +53,7 @@ export const LoginPage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat relative" style={{ backgroundImage: `url(${backgroundImage})` }}>
       <div className="absolute inset-0 bg-black opacity-30"></div>
-      <Navbar></Navbar>
+      <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background" />
       <div className="flex-grow flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 w-full">
         <Card className="w-full max-w-md z-10 relative animate-fade-in-up">
           <CardHeader>

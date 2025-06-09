@@ -62,7 +62,7 @@ export const ConfigPage = () => {
 
     return (
         <div className="flex flex-col min-h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
-            <Navbar />
+            <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background" />
             <main className="flex-grow w-full container mx-auto">
                 <h2 className="text-5xl font-bold my-12 text-gray-900"><span className="font-mono">Step 4.</span>仿真参数配置</h2>
 

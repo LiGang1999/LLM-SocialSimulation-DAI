@@ -1,7 +1,8 @@
 import { defineConfig, UserConfig } from 'vite'
 import path from "path"
 import react from '@vitejs/plugin-react'
-
+import mdx from '@mdx-js/rollup'
+import customDocPlugin from "./vite-plugin-docs"
 
 const LISTEN_PREFIX = process.env.LISTEN_PREFIX;
 const API_PREFIX = `${LISTEN_PREFIX}/api`
@@ -11,7 +12,11 @@ const config: UserConfig = {
   define: {
     'process.env': process.env
   },
-  plugins: [react()],
+  plugins: [
+    customDocPlugin(),
+    mdx(),
+    react()
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

@@ -37,7 +37,7 @@ const AdminPage: React.FC = () => {
 
   return (
     <>
-      <Navbar />
+      <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background" />
       <div className="container mx-auto p-4 mt-6">
         <h1 className="text-3xl font-bold mb-6 text-center">管理后台</h1>
         
