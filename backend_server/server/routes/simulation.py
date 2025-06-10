@@ -146,6 +146,76 @@ def get_reverie_instance(username: str, sim_code: str):
     return instance
 
 
+@router.get("/user_providers")
+async def user_providers(current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)):
+    # get the providers mapping for current user
+    result = await db.execute(select(DBProvider).where(DBProvider.username == current_user.username))
+    providers = result.scalars().all()
+    provider_configs = {
+        provider.usage: {
+            "kind": provider.kind,
+            "base_url": provider.base_url,
+            "api_key": provider.api_key,
+            "model": provider.model,
+            "temperature": provider.temperature,
+            "max_tokens": provider.max_tokens,
+            "top_p": provider.top_p,
+            "frequency_penalty": provider.frequency_penalty,
+            "presence_penalty": provider.presence_penalty,
+            "stream": provider.stream,
+        }
+        for provider in providers
+    }
+    return provider_configs
+
+
+@router.post("/user_providers")
+async def update_user_providers(
+    providers: Dict[str, LLMConfig],
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # get the providers mapping for current user
+    result = await db.execute(select(DBProvider).where(DBProvider.username == current_user.username))
+    existing_providers = result.scalars().all()
+    existing_providers_map = {p.usage: p for p in existing_providers}
+
+    for usage, config in providers.items():
+        if usage in existing_providers_map:
+            # Update existing provider
+            provider = existing_providers_map[usage]
+            provider.kind = config.kind
+            provider.base_url = config.base_url
+            provider.api_key = config.api_key
+            provider.model = config.model
+            provider.temperature = config.temperature
+            provider.max_tokens = config.max_tokens
+            provider.top_p = config.top_p
+            provider.frequency_penalty = config.frequency_penalty
+            provider.presence_penalty = config.presence_penalty
+            provider.stream = config.stream
+        else:
+            # Create new provider
+            provider = DBProvider(
+                username=current_user.username,
+                usage=usage,
+                kind=config.kind,
+                base_url=config.base_url,
+                api_key=config.api_key,
+                model=config.model,
+                temperature=config.temperature,
+                max_tokens=config.max_tokens,
+                top_p=config.top_p,
+                frequency_penalty=config.frequency_penalty,
+                presence_penalty=config.presence_penalty,
+                stream=config.stream,
+            )
+            db.add(provider)
+
+    await db.commit()
+    return {"status": "success"}
+
+
 @router.post("/start")
 async def start(
     sim_data: StartReq, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
@@ -202,31 +272,13 @@ async def start(
             reverie_config,
         )
 
-        # get the providers mapping for current user
-        result = await db.execute(select(DBProvider).where(DBProvider.username == current_user.username))
-        providers = result.scalars().all()
-        provider_configs = {
-            provider.usage: {
-                "base_url": provider.base_url,
-                "api_key": provider.api_key,
-                "model": provider.model,
-                "temperature": provider.temperature,
-                "max_tokens": provider.max_tokens,
-                "top_p": provider.top_p,
-                "frequency_penalty": provider.frequency_penalty,
-                "presence_penalty": provider.presence_penalty,
-                "stream": provider.stream,
-            }
-            for provider in providers
-        }
-
         # Start a new thread to run the open_server method
         thread = threading.Thread(
             target=reverie_instance.reverie.open_server,
             args=(
                 reverie_instance,
                 current_user,
-                provider_configs,
+                sim_data.providers,
             ),
         )
         thread.start()

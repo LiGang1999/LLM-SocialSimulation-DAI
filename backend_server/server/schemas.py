@@ -48,6 +48,7 @@ class StartReq(BaseModel):
     simCode: str
     template: Dict[str, Any]
     initialRounds: Optional[int] = 0
+    providers: Dict[str, Any]
 
 
 class EventPublishReq(BaseModel):

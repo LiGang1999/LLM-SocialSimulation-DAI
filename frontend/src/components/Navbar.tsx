@@ -264,11 +264,15 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
                     <div className="hidden md:flex gap-2">
                         {isAuthenticated ? (
                             <>
-                                <span className={`text-[17px] ${buttonVariants({
-                                    variant: "ghost",
-                                })} bg-opacity-50`}>
+                                <Link
+                                    rel="noreferrer noopener"
+                                    to="/profile"
+                                    className={`text-[17px] ${buttonVariants({
+                                        variant: "ghost",
+                                    })} bg-opacity-50`}
+                                >
                                     {user?.username}
-                                </span>
+                                </Link>
                                 <Link
                                     to="/"
                                     onClick={(e) => {

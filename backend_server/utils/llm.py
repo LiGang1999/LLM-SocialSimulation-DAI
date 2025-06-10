@@ -16,6 +16,7 @@ from backend_server.utils.logs import L
 
 
 class LLMConfig(TypedDict, total=False):
+    kind: str
     base_url: str
     api_key: str
     model: str
@@ -25,7 +26,6 @@ class LLMConfig(TypedDict, total=False):
     frequency_penalty: float
     presence_penalty: float
     stream: bool
-    chat: bool
 
 
 default_llm_config: Dict[str, LLMConfig] = default_providers
@@ -44,6 +44,7 @@ def get_llm_config(usage: str = "chat") -> LLMConfig:
         if ctx.providers is not None:
             provider = ctx.providers[usage]
             return {
+                "kind": provider["kind"],
                 "base_url": provider["base_url"],
                 "api_key": provider["api_key"],
                 "model": provider["model"],
@@ -53,7 +54,6 @@ def get_llm_config(usage: str = "chat") -> LLMConfig:
                 "frequency_penalty": provider["frequency_penalty"],
                 "presence_penalty": provider["presence_penalty"],
                 "stream": provider["stream"],
-                "chat": True,
             }
         else:
             L.warning(f"Unable to get llm config for for usage {usage if usage else 'None'}")
@@ -188,8 +188,8 @@ def llm_request(
     llm_config = get_llm_config(usage)
 
     # Validate the necessary fields
-    if "model" not in llm_config or "chat" not in llm_config:
-        raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
+    if "model" not in llm_config or "kind" not in llm_config:
+        raise ValueError("The 'model' and 'kind' fields are required in llm_config.")
 
     r = ctx.reverie
     r.interested = True
@@ -202,8 +202,9 @@ def llm_request(
     presence_penalty = llm_config.get("presence_penalty", 0.0)  # Default presence penalty
     stop = llm_config.get("stop", None)  # Default stop sequence
     model = llm_config["model"]
-    is_chat = llm_config["chat"]
-    if not is_chat and not model.endswith("-instruct"):
+    kind = llm_config["kind"]
+    is_chat = kind == "chat"
+    if kind == "completion" and not model.endswith("-instruct"):
         model += "-instruct"
 
     client = openai.OpenAI(
@@ -213,16 +214,16 @@ def llm_request(
 
     attempt = 0
     L.debug(
-        f"[{func_name}] LLM REQUEST; KIND: {'chat' if llm_config['chat'] else 'completion'}; USER_PROMPT:{llm_logging_repr(usr_prompt)}; SYSTEM_PROMPT:{llm_logging_repr(sys_prompt)}"
+        f"[{func_name}] LLM REQUEST; KIND: {kind}; USER_PROMPT:{llm_logging_repr(usr_prompt)}; SYSTEM_PROMPT:{llm_logging_repr(sys_prompt)}"
     )
     while attempt < max_retries:
         try:
             result = ""
             L.debug(
-                f"[{func_name}] Attempt {attempt + 1}: Sending LLM request. Model: {llm_config['model']}, Chat: {llm_config['chat']}"
+                f"[{func_name}] Attempt {attempt + 1}: Sending LLM request. Model: {llm_config['model']}, Kind: {kind}"
             )
             start_time = time.time()
-            if llm_config["chat"]:
+            if is_chat:
                 # Chat mode implementation
                 messages = [
                     {"role": "system", "content": sys_prompt},
@@ -273,7 +274,7 @@ def llm_request(
             L.stats(
                 function_name=func_name,
                 model=model,
-                is_chat=llm_config["chat"],
+                is_chat=is_chat,
                 duration=time.time() - start_time,
                 request_tokens=response.usage.prompt_tokens,
                 response_tokens=response.usage.completion_tokens,
@@ -336,8 +337,8 @@ async def async_llm_request(
     llm_config = get_llm_config(usage)
 
     # Validate the necessary fields
-    if "model" not in llm_config or "chat" not in llm_config:
-        raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
+    if "model" not in llm_config or "kind" not in llm_config:
+        raise ValueError("The 'model' and 'kind' fields are required in llm_config.")
 
     r = ctx.reverie
     r.interested = True
@@ -350,8 +351,9 @@ async def async_llm_request(
     presence_penalty = llm_config.get("presence_penalty", 0.0)  # Default presence penalty
     stop = llm_config.get("stop", None)  # Default stop sequence
     model = llm_config["model"]
-    is_chat = llm_config["chat"]
-    if not is_chat and not model.endswith("-instruct"):
+    kind = llm_config["kind"]
+    is_chat = kind == "chat"
+    if kind == "completion" and not model.endswith("-instruct"):
         model += "-instruct"
 
     client = openai.AsyncOpenAI(
@@ -361,16 +363,16 @@ async def async_llm_request(
 
     attempt = 0
     L.debug(
-        f"[{func_name}] LLM REQUEST; KIND: {'chat' if llm_config['chat'] else 'completion'}; USER_PROMPT:{llm_logging_repr(usr_prompt)}; SYSTEM_PROMPT:{llm_logging_repr(sys_prompt)}"
+        f"[{func_name}] LLM REQUEST; KIND: {kind}; USER_PROMPT:{llm_logging_repr(usr_prompt)}; SYSTEM_PROMPT:{llm_logging_repr(sys_prompt)}"
     )
     while attempt < max_retries:
         try:
             result = ""
             L.debug(
-                f"[{func_name}] Attempt {attempt + 1}: Sending LLM request. Model: {llm_config['model']}, Chat: {llm_config['chat']}"
+                f"[{func_name}] Attempt {attempt + 1}: Sending LLM request. Model: {llm_config['model']}, Kind: {kind}"
             )
             start_time = time.time()
-            if llm_config["chat"]:
+            if is_chat:
                 # Chat mode implementation
                 messages = [
                     {"role": "system", "content": sys_prompt},
@@ -421,7 +423,7 @@ async def async_llm_request(
             L.stats(
                 function_name=func_name,
                 model=model,
-                is_chat=llm_config["chat"],
+                is_chat=is_chat,
                 duration=time.time() - start_time,
                 request_tokens=response.usage.prompt_tokens,
                 response_tokens=response.usage.completion_tokens,

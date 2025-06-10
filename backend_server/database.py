@@ -73,6 +73,7 @@ class Provider(Base):
 
     username = Column(String(50), ForeignKey("users.username"), primary_key=True)
     usage = Column(String(50), primary_key=True)
+    kind = Column(String(50), nullable=False)
     model = Column(String(100), nullable=False)
     api_key = Column(String(100), nullable=False)
     base_url = Column(String(200))

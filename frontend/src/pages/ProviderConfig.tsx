@@ -1,27 +1,24 @@
 import { useState, useEffect } from 'react';
 import { Navbar } from "@/components/Navbar";
-import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown } from 'lucide-react';
 import '@/App.css'
-import { useSimContext } from '@/SimContext';
 import { apis } from '@/lib/api';
 import { toast } from 'sonner';
-import DescriptionCard from '@/components/DescriptionCard';
 
 import backgroundImage from '@/assets/Untitled.png'
 
 type LLMConfig = apis.LLMConfig;
 type ProviderConfigs = Record<string, LLMConfig>;
 
-export const ConfigPage = () => {
-    const ctx = useSimContext();
+export const ProviderConfigPage = () => {
     const [providers, setProviders] = useState<ProviderConfigs>({});
     const [openCollapsibles, setOpenCollapsibles] = useState<Record<string, boolean>>({});
 
@@ -54,23 +51,10 @@ export const ConfigPage = () => {
                         presence_penalty: 0.0,
                         stream: false,
                     },
-                    completion: {
-                        kind: "completion",
-                        base_url: "",
-                        api_key: "",
-                        model: "",
-                        temperature: 1.0,
-                        max_tokens: 512,
-                        top_p: 0.7,
-                        frequency_penalty: 0.0,
-                        presence_penalty: 0.0,
-                        stream: false,
-                    },
                 };
 
                 const providersData = { ...defaultProviders, ...userProviders };
                 setProviders(providersData);
-                ctx.setData({ ...ctx.data, llmProviders: providersData });
                 // Initialize all collapsible sections to be closed
                 const initialOpenState = Object.keys(providersData).reduce((acc, key) => {
                     acc[key] = false;
@@ -79,19 +63,11 @@ export const ConfigPage = () => {
                 setOpenCollapsibles(initialOpenState);
             } catch (err) {
                 console.error("Failed to fetch user providers:", err);
+                toast.error("Failed to fetch user providers");
             }
         };
 
-        if (ctx.data.llmProviders && Object.keys(ctx.data.llmProviders).length > 0) {
-            setProviders(ctx.data.llmProviders);
-            const initialOpenState = Object.keys(ctx.data.llmProviders).reduce((acc, key) => {
-                acc[key] = false;
-                return acc;
-            }, {} as Record<string, boolean>);
-            setOpenCollapsibles(initialOpenState);
-        } else {
-            fetchUserProviders();
-        }
+        fetchUserProviders();
     }, []);
 
     const updateProviderConfig = (usage: string, key: keyof LLMConfig, value: any) => {
@@ -103,69 +79,61 @@ export const ConfigPage = () => {
             }
         };
         setProviders(newProviders);
-        ctx.setData({ ...ctx.data, llmProviders: newProviders });
+    };
+
+    const handleSaveChanges = async () => {
+        try {
+            await apis.updateUserProviders(providers);
+            toast.success("Provider configurations updated successfully!");
+        } catch (err) {
+            console.error("Failed to update provider configurations:", err);
+            toast.error("Failed to update provider configurations");
+        }
     };
 
     const toggleCollapsible = (usage: string) => {
         setOpenCollapsibles(prev => ({ ...prev, [usage]: !prev[usage] }));
     };
 
-    const isConfigValid = () => {
-        const requiredProviders = ['chat', 'embedding', 'completion'];
-        for (const usage of requiredProviders) {
-            const provider = providers[usage];
-            if (!provider || !provider.base_url || !provider.model) {
-                return false;
-            }
-        }
-        return true;
-    };
-
-    const handleSaveChanges = async (usage: string) => {
-        try {
-            const providerConfig = providers[usage];
-            await apis.updateUserProviders({ [usage]: providerConfig });
-            toast.success(`${usage} provider configuration updated successfully!`);
-        } catch (err) {
-            console.error(`Failed to update ${usage} provider configuration:`, err);
-            toast.error(`Failed to update ${usage} provider configuration`);
-        }
-    };
-
     return (
         <div className="flex flex-col min-h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
             <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background" />
             <main className="flex-grow w-full container mx-auto">
-                <h2 className="text-5xl font-bold my-12 text-gray-900"><span className="font-mono">Step 4.</span>仿真参数配置</h2>
-
-                <DescriptionCard
-                    title="配置您的专属AI模型"
-                    description="为了让仿真实验顺利进行，我们需要您提供一些关于您希望使用的AI模型的信息。这个AI模型将扮演仿真世界中智能体的“大脑”，负责它们的对话、思考和行动。请您按照下方的指引，填写您的AI服务提供商的相关信息。如果您不确定这些信息是什么，可以查阅您的AI服务提供商提供的文档，或者联系他们的客服获取帮助。"
-                />
+                <h2 className="text-5xl font-bold my-12 text-gray-900">用户设置</h2>
+                <p className="text-lg text-gray-600 mb-8">请配置您的聊天和嵌入服务提供商。</p>
 
                 <div className="space-y-8">
                     {Object.entries(providers).map(([usage, config]) => (
                         <Card key={usage} className="w-full bg-opacity-70 bg-white mx-auto">
-                            <CardHeader className="flex flex-row items-center justify-between">
-                                <CardTitle className="capitalize">{usage} Provider</CardTitle>
-                                <Button onClick={() => handleSaveChanges(usage)}>保存到用户配置</Button>
+                            <CardHeader>
+                                <CardTitle className="capitalize">{usage} 服务商</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                     <div className="space-y-4">
-                                        <Label htmlFor={`apiBase-${usage}`} >API 服务地址 (Base URL)</Label>
+                                        <Label htmlFor={`kind-${usage}`} >类型</Label>
+                                        <Select value={config.kind} onValueChange={(value) => updateProviderConfig(usage, 'kind', value)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="选择类型" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="chat">聊天</SelectItem>
+                                                <SelectItem value="embedding">嵌入</SelectItem>
+                                                <SelectItem value="completion">补全</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <Label htmlFor={`apiBase-${usage}`} >API 地址</Label>
                                         <Input
                                             id={`apiBase-${usage}`}
                                             value={config.base_url}
                                             onChange={(e) => updateProviderConfig(usage, 'base_url', e.target.value)}
                                             placeholder="例如: https://api.openai.com/v1"
-                                            required
-                                            className={!config.base_url ? 'border-red-500' : ''}
                                         />
-                                        {!config.base_url && <p className="text-red-500 text-xs mt-1">此字段为必填项</p>}
                                     </div>
                                     <div className="space-y-4">
-                                        <Label htmlFor={`apiKey-${usage}`} >API 密钥 (API Key)</Label>
+                                        <Label htmlFor={`apiKey-${usage}`} >API 密钥</Label>
                                         <Input
                                             id={`apiKey-${usage}`}
                                             type="password"
@@ -175,30 +143,27 @@ export const ConfigPage = () => {
                                         />
                                     </div>
                                     <div className="space-y-4">
-                                        <Label htmlFor={`model-${usage}`} >模型名称 (Model)</Label>
+                                        <Label htmlFor={`model-${usage}`} >模型</Label>
                                         <Input
                                             id={`model-${usage}`}
                                             value={config.model}
                                             onChange={(e) => updateProviderConfig(usage, 'model', e.target.value)}
                                             placeholder="例如: gpt-4, claude-3-opus"
-                                            required
-                                            className={!config.model ? 'border-red-500' : ''}
                                         />
-                                        {!config.model && <p className="text-red-500 text-xs mt-1">此字段为必填项</p>}
                                     </div>
                                 </div>
 
                                 <Collapsible.Root open={openCollapsibles[usage]} onOpenChange={() => toggleCollapsible(usage)}>
                                     <Collapsible.Trigger asChild>
                                         <button className="flex items-center justify-between w-full text-lg font-semibold">
-                                            Advanced Settings
+                                            高级设置
                                             <ChevronDown className={`transition-transform duration-200 ${openCollapsibles[usage] ? 'rotate-180' : ''}`} />
                                         </button>
                                     </Collapsible.Trigger>
                                     <Collapsible.Content className="pt-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-4">
-                                                <Label htmlFor={`temperature-${usage}`} >Temperature: {config.temperature.toFixed(2)}</Label>
+                                                <Label htmlFor={`temperature-${usage}`} >温度: {config.temperature.toFixed(2)}</Label>
                                                 <Slider
                                                     id={`temperature-${usage}`}
                                                     value={[config.temperature]}
@@ -218,7 +183,7 @@ export const ConfigPage = () => {
                                                 />
                                             </div>
                                             <div className="space-y-4">
-                                                <Label htmlFor={`freqPenalty-${usage}`} >Frequency Penalty: {config.frequency_penalty.toFixed(2)}</Label>
+                                                <Label htmlFor={`freqPenalty-${usage}`} >频率惩罚: {config.frequency_penalty.toFixed(2)}</Label>
                                                 <Slider
                                                     id={`freqPenalty-${usage}`}
                                                     value={[config.frequency_penalty]}
@@ -229,7 +194,7 @@ export const ConfigPage = () => {
                                                 />
                                             </div>
                                             <div className="space-y-4">
-                                                <Label htmlFor={`presPenalty-${usage}`} >Presence Penalty: {config.presence_penalty.toFixed(2)}</Label>
+                                                <Label htmlFor={`presPenalty-${usage}`} >存在惩罚: {config.presence_penalty.toFixed(2)}</Label>
                                                 <Slider
                                                     id={`presPenalty-${usage}`}
                                                     value={[config.presence_penalty]}
@@ -240,7 +205,7 @@ export const ConfigPage = () => {
                                                 />
                                             </div>
                                             <div className="space-y-4">
-                                                <Label htmlFor={`maxTokens-${usage}`} >Max Tokens: {config.max_tokens}</Label>
+                                                <Label htmlFor={`maxTokens-${usage}`} >最大令牌数: {config.max_tokens}</Label>
                                                 <Input
                                                     id={`maxTokens-${usage}`}
                                                     type="number"
@@ -254,7 +219,7 @@ export const ConfigPage = () => {
                                                     checked={config.stream}
                                                     onCheckedChange={(checked) => updateProviderConfig(usage, 'stream', checked)}
                                                 />
-                                                <Label htmlFor={`stream-${usage}`} >Stream</Label>
+                                                <Label htmlFor={`stream-${usage}`} >流式传输</Label>
                                             </div>
                                         </div>
                                     </Collapsible.Content>
@@ -263,8 +228,7 @@ export const ConfigPage = () => {
                         </Card>
                     ))}
                 </div>
-
-                <BottomNav prevLink='/agents' nextLink='/confirm' currStep={3} disabled={!isConfigValid()} className='mt-8 mb-4' />
+                <Button onClick={handleSaveChanges} className="mt-8 mb-4">保存更改</Button>
             </main>
         </div >
     );

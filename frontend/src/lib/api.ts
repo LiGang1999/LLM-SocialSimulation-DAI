@@ -52,9 +52,37 @@ export interface FeedbackAdminItem {
     user_username: string;
     user_email: string;
     feedback_text: string;
-    timestamp: string; // Assuming timestamp is a string from backend, adjust if it's Date
+    timestamp: string;
 }
 
+
+const urls = {
+    login: '/login',
+    logout: '/logout',
+    register: '/register',
+    currentUser: '/users/me',
+    ssoLogin: '/ssologin',
+    fetchTemplate: '/fetch_template',
+    fetchTemplates: '/fetch_templates',
+    deleteTemplate: '/delete_template',
+    startSim: '/start',
+    runSim: '/run',
+    updateEnv: '/update_env',
+    agentsInfo: '/personas_info',
+    agentDetail: '/persona_detail',
+    sendCommand: '/command',
+    privateChat: '/chat',
+    publishEvent: '/publish_events',
+    queryStatus: '/status',
+    submitFeedback: '/feedback',
+    getFeedbacks: '/admin/feedbacks',
+    userProviders: '/user_providers',
+    messageSocket: (simCode: string) => {
+        const token = localStorage.getItem('token');
+        const uriToken = encodeURIComponent(token || "");
+        return `api/ws?sim_code=${simCode}${token ? `&token=${uriToken}` : ''}`;
+    }
+};
 
 export namespace apis {
     export const login = async (username: string, password: string): Promise<AuthResponse> => {
@@ -64,7 +92,7 @@ export namespace apis {
             formData.append('username', username);
             formData.append('password', password);
 
-            const response = await api.post<AuthResponse>('/login', formData);
+            const response = await api.post<AuthResponse>(urls.login, formData);
             return response.data;
         } catch (error) {
             console.error("Login error:", error);
@@ -75,7 +103,7 @@ export namespace apis {
     export const logout = async (): Promise<void> => {
         try {
             // We'll call this endpoint even if it doesn't exist yet, so we can add it later
-            await api.post('/logout');
+            await api.post(urls.logout);
         } catch (error) {
             console.error("Logout error:", error);
         }
@@ -83,7 +111,7 @@ export namespace apis {
 
     export const register = async (userData: RegisterRequest): Promise<User> => {
         try {
-            const response = await api.post<User>('/register', userData);
+            const response = await api.post<User>(urls.register, userData);
             return response.data;
         } catch (error) {
             console.error("Registration error:", error);
@@ -93,7 +121,7 @@ export namespace apis {
 
     export const getCurrentUser = async (): Promise<User> => {
         try {
-            const response = await api.get<User>('/users/me');
+            const response = await api.get<User>(urls.currentUser);
             return response.data;
         } catch (error) {
             console.error("Error fetching current user:", error);
@@ -108,7 +136,7 @@ export namespace apis {
         sign: string;
     }): Promise<AuthResponse> => {
         try {
-            const response = await api.post<AuthResponse>('/ssologin', params);
+            const response = await api.post<AuthResponse>(urls.ssoLogin, params);
             return response.data;
         } catch (error) {
             console.error("SSO login error:", error);
@@ -206,15 +234,15 @@ export namespace apis {
     }
 
     export interface LLMConfig {
-        type: string;
+        kind: 'chat' | 'embedding' | 'completion';
         base_url: string;
         api_key: string;
-        engine: string;
+        model: string;
         temperature: number;
-        maxTokens: number;
-        topP: number;
-        freqPenalty: number;
-        presPenalty: number;
+        max_tokens: number;
+        top_p: number;
+        frequency_penalty: number;
+        presence_penalty: number;
         stream: boolean;
     }
 
@@ -262,7 +290,7 @@ export namespace apis {
 
     export const fetchTemplate = async (templateName: string): Promise<Template> => {
         try {
-            const response = await api.get<{ meta: any, events: any[], personas: Record<string, any>, workflow: Record<string,Stage> }>('/fetch_template', { params: { sim_code: templateName } });
+            const response = await api.get<{ meta: any, events: any[], personas: Record<string, any>, workflow: Record<string,Stage> }>(urls.fetchTemplate, { params: { sim_code: templateName } });
             const { meta, events, personas, workflow } = response.data;
             console.log(workflow)
             return {
@@ -341,7 +369,7 @@ export namespace apis {
             const response = await api.get<{
                 public_templates: TemplateListItem[],
                 user_templates: TemplateListItem[]
-            }>('/fetch_templates');
+            }>(urls.fetchTemplates);
 
             // Define priority order
             const priorityOrder = ['shbz', 'legislative_council', 'dragon_tv_demo'];
@@ -383,7 +411,7 @@ export namespace apis {
 
     export const deleteTemplate = async (simCode: string): Promise<void> => {
         try {
-            await api.delete('/delete_template', { params: { sim_code: simCode } });
+            await api.delete(urls.deleteTemplate, { params: { sim_code: simCode } });
         } catch (error) {
             console.error("Error deleting template:", error);
             throw error;
@@ -393,14 +421,14 @@ export namespace apis {
     export const startSim = async (
         simCode: string,
         template: apis.Template,
-        llmConfig: apis.LLMConfig,
+        providers: Record<string, LLMConfig>,
         initialRounds: number
     ): Promise<any> => {
         try {
-            const response = await api.post('/start', {
+            const response = await api.post(urls.startSim, {
                 simCode,
                 template,
-                llmConfig,
+                providers,
                 initialRounds
             });
             return response.data;
@@ -412,7 +440,7 @@ export namespace apis {
 
     export const runSim = async (count: number, simCode: string): Promise<any> => {
         try {
-            const response = await api.get(`/run`, { params: { count, sim_code: simCode } });
+            const response = await api.get(urls.runSim, { params: { count, sim_code: simCode } });
             return response.data;
         } catch (error) {
             console.error("Error running simulation:", error);
@@ -422,7 +450,7 @@ export namespace apis {
 
     export const updateEnv = async (updateData: any, simCode: string): Promise<any> => {
         try {
-            const response = await api.post(`/update_env`, updateData, { params: { sim_code: simCode } });
+            const response = await api.post(urls.updateEnv, updateData, { params: { sim_code: simCode } });
             return response.data;
         } catch (error) {
             console.error("Error updating environment:", error);
@@ -432,7 +460,7 @@ export namespace apis {
 
     export const agentsInfo = async (simCode: string): Promise<Agent[]> => {
         try {
-            const response = await api.get(`/personas_info`, { params: { sim_code: simCode } });
+            const response = await api.get(urls.agentsInfo, { params: { sim_code: simCode } });
             return response.data.personas;
         } catch (error) {
             console.error("Error fetching agents info:", error);
@@ -446,9 +474,9 @@ export namespace apis {
         s_mem: Record<string, string>,
     }> => {
         try {
-            const response = await api.get(`/persona_detail`, { params: { sim_code: simCode, agent_name: agentName } });
+            const response = await api.get(urls.agentDetail, { params: { sim_code: simCode, agent_name: agentName } });
             return response.data;
-        } catch (error) {
+        } catch (error){
             console.error("Error fetching agent detail:", error);
             throw error;
         }
@@ -456,7 +484,7 @@ export namespace apis {
 
     export const sendCommand = async (command: string, simCode: string): Promise<any> => {
         try {
-            const response = await api.get(`/command`, { params: { command, sim_code: simCode } });
+            const response = await api.get(urls.sendCommand, { params: { command, sim_code: simCode } });
             return response.data;
         } catch (error) {
             console.error("Error sending command:", error);
@@ -477,7 +505,7 @@ export namespace apis {
                 msg.content
             ]);
 
-            const response = await api.post(`/chat`, {
+            const response = await api.post(urls.privateChat, {
                 agent_name: person,
                 type,
                 history: formattedHistory,
@@ -492,7 +520,7 @@ export namespace apis {
 
     export const publishEvent = async (eventData: EventConfig, simCode: string): Promise<any> => {
         try {
-            const response = await api.post(`/publish_events`, eventData, { params: { sim_code: simCode } });
+            const response = await api.post(urls.publishEvent, eventData, { params: { sim_code: simCode } });
             return response.data;
         } catch (error) {
             console.error("Error publishing event:", error);
@@ -502,7 +530,7 @@ export namespace apis {
 
     export const queryStatus = async (simCode: string): Promise<'running' | 'stopped' | 'started'> => {
         try {
-            const response = await api.get(`/status`, { params: { sim_code: simCode } });
+            const response = await api.get(urls.queryStatus, { params: { sim_code: simCode } });
             return response.data.status;
         } catch (error) {
             console.error("Error querying status:", error);
@@ -511,14 +539,12 @@ export namespace apis {
     }
 
     export const messageSocket = (simCode: string) => {
-        const token = localStorage.getItem('token');
-        const uriToken = encodeURIComponent(token || "");
-        return new WebSocket(`api/ws?sim_code=${simCode}${token ? `&token=${uriToken}` : ''}`);
+        return new WebSocket(urls.messageSocket(simCode));
     };
 
     export const submitFeedback = async (feedbackData: FeedbackRequest): Promise<any> => {
         try {
-            const response = await api.post('/feedback', feedbackData);
+            const response = await api.post(urls.submitFeedback, feedbackData);
             return response.data;
         } catch (error) {
             console.error("Error submitting feedback:", error);
@@ -528,10 +554,30 @@ export namespace apis {
 
     export const getFeedbacks = async (): Promise<FeedbackAdminItem[]> => {
         try {
-            const response = await api.get<FeedbackAdminItem[]>('/admin/feedbacks');
+            const response = await api.get<FeedbackAdminItem[]>(urls.getFeedbacks);
             return response.data;
         } catch (error) {
             console.error("Error fetching feedbacks:", error);
+            throw error;
+        }
+    };
+
+    export const getUserProviders = async (): Promise<Record<string, LLMConfig>> => {
+        try {
+            const response = await api.get<Record<string, LLMConfig>>(urls.userProviders);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching user providers:", error);
+            throw error;
+        }
+    };
+
+    export const updateUserProviders = async (providers: Record<string, LLMConfig>): Promise<any> => {
+        try {
+            const response = await api.post(urls.userProviders, providers);
+            return response.data;
+        } catch (error) {
+            console.error("Error updating user providers:", error);
             throw error;
         }
     };
