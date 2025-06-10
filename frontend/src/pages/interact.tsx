@@ -39,30 +39,49 @@ interface ChatFooterProps {
     setSimRounds: (rounds: number) => void;
 }
 
-const ChatMessageBox: React.FC<ChatMessage & { variant?: 'public' | 'private' }> = ({ sender, content, timestamp, subject, variant = 'public' }) => (
-    <div className={`flex ${sender === 'Interviewer' ? 'justify-end' : 'justify-start'} mb-4 items-start`}>
-        {sender !== 'Interviewer' && (
-            <Avatar className="mr-2 mt-1">
-                <RandomAvatar name={sender} className='h-8 w-8' />
-            </Avatar>
-        )}
-        <div className={`max-w-[70%] ${sender === 'Interviewer' ? 'bg-primary text-primary-foreground' : 'bg-secondary'} rounded-lg p-3`}>
+const ChatMessageBox: React.FC<ChatMessage & { variant?: 'public' | 'private' }> = ({ sender, content, timestamp, subject, variant = 'public' }) => {
+    const renderContent = () => {
+        if (typeof content === 'string') {
+            return <p className="text-sm">{content}</p>;
+        } else if (content && typeof content === 'object') {
+            return (
+                <div>
+                    <p className="text-sm">{content.execution}</p>
+                    <div className="flex items-center mt-2 justify-end">
+                        <span className="text-xs mr-2">{content.emoji}</span>
+                        <span className="text-xs font-semibold">{content.Emotion}</span>
+                    </div>
+                </div>
+            );
+        }
+        return null;
+    };
+
+    return (
+        <div className={`flex ${sender === 'Interviewer' ? 'justify-end' : 'justify-start'} mb-4 items-start`}>
             {sender !== 'Interviewer' && (
-                <p className="text-xs font-semibold mb-1">
-                    {sender}
-                    {variant === 'public' && subject && <span className="text-muted-foreground"> about <span className="font-normal italic">{subject}</span></span>}
-                </p>
+                <Avatar className="mr-2 mt-1"> 
+                    <RandomAvatar name={sender} className='h-8 w-8' />
+                </Avatar>
             )}
-            <p className="text-sm">{content}</p>
-            <span className="text-xs text-muted-foreground block mt-1">{timestamp}</span>
+            <div className={`max-w-[70%] ${sender === 'Interviewer' ? 'bg-primary text-primary-foreground' : 'bg-secondary'} rounded-lg p-3`}>
+                {sender !== 'Interviewer' && (
+                    <p className="text-xs font-semibold mb-1">
+                        {sender}
+                        {variant === 'public' && subject && <span className="text-muted-foreground"> about <span className="font-normal italic">{subject}</span></span>}
+                    </p>
+                )}
+                {renderContent()}
+                <span className="text-xs text-muted-foreground block mt-1">{timestamp}</span>
+            </div>
+            {sender === 'Interviewer' && (
+                <Avatar className="ml-2 mt-1">
+                    <RandomAvatar name="Administrator" className='h-8 w-8' />
+                </Avatar>
+            )}
         </div>
-        {sender === 'Interviewer' && (
-            <Avatar className="ml-2 mt-1">
-                <RandomAvatar name="Administrator" className='h-8 w-8' />
-            </Avatar>
-        )}
-    </div>
-);
+    );
+};
 
 
 const StatusBar: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {

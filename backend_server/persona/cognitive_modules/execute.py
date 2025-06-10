@@ -6,14 +6,15 @@ Description: This defines the "Act" module for generative agents.
 """
 
 import random
-import sys
 
 from backend_server.maze import OnlineMaze
-from backend_server.path_finder import *
-from backend_server.persona.cognitive_modules.converse import *
-from backend_server.persona.memory_structures.memory_node import *
-from backend_server.utils import *
-from backend_server.utils.config import *
+from backend_server.path_finder import path_finder
+from backend_server.persona.cognitive_modules.converse import (
+    generate_one_utterance_for_comment,
+    run_gpt_generate_execute_custom,
+)
+from backend_server.persona.memory_structures.memory_node import MemoryNode
+from backend_server.utils.config import collision_block_id
 from backend_server.utils.triggers import event_trigger
 
 
@@ -207,7 +208,7 @@ def execute_dai_custom(persona, maze: OnlineMaze, retrived, plan):
         p = sub_retrived[event_name]["curr_event"].predicate
         o = sub_retrived[event_name]["curr_event"].object
 
-        event_trigger("agent_content", {"name": persona.name, "content": content, "subject": s})
+        event_trigger("agent_comment", {"name": persona.name, "content": output, "subject": s})
 
         memory_node = MemoryNode(persona.name, s, p, o, content, True)
         maze.add_memory_to_event(event_name, memory_node)

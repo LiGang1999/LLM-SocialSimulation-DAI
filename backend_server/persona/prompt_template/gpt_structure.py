@@ -118,8 +118,6 @@ def generate_gpt_response(
     # If we are currently under web server environment, use the user's llm configuration
     # otherwise use our provided configuration.
 
-    llm_config = get_llm_config()
-
     def validate_fn(response, kwargs):
         return func_validate(response, prompt="")
 
@@ -130,9 +128,9 @@ def generate_gpt_response(
         return fail_safe_response
 
     return llm_request(
+        usage="completion",
         usr_prompt=user_prompt,
         sys_prompt=system_prompt,
-        llm_config=llm_config,
         validate_fn=validate_fn,
         cleanup_fn=cleanup_fn,
         failsafe_fn=failsafe_fn,

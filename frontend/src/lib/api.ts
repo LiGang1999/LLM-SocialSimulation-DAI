@@ -500,10 +500,15 @@ export namespace apis {
         content: string
     ): Promise<any> => {
         try {
-            const formattedHistory: [string, string][] = history.map(msg => [
-                msg.role === 'agent' ? person : 'Interviewer',
-                msg.content
-            ]);
+            const formattedHistory: [string, string][] = history.map(msg => {
+                const messageContent = typeof msg.content === 'string'
+                    ? msg.content
+                    : msg.content.execution;
+                return [
+                    msg.role === 'agent' ? person : 'Interviewer',
+                    messageContent
+                ]
+            });
 
             const response = await api.post(urls.privateChat, {
                 agent_name: person,

@@ -29,14 +29,14 @@ export const ConfirmPage = () => {
         return <div>Loading...</div>;
     }
 
-    const { currentTemplate, llmConfig } = ctx.data;
+    const { currentTemplate, llmProviders } = ctx.data;
 
 
     const displayedAgents = currentTemplate.personas.slice(0, 4);
     const hasMoreAgents = currentTemplate.personas.length > 4;
 
     const handleNextClick = async () => {
-        if (!ctx || !ctx.data.currentTemplate || !ctx.data.llmConfig) {
+        if (!ctx || !ctx.data.currentTemplate || !ctx.data.llmProviders) {
             console.error("Missing required data");
             return;
         }
@@ -45,7 +45,7 @@ export const ConfirmPage = () => {
             await apis.startSim(
                 ctx.data.currSimCode || '',
                 ctx.data.currentTemplate,
-                ctx.data.llmConfig,
+                ctx.data.llmProviders,
                 ctx.data.initialRounds || 0
             );
             navigate('/interact');
@@ -166,13 +166,15 @@ export const ConfirmPage = () => {
                             <CardTitle>模型参数配置</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {llmConfig ? (
-                                <>
-                                    <p><strong>模型类型:</strong> {llmConfig.type}</p>
-                                    <p><strong>模型URL:</strong> {llmConfig.base_url}</p>
-                                    <p><strong>引擎:</strong> {llmConfig.engine}</p>
-                                    <p><strong>最大Token数量:</strong> {llmConfig.maxTokens}</p>
-                                </>
+                            {llmProviders && Object.keys(llmProviders).length > 0 ? (
+                                Object.entries(llmProviders).map(([providerName, config]) => (
+                                    <div key={providerName} className="mb-4">
+                                        <h4 className="font-semibold">{providerName}</h4>
+                                        <p><strong>模型:</strong> {config.model}</p>
+                                        <p><strong>URL:</strong> {config.base_url}</p>
+                                        <p><strong>API Key:</strong> {truncateString(config.api_key, 20)}</p>
+                                    </div>
+                                ))
                             ) : (
                                 <p>LLM配置未设置</p>
                             )}

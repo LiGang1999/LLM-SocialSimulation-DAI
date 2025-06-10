@@ -6,7 +6,12 @@ export interface ChatMessage {
     sender: string;
     role: string;
     type: 'public' | 'private';
-    content: string;
+    content: string | {
+        reasoning: string;
+        execution: string;
+        emoji: string;
+        Emotion: string;
+    };
     timestamp: string;
     subject: string;
     // avatar: string;

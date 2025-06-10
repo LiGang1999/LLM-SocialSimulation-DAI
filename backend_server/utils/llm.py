@@ -42,6 +42,7 @@ def get_llm_config(usage: str = "chat") -> LLMConfig:
         return default_llm_config[usage]
     else:
         if ctx.providers is not None:
+            L.debug(ctx.providers)
             provider = ctx.providers[usage]
             return {
                 "kind": provider["kind"],
@@ -186,6 +187,7 @@ def llm_request(
     """
 
     llm_config = get_llm_config(usage)
+    L.debug(llm_config)
 
     # Validate the necessary fields
     if "model" not in llm_config or "kind" not in llm_config:
@@ -699,7 +701,7 @@ def async_llm_function(
                     example_args.append(None)
 
         @functools.wraps(desc_func)
-        async def wrapper(*args, _llm_config=get_llm_config(), **kwargs):
+        async def wrapper(*args, **kwargs):
             bound_args = signature.bind(*args, **kwargs)
             bound_args.apply_defaults()
             bound_example_args = signature.bind(*example_args)

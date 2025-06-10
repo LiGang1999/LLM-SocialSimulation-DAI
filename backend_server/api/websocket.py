@@ -91,11 +91,10 @@ def sock_send(message, message_type):
     Send a message to a specific socket group.
     """
     # sock_name is deprecated.
-    if hasattr(ctx, "reverie_instance"):
-        reverie_instance = ctx.instance
-        if reverie_instance:
-            message = json.dumps({"type": message_type, "message": message})
-            reverie_instance.reverie.message_queue.put(message)
+    reverie_instance = ctx.instance
+    if reverie_instance:
+        message = json.dumps({"type": message_type, "message": message})
+        reverie_instance.reverie.message_queue.put(message)
 
 
 # Example usage of the socket_handler decorator

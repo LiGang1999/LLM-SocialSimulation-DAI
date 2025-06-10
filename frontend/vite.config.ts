@@ -37,6 +37,7 @@ if (config.server?.proxy) {
   config.server.proxy[API_PREFIX] = {
     target: `http://localhost:${process.env.BACKEND_PORT || '9081'}`,
     rewrite: (path) => path.replace(new RegExp(`^${LISTEN_PREFIX}`), ''),
+    rewriteWsOrigin: true,
     changeOrigin: true,
     ws: true
   }

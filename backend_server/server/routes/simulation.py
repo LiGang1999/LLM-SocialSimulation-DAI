@@ -184,31 +184,31 @@ async def update_user_providers(
         if usage in existing_providers_map:
             # Update existing provider
             provider = existing_providers_map[usage]
-            provider.kind = config.kind
-            provider.base_url = config.base_url
-            provider.api_key = config.api_key
-            provider.model = config.model
-            provider.temperature = config.temperature
-            provider.max_tokens = config.max_tokens
-            provider.top_p = config.top_p
-            provider.frequency_penalty = config.frequency_penalty
-            provider.presence_penalty = config.presence_penalty
-            provider.stream = config.stream
+            provider.kind = config["kind"]
+            provider.base_url = config["base_url"]
+            provider.api_key = config["api_key"]
+            provider.model = config["model"]
+            provider.temperature = config["temperature"]
+            provider.max_tokens = config["max_tokens"]
+            provider.top_p = config["top_p"]
+            provider.frequency_penalty = config["frequency_penalty"]
+            provider.presence_penalty = config["presence_penalty"]
+            provider.stream = config["stream"]
         else:
             # Create new provider
             provider = DBProvider(
                 username=current_user.username,
                 usage=usage,
-                kind=config.kind,
-                base_url=config.base_url,
-                api_key=config.api_key,
-                model=config.model,
-                temperature=config.temperature,
-                max_tokens=config.max_tokens,
-                top_p=config.top_p,
-                frequency_penalty=config.frequency_penalty,
-                presence_penalty=config.presence_penalty,
-                stream=config.stream,
+                kind=config["kind"],
+                base_url=config["base_url"],
+                api_key=config["api_key"],
+                model=config["model"],
+                temperature=config["temperature"],
+                max_tokens=config["max_tokens"],
+                top_p=config["top_p"],
+                frequency_penalty=config["frequency_penalty"],
+                presence_penalty=config["presence_penalty"],
+                stream=config["stream"],
             )
             db.add(provider)
 
