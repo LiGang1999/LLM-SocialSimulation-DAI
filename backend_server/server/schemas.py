@@ -47,7 +47,6 @@ class SSOLoginRequest(BaseModel):
 class StartReq(BaseModel):
     simCode: str
     template: Dict[str, Any]
-    llmConfig: Dict[str, Any]
     initialRounds: Optional[int] = 0
 
 
@@ -113,4 +112,4 @@ class Provider(ProviderBase):
     username: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True

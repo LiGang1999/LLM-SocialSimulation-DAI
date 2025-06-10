@@ -57,8 +57,6 @@ from backend_server.utils import (
 )
 from backend_server.utils.config import (
     BASE_TEMPLATES,
-    openai_api_base,
-    override_gpt_param,
     storage_path,
     temp_storage_path,
 )
@@ -96,19 +94,6 @@ class EventInfo:
 
 
 @dataclass
-class LLMConfig:
-    base_url: str = ""
-    api_key: str = ""
-    model: str = ""
-    tempreature: float = 1.0
-    max_tokens: int = 512
-    top_p: float = 0.7
-    frequency_penalty: float = 0.0
-    presence_penalty: float = 0.0
-    stream: bool = False
-
-
-@dataclass
 class StageInfo:
     task: str = ""
     output_format: Dict[str, str] = field(default_factory=dict)
@@ -125,7 +110,6 @@ class ReverieConfig:
     curr_time: str | None = ""  # simulation current time
     maze_name: str | None = ""  # map name
     step: int | None = 0  # current steps
-    llm_config: LLMConfig | None = field(default_factory=LLMConfig)  # llm config
     persona_configs: dict[str, ScratchData] = field(default_factory=dict)  # persona config
     public_events: List[dict] = field(default_factory=list)  # public events
     direction: str | None = ""  # The instruction of what the agents should do with each other
@@ -166,10 +150,6 @@ def load_config_from_files(path: str) -> ReverieConfig:
         start_order=meta_data.get("start_order", ""),
         workflow={key: StageInfo(**value) for key, value in meta_data.get("workflow", {})},
     )
-
-    # Load LLMConfig if present in meta_data
-    if "llm_config" in meta_data:
-        cfg.llm_config = LLMConfig(**meta_data["llm_config"])
 
     # Load persona configs
     cfg.persona_configs = {}
@@ -296,7 +276,6 @@ class Reverie:
         self.sim_code = sim_config.sim_code
         sim_folder = f"{storage_path}/user_templates/{user_hash}/{self.sim_code}"
         self.storage_path = sim_folder
-        self.llm_config = sim_config.llm_config
 
         if check_if_dir_exists(sim_folder):
             if self.sim_code in BASE_TEMPLATES:
@@ -321,7 +300,6 @@ class Reverie:
             reverie_meta["maze_name"] = sim_config.maze_name
             reverie_meta["sim_mode"] = sim_config.sim_mode
             reverie_meta["start_date"] = sim_config.start_date
-            reverie_meta["llm_config"] = asdict(sim_config.llm_config)
 
             # This one should be called sim_code, but call it template_sim_code to maintain backward compatability
             reverie_meta["template_sim_code"] = sim_config.sim_code
@@ -1344,9 +1322,6 @@ if __name__ == "__main__":
     # Create a default ReverieConfig
     cfg = load_config_from_files(f"{storage_path}/{template_sim_code}")
     cfg.sim_code = sim_code
-    cfg.llm_config = LLMConfig(
-        base_url=openai_api_base, api_key=config.openai_api_key, model=override_gpt_param["model"]
-    )
 
     rs = Reverie(template_sim_code, cfg)
 

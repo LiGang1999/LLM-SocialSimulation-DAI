@@ -5,20 +5,28 @@ File: utils.py
 Description: Contains functions used throughout my projects.
 """
 
+import argparse
 import csv
 import datetime as dt
 import errno
 import json
 import os
 import shutil
+import sys
 import threading
+from contextlib import asynccontextmanager
 from os import listdir
 
 import numpy
+import uvicorn
+from fastapi import APIRouter, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
 
-from .config import storage_path
-from .context import ctx
+from backend_server.database import init_db
+from backend_server.server.routes import auth, feedback, personas, providers, simulation, templates
+from backend_server.utils.config import storage_path
+from backend_server.utils.context import ctx
 
 
 def create_folder_if_not_there(curr_path):
@@ -311,5 +319,31 @@ def get_public_storage_dir(reverie: str) -> str:
     return os.path.join(storage_path, "public", reverie)
 
 
-if __name__ == "__main__":
-    pass
+# Initialize database on startup
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
+router = APIRouter(prefix="/api")
+
+router.include_router(auth.router, tags=["auth"])
+router.include_router(simulation.router, tags=["simulation"])
+router.include_router(templates.router, tags=["templates"])
+router.include_router(personas.router, tags=["personas"])
+router.include_router(feedback.router, tags=["feedback"])
+router.include_router(providers.router, tags=["providers"])
+
+app.include_router(router)

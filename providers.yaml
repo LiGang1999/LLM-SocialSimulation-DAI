@@ -8,7 +8,9 @@ chat:
   frequency_penalty: 0.0
   presence_penalty: 0.0
   stream: false
+  chat: true
 embedding:
   model: text-embedding-ada-002
   base_url: ${LLM_BASE_URL}
   api_key: ${LLM_API_KEY}
+  chat: false

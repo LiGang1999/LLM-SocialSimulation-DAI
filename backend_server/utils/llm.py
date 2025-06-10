@@ -56,7 +56,7 @@ def get_llm_config(usage: str = "chat") -> LLMConfig:
                 "chat": True,
             }
         else:
-            L.warning(f"Unable to get llm config for user {ctx.user.username} for usage {usage if usage else 'None'}")
+            L.warning(f"Unable to get llm config for for usage {usage if usage else 'None'}")
             raise ValueError("Cannot find llm config!")
 
 
@@ -156,9 +156,9 @@ def load_prompt_file(prompt_file, prompt_storage=template_storage_dir):
 
 
 def llm_request(
+    usage,
     usr_prompt,
     sys_prompt,
-    llm_config,
     validate_fn,
     cleanup_fn,
     failsafe_fn,
@@ -184,6 +184,8 @@ def llm_request(
     - max_retries: int          maximum number of retry attempts (default: 3)
     - retry_delay: int          delay in seconds between retries (default: 2)
     """
+
+    llm_config = get_llm_config(usage)
 
     # Validate the necessary fields
     if "model" not in llm_config or "chat" not in llm_config:
@@ -302,9 +304,9 @@ def llm_request(
 
 
 async def async_llm_request(
+    usage,
     usr_prompt,
     sys_prompt,
-    llm_config,
     validate_fn,
     cleanup_fn,
     failsafe_fn,
@@ -330,6 +332,8 @@ async def async_llm_request(
     - max_retries: int          maximum number of retry attempts (default: 3)
     - retry_delay: int          delay in seconds between retries (default: 2)
     """
+
+    llm_config = get_llm_config(usage)
 
     # Validate the necessary fields
     if "model" not in llm_config or "chat" not in llm_config:
@@ -551,11 +555,11 @@ def llm_function(
     prompt_file: str = None,  # If provided, the user prompt and system prompt are loaded from this file
     is_chat: bool = False,  # If True, the function is a chat function
     stop: str = "",  # Stop sequence for the LLM
-    llm_config={},  # Use this parameter to override the default configurations of the llm
     cleanup_fn=None,  # optional cleanup function. A default cleanup function is provided.
     failsafe_fn=None,  # optional failsafe function. A default failsafe function is provided.
     failsafe=None,  # optional failsafe value. If this is not None, the failsafe function will return this value.
     validate_fn=None,  # optional validate function.
+    usage="chat",
 ):
     # load prompt files if necessary
     if prompt_file:
@@ -591,17 +595,12 @@ def llm_function(
                     example_args.append(None)  # Default for unknown types
 
         @functools.wraps(desc_func)
-        def wrapper(*args, _llm_config=get_llm_config(), **kwargs):
+        def wrapper(*args, **kwargs):
             bound_args = signature.bind(*args, **kwargs)
             bound_args.apply_defaults()
             bound_example_args = signature.bind(*example_args)
             bound_example_args.apply_defaults()
             example_kwargs = dict(bound_example_args.arguments)
-            _llm_config.update(llm_config)
-            if is_chat:
-                _llm_config["chat"] = True
-            if stop:
-                _llm_config["stop"] = stop
             kwargs = dict(bound_args.arguments)
 
             usr_prompt = user_prompt.strip()
@@ -638,9 +637,9 @@ def llm_function(
             _cleanup_fn = cleanup_fn if cleanup_fn is not None else default_cleanup_fn
 
             result = llm_request(
+                usage,
                 usr_prompt,
                 sys_prompt,
-                _llm_config,
                 _validate_fn,
                 _cleanup_fn,
                 _failsafe_fn,
@@ -660,11 +659,11 @@ def async_llm_function(
     prompt_file: str = None,
     is_chat: bool = False,
     stop: str = "",
-    llm_config={},
     cleanup_fn=None,
     failsafe_fn=None,
     failsafe=None,
     validate_fn=None,
+    usage="chat",
 ):
     # Load prompt files if necessary
     if prompt_file:
@@ -704,11 +703,6 @@ def async_llm_function(
             bound_example_args = signature.bind(*example_args)
             bound_example_args.apply_defaults()
             example_kwargs = dict(bound_example_args.arguments)
-            _llm_config.update(llm_config)
-            if is_chat:
-                _llm_config["chat"] = True
-            if stop:
-                _llm_config["stop"] = stop
             kwargs = dict(bound_args.arguments)
 
             usr_prompt = user_prompt.strip()
@@ -742,9 +736,9 @@ def async_llm_function(
 
             # Await the async llm_request call
             result = await async_llm_request(
+                usage,
                 usr_prompt,
                 sys_prompt,
-                _llm_config,
                 _validate_fn,
                 _cleanup_fn,
                 _failsafe_fn,

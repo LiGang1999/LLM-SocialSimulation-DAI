@@ -22,9 +22,11 @@ from backend_server.server.auth import (
 )
 from backend_server.server.schemas import SSOLoginRequest, Token, User, UserCreate
 from backend_server.utils import get_password_hash, get_user_hash
-from backend_server.utils.config import USER_TEMPLATES_PATH
+from backend_server.utils.config import storage_path
 
 router = APIRouter()
+
+user_templates_path = os.path.join(storage_path, "user_templates")
 
 
 @router.post("/register", response_model=User)
@@ -63,7 +65,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered")
 
     # Create user's template directory
-    user_template_dir = os.path.join(USER_TEMPLATES_PATH, get_user_hash(user_data.username))
+    user_template_dir = os.path.join(user_templates_path, get_user_hash(user_data.username))
     os.makedirs(user_template_dir, exist_ok=True)
 
     return User(
@@ -128,7 +130,7 @@ async def sso_login(sso_data: SSOLoginRequest, db: AsyncSession = Depends(get_db
             user = new_user
 
             # Create user's template directory
-            user_template_dir = os.path.join(USER_TEMPLATES_PATH, get_user_hash(sso_data.username))
+            user_template_dir = os.path.join(user_templates_path, get_user_hash(sso_data.username))
             os.makedirs(user_template_dir, exist_ok=True)
         except IntegrityError:
             await db.rollback()

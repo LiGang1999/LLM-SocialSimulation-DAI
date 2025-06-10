@@ -15,8 +15,7 @@ from dataclasses import asdict
 from openai import OpenAI
 
 from backend_server.utils import ctx
-from backend_server.utils.config import override_gpt_param, override_model
-from backend_server.utils.llm import get_llm_provider, llm_request
+from backend_server.utils.llm import get_llm_config, llm_request
 from backend_server.utils.logs import L, get_outer_caller
 
 print_raw_log = False
@@ -116,16 +115,10 @@ def generate_gpt_response(
 
     user_prompt = prompt
 
-    if override_gpt_param:
-        gpt_parameters.update(override_gpt_param)
-
-    model = gpt_parameters["model"]
-
     # If we are currently under web server environment, use the user's llm configuration
     # otherwise use our provided configuration.
 
-    llm_config = get_llm_provider()
-    print("abcdefgh", llm_config)
+    llm_config = get_llm_config()
 
     def validate_fn(response, kwargs):
         return func_validate(response, prompt="")
@@ -230,7 +223,7 @@ def generate_prompt(curr_input, prompt_lib_file):
     RETURNS:
       a str prompt that will be sent to OpenAI's GPT server.
     """
-    if type(curr_input) == type("string"):
+    if isinstance(curr_input, str):
         curr_input = [curr_input]
     curr_input = [str(i) for i in curr_input]
 
@@ -245,11 +238,10 @@ def generate_prompt(curr_input, prompt_lib_file):
 
 
 def get_embedding(text, model="text-embedding-ada-002"):
-    model = model if not override_model else override_model
-    model = "text-embedding-ada-002"
+    cfg = get_llm_config("embedding")
+    model = cfg["model"]
 
-    llm_config = get_llm_provider()
-    client_tmp = OpenAI(api_key=llm_config.get("api_key", ""), base_url=llm_config.get("base_url", ""))
+    client_tmp = OpenAI(api_key=cfg.get("api_key", ""), base_url=cfg.get("base_url", ""))
 
     text = text.replace("\n", " ")
     if not text:

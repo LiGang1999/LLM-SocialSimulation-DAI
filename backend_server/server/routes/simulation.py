@@ -15,12 +15,13 @@ from sqlalchemy.future import select
 
 from backend_server.database import Provider as DBProvider
 from backend_server.database import get_db
-from backend_server.reverie import LLMConfig, ReverieConfig, ScratchData, StageInfo
+from backend_server.reverie import ReverieConfig, ScratchData, StageInfo
 from backend_server.server.auth import get_current_active_user, get_current_user, get_user
 from backend_server.server.reverie_manager import ReveriePool
 from backend_server.server.schemas import ChatReq, EventPublishReq, StartReq, User
 from backend_server.utils import check_if_dir_exists, config
 from backend_server.utils.config import BASE_TEMPLATES
+from backend_server.utils.llm import LLMConfig
 from backend_server.utils.logs import L
 
 router = APIRouter()
@@ -42,20 +43,6 @@ def user_owns_template(username: str, sim_code: str) -> bool:
     user_hash = get_user_hash(username)
     user_path = os.path.join(STORAGE_PATH, "user_templates", user_hash, sim_code)
     return os.path.exists(user_path)
-
-
-def parse_llm_config(llm_config_data: Dict[str, Any]) -> LLMConfig:
-    return LLMConfig(
-        base_url=llm_config_data.get("base_url", "").strip(),
-        api_key=llm_config_data.get("api_key", "").strip(),
-        model=llm_config_data.get("model", "").strip(),
-        tempreature=float(llm_config_data.get("temperature", 1.0)),
-        max_tokens=int(llm_config_data.get("max_tokens", 512)),
-        top_p=float(llm_config_data.get("top_p", 0.7)),
-        frequency_penalty=float(llm_config_data.get("frequency_penalty", 0.0)),
-        presence_penalty=float(llm_config_data.get("presence_penalty", 0.0)),
-        stream=llm_config_data.get("stream", False),
-    )
 
 
 def parse_persona_configs(personas_data: List[Dict[str, Any]]) -> Dict[str, ScratchData]:
@@ -167,7 +154,6 @@ async def start(
         sim_code = sim_data.simCode
         template = sim_data.template
         template_sim_code = template.get("simCode")
-        llm_config = sim_data.llmConfig
         initial_rounds = sim_data.initialRounds
 
         # Check if user is allowed to use the template
@@ -188,7 +174,6 @@ async def start(
         sim_folder = f"{STORAGE_PATH}/user_templates/{user_hash}/{sim_code}"
         if check_if_dir_exists(sim_folder):
             raise HTTPException(status_code=400, detail="Simulation already exists")
-        parsed_llm_config = parse_llm_config(llm_config)
         L.debug(f"Persona configs: {template.get('personas', [])}")
         persona_configs = parse_persona_configs(template.get("personas", []))
         public_events = parse_public_events(
@@ -202,7 +187,6 @@ async def start(
             curr_time=template.get("meta", {}).get("curr_time", ""),
             maze_name=template.get("meta", {}).get("maze_name", ""),
             step=int(template.get("meta", {}).get("step", 0)),
-            llm_config=parsed_llm_config,
             persona_configs=persona_configs,
             public_events=public_events,
             direction=template.get("meta", {}).get("direction", ""),

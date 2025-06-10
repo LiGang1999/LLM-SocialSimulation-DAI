@@ -17,8 +17,8 @@ from os import listdir
 import numpy
 from passlib.context import CryptContext
 
-from .config import storage_path
-from .context import ctx
+from backend_server.utils.config import storage_path
+from backend_server.utils.context import ctx
 
 
 def create_folder_if_not_there(curr_path):

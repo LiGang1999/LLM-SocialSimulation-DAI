@@ -24,6 +24,7 @@ key_owner = "<Name>"
 storage_path = os.getenv("STORAGE_PATH", "../storage")
 temp_storage_path = f"{storage_path}/temp_storage"
 
+
 maze_assets_loc = f"{storage_path}/assets"
 env_matrix = f"{maze_assets_loc}/the_ville/matrix"
 env_visuals = f"{maze_assets_loc}/the_ville/visuals"
