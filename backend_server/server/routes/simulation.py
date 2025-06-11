@@ -16,7 +16,7 @@ from sqlalchemy.future import select
 from backend_server.database import Provider as DBProvider
 from backend_server.database import get_db
 from backend_server.reverie import ReverieConfig, ScratchData, StageInfo
-from backend_server.server.auth import get_current_active_user, get_current_user, get_user
+from backend_server.server.auth import get_current_active_user, get_user
 from backend_server.server.reverie_manager import ReveriePool
 from backend_server.server.schemas import ChatReq, EventPublishReq, StartReq, User
 from backend_server.utils import check_if_dir_exists, config
@@ -180,35 +180,35 @@ async def update_user_providers(
     existing_providers = result.scalars().all()
     existing_providers_map = {p.usage: p for p in existing_providers}
 
-    for usage, config in providers.items():
+    for usage, cfg in providers.items():
         if usage in existing_providers_map:
             # Update existing provider
             provider = existing_providers_map[usage]
-            provider.kind = config["kind"]
-            provider.base_url = config["base_url"]
-            provider.api_key = config["api_key"]
-            provider.model = config["model"]
-            provider.temperature = config["temperature"]
-            provider.max_tokens = config["max_tokens"]
-            provider.top_p = config["top_p"]
-            provider.frequency_penalty = config["frequency_penalty"]
-            provider.presence_penalty = config["presence_penalty"]
-            provider.stream = config["stream"]
+            provider.kind = cfg["kind"]
+            provider.base_url = cfg["base_url"]
+            provider.api_key = cfg["api_key"]
+            provider.model = cfg["model"]
+            provider.temperature = cfg["temperature"]
+            provider.max_tokens = cfg["max_tokens"]
+            provider.top_p = cfg["top_p"]
+            provider.frequency_penalty = cfg["frequency_penalty"]
+            provider.presence_penalty = cfg["presence_penalty"]
+            provider.stream = cfg["stream"]
         else:
             # Create new provider
             provider = DBProvider(
                 username=current_user.username,
                 usage=usage,
-                kind=config["kind"],
-                base_url=config["base_url"],
-                api_key=config["api_key"],
-                model=config["model"],
-                temperature=config["temperature"],
-                max_tokens=config["max_tokens"],
-                top_p=config["top_p"],
-                frequency_penalty=config["frequency_penalty"],
-                presence_penalty=config["presence_penalty"],
-                stream=config["stream"],
+                kind=cfg["kind"],
+                base_url=cfg["base_url"],
+                api_key=cfg["api_key"],
+                model=cfg["model"],
+                temperature=cfg["temperature"],
+                max_tokens=cfg["max_tokens"],
+                top_p=cfg["top_p"],
+                frequency_penalty=cfg["frequency_penalty"],
+                presence_penalty=cfg["presence_penalty"],
+                stream=cfg["stream"],
             )
             db.add(provider)
 
@@ -387,10 +387,10 @@ async def websocket_endpoint(websocket: WebSocket, sim_code: str, token: str, db
             if not username or user is None:
                 await websocket.close(code=1008)  # Policy violation
                 return
-        except PyJWTError as e:
+        except PyJWTError:
             await websocket.close(code=1008)  # JWT Authentication failed
             return
-        except Exception as e:
+        except Exception:
             await websocket.close(code=1008)  # General authentication failure
             return
     else:

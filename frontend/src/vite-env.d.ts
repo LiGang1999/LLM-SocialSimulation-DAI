@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-declare module 'virtual:docs-tree' {
+declare module 'socialsim-docs-tree' {
   const tree: {
     type: 'folder' | 'file';
     name: string;
@@ -12,7 +12,7 @@ declare module 'virtual:docs-tree' {
   export default tree;
 }
 
-declare module 'virtual:docs-routes' {
+declare module 'socialsim-docs-routes' {
   import type { LazyExoticComponent } from 'react';
   const routes: {
     path: string;

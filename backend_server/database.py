@@ -2,7 +2,6 @@ import datetime  # Added for timestamp
 import hashlib
 import logging
 import os
-from typing import Optional
 
 from passlib.context import CryptContext
 from sqlalchemy import (  # Added Integer, Text, DateTime, ForeignKey

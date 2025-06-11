@@ -5,29 +5,22 @@ File: utils.py
 Description: Contains functions used throughout my projects.
 """
 
-import argparse
 import csv
-import datetime as dt
 import errno
 import json
 import os
 import shutil
-import sys
-import threading
 from contextlib import asynccontextmanager
 from os import listdir
 
 import numpy
-import uvicorn
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
-from starlette_context.middleware import ContextMiddleware
 
 from backend_server.database import init_db
 from backend_server.server.routes import auth, feedback, personas, providers, simulation, templates
 from backend_server.utils.config import storage_path
-from backend_server.utils.context import ctx
 
 
 def create_folder_if_not_there(curr_path):
@@ -162,7 +155,7 @@ def get_row_len(curr_file):
             for count, row in enumerate(data_reader):
                 analysis_set.add(row[0])
         return len(analysis_set)
-    except:
+    except Exception:
         return False
 
 
@@ -189,10 +182,10 @@ def check_if_file_exists(curr_file):
       False if the file does not exist
     """
     try:
-        with open(curr_file) as f_analysis_file:
+        with open(curr_file):
             pass
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -261,7 +254,7 @@ def removeanything(src):
     """
     try:
         shutil.rmtree(src)
-    except OSError as exc:
+    except OSError:
         pass
 
 

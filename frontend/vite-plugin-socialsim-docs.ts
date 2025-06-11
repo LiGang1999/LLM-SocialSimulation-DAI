@@ -5,12 +5,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import type { Plugin } from 'vite';
 
-// Helper function to convert markdown heading to a URL-friendly slug
-const slugify = (text: string): string =>
-  text
-    .toLowerCase()
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/[^\w-]+/g, ''); // Remove all non-word chars
 
 interface DocTreeItem {
   type: 'folder' | 'file';
@@ -27,10 +21,10 @@ let cachedDocTree: DocTreeItem[] = [];
  * Custom Vite Plugin to handle documentation needs.
  */
 export default function customDocPlugin(): Plugin {
-  const virtualModuleId = 'virtual:docs-tree';
+  const virtualModuleId = 'socialsim-docs-tree';
   const resolvedVirtualModuleId = '\0' + virtualModuleId;
 
-  const virtualRoutesModuleId = 'virtual:docs-routes';
+  const virtualRoutesModuleId = 'socialsim-docs-routes';
   const resolvedVirtualRoutesModuleId = '\0' + virtualRoutesModuleId;
 
   // Define the root directory for documentation
@@ -143,41 +137,6 @@ export default function customDocPlugin(): Plugin {
           });
         }
       }
-    },
-
-    // --- Part 2: MDX Transformation to Inject Headings ---
-    transform(code, id) {
-      // We only care about .mdx files
-      if (!id.endsWith('.mdx')) {
-        return null;
-      }
-
-      // This is a simple regex-based approach. For more complex needs,
-      // you could use a full AST parser like 'unified' here.
-      const headingRegex = /^(##|###|####)\s+(.*)/gm;
-      const headings: { level: number; title: string; id: string }[] = [];
-      let match;
-
-      while ((match = headingRegex.exec(code)) !== null) {
-        const level = match[1].length; // ## -> 2, ### -> 3
-        const title = match[2].trim();
-        headings.push({
-          level: level,
-          title: title,
-          id: slugify(title), // Create a slug for the anchor link
-        });
-      }
-
-      // If we found headings, append an export statement to the MDX file
-      if (headings.length > 0) {
-        const exportStatement = `\nexport const headings = ${JSON.stringify(headings)};`;
-        return {
-          code: code + exportStatement,
-          map: null, // No source map changes in this simple case
-        };
-      }
-
-      return null;
     },
   };
 }

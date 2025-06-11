@@ -4,8 +4,7 @@ import json
 import os
 import re
 import time
-from dataclasses import asdict
-from typing import Dict, List, Optional, TypedDict
+from typing import Dict, Optional, TypedDict
 
 import openai
 from jinja2 import Template
@@ -42,7 +41,6 @@ def get_llm_config(usage: str = "chat") -> LLMConfig:
         return default_llm_config[usage]
     else:
         if ctx.providers is not None:
-            L.debug(ctx.providers)
             provider = ctx.providers[usage]
             return {
                 "kind": provider["kind"],
@@ -189,7 +187,6 @@ def llm_request(
 
     if llm_config is None:
         llm_config = get_llm_config(usage)
-    L.debug(llm_config)
 
     # Validate the necessary fields
     if "model" not in llm_config or "kind" not in llm_config:
@@ -513,7 +510,7 @@ def has_json_content(unstructured_string):
     for json_str in json_strings:
         try:
             # Try to load the JSON to ensure it's valid
-            json_obj = json.loads(json_str)
+            _ = json.loads(json_str)
             return True
 
         except json.JSONDecodeError:
@@ -583,17 +580,17 @@ def llm_function(
             else:
                 # Determine default value based on type hints
                 param_type = param.annotation
-                if param_type == int:
+                if param_type is int:
                     example_args.append(0)
-                elif param_type == float:
+                elif param_type is float:
                     example_args.append(0.0)
-                elif param_type == str:
+                elif param_type is str:
                     example_args.append("")
-                elif param_type == bool:
+                elif param_type is bool:
                     example_args.append(False)
-                elif param_type == list:
+                elif param_type is list:
                     example_args.append([])
-                elif param_type == dict:
+                elif param_type is dict:
                     example_args.append({})
                 else:
                     example_args.append(None)  # Default for unknown types
@@ -624,7 +621,7 @@ def llm_function(
                     largest_json = extract_largest_json(result)
                     json_result = json.loads(largest_json)
                     return types_match(json_result, example_result)
-                except:
+                except Exception:
                     return False
 
             def default_failsafe_fn(result, kwargs):
@@ -685,17 +682,17 @@ def async_llm_function(
                 example_args.append(param.default)
             else:
                 param_type = param.annotation
-                if param_type == int:
+                if param_type is int:
                     example_args.append(0)
-                elif param_type == float:
+                elif param_type is float:
                     example_args.append(0.0)
-                elif param_type == str:
+                elif param_type is str:
                     example_args.append("")
-                elif param_type == bool:
+                elif param_type is bool:
                     example_args.append(False)
-                elif param_type == list:
+                elif param_type is list:
                     example_args.append([])
-                elif param_type == dict:
+                elif param_type is dict:
                     example_args.append({})
                 else:
                     example_args.append(None)
@@ -722,7 +719,7 @@ def async_llm_function(
                     largest_json = extract_largest_json(result)
                     json_result = json.loads(largest_json)
                     return types_match(json_result, example_result)
-                except:
+                except Exception:
                     return False
 
             def default_failsafe_fn(result, kwargs):

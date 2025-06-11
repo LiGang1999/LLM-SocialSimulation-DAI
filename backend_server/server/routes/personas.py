@@ -3,10 +3,8 @@ import traceback
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import ValidationError
-from starlette_context import context
 
 from backend_server.persona.profile.generate_profile import generate_profiles, generate_profiles_plan
-from backend_server.reverie import ScratchData
 from backend_server.server.auth import get_current_active_user
 from backend_server.server.routes.simulation import get_reverie_instance
 from backend_server.server.schemas import ProfilePlanReq, ProfilesReq, User

@@ -420,7 +420,7 @@ def llm_function(
                     largest_json = extract_largest_json(result)
                     json_result = json.loads(largest_json)
                     return types_match(json_result, example_result)
-                except:
+                except Exception:
                     return False
 
             def default_failsafe_fn(result, kwargs):

@@ -2,7 +2,7 @@ import { defineConfig, UserConfig } from 'vite'
 import path from "path"
 import react from '@vitejs/plugin-react-oxc'
 import mdx from '@mdx-js/rollup'
-import customDocPlugin from "./vite-plugin-docs"
+import customDocPlugin from "./vite-plugin-socialsim-docs"
 
 const LISTEN_PREFIX = process.env.LISTEN_PREFIX;
 const API_PREFIX = `${LISTEN_PREFIX}/api`
@@ -20,6 +20,7 @@ const config: UserConfig = {
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "#": path.resolve(__dirname, "./src/doc"),
     },
   },
   server: {

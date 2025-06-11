@@ -20,7 +20,7 @@ import AdminPage from './pages/AdminPage.tsx'; // Import AdminPage
 import ProtectedRoute from './components/ProtectedRoute.tsx'; // Corrected import name
 import SSOLogin from './pages/ssologin.tsx';
 import DocPage from './pages/DocPage.tsx';
-import docRoutes from 'virtual:docs-routes';
+import docRoutes from 'socialsim-docs-routes';
 
 
 createRoot(document.getElementById('root')!).render(

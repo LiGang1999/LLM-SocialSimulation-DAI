@@ -6,17 +6,12 @@ Description: Wrapper functions for calling OpenAI APIs.
 """
 
 import json
-import random
 import re
-import threading
-import time
-from dataclasses import asdict
 
 from openai import OpenAI
 
-from backend_server.utils import ctx
 from backend_server.utils.llm import get_llm_config, llm_request
-from backend_server.utils.logs import L, get_outer_caller
+from backend_server.utils.logs import get_outer_caller
 
 print_raw_log = False
 print_short_log = True
@@ -44,7 +39,7 @@ def extract_largest_jsno_dict(data_str):
     for json_str in json_strings:
         try:
             # Try to load the JSON to ensure it's valid
-            json_obj = json.loads(json_str)
+            _ = json.loads(json_str)
             json_length = len(json_str)
 
             if json_length > largest_json_length:

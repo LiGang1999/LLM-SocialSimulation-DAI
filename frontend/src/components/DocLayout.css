@@ -33,9 +33,27 @@
 .prose ul,
 .prose ol,
 .prose blockquote {
-  color: #4a5568; /* A softer color for body text */
+  color: #2d3748; /* A darker color for body text */
   font-size: 1rem; /* 16px */
   line-height: 1.7;
+}
+
+.prose ul,
+.prose ol {
+  list-style-position: inside;
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose img {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
 }
 
 .prose a {

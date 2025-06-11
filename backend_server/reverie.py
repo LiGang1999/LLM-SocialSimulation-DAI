@@ -28,11 +28,9 @@ import shutil
 import sys
 import threading
 import traceback
-from dataclasses import asdict, dataclass, field, fields, replace
+from dataclasses import dataclass, field
 from queue import Queue
-from typing import Dict, List, Optional, Tuple
-
-from pydantic import BaseModel, Field
+from typing import Dict, List
 
 # 然后是其他的导入语句
 from backend_server.maze import OfflineMaze, OnlineMaze, maze_assets_loc
@@ -46,7 +44,6 @@ from backend_server.persona.persona import DaiPersona, GaPersona, MemoryNode, Sc
 from backend_server.utils import (
     check_if_dir_exists,
     check_if_file_exists,
-    config,
     copyanything,
     ctx,
     ensure_directories,
@@ -797,7 +794,7 @@ class Reverie:
 
         # 拼接为一段完整文本
         text = "\n".join(content_parts)  # 合并文本内容
-        output = generate_agent_from_text(text)
+        _ = generate_agent_from_text(text)
 
         return text.strip()  # 返回去除两端空白的最终文本
 

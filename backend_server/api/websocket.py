@@ -1,15 +1,10 @@
 # consumers.py
-import asyncio
 import json
 import logging
-import time
 from functools import wraps
-from threading import Thread
 
-from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.layers import get_channel_layer
 
 from backend_server.utils import ctx
 from backend_server.utils.logs import L
@@ -136,7 +131,7 @@ class WebSocketHandler(logging.Handler):
         log_entry = self.format(record)
         try:
             sock_send({"level": record.levelname, "message": log_entry}, "log")
-        except Exception as e:
+        except Exception:
             # Do nothing if socket send is not successfu
             # L.warning(f"Failed to send log message to socket: {e}", native=True)
             pass

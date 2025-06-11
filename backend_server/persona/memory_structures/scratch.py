@@ -465,7 +465,7 @@ class Scratch(Memory):
         commonset += f"Daily plan requirement: {self.daily_plan_req}\n"
         try:
             commonset += f"Current Date: {self.curr_time.strftime('%A %B %d')}\n"
-        except:
+        except Exception:
             pass
         return commonset
 

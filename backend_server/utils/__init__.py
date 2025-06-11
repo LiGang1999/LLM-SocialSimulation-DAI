@@ -153,7 +153,7 @@ def get_row_len(curr_file):
             for count, row in enumerate(data_reader):
                 analysis_set.add(row[0])
         return len(analysis_set)
-    except:
+    except Exception:
         return False
 
 
@@ -183,7 +183,7 @@ def check_if_file_exists(curr_file):
         with open(curr_file) as f_analysis_file:
             pass
         return True
-    except:
+    except Exception:
         return False
 
 

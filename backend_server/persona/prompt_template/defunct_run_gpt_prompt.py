@@ -74,7 +74,7 @@ def run_gpt_prompt_wake_up_hour(persona, test_input=None, verbose=False):
     def __func_validate(gpt_response, prompt=""):
         try:
             __func_clean_up(gpt_response, prompt="")
-        except:
+        except Exception:
             return False
         return True
 
@@ -143,7 +143,7 @@ def run_gpt_prompt_daily_plan(persona, wake_up_hour, test_input=None, verbose=Fa
     def __func_validate(gpt_response, prompt=""):
         try:
             __func_clean_up(gpt_response, prompt="")
-        except:
+        except Exception:
             return False
         return True
 
@@ -248,7 +248,7 @@ def run_gpt_prompt_generate_hourly_schedule(
     def __func_validate(gpt_response, prompt=""):
         try:
             __func_clean_up(gpt_response, prompt="")
-        except:
+        except Exception:
             return False
         return True
 
@@ -394,7 +394,7 @@ def run_gpt_prompt_task_decomp(persona, task, duration, test_input=None, verbose
         # TODO -- this sometimes generates error
         try:
             __func_clean_up(gpt_response)
-        except:
+        except Exception:
             pass
             # return False
         return gpt_response
@@ -694,7 +694,7 @@ def run_gpt_prompt_pronunciatio(action_description, persona, verbose=False):
             __func_clean_up(gpt_response, prompt="")
             if len(gpt_response) == 0:
                 return False
-        except:
+        except Exception:
             return False
         return True
 
@@ -743,7 +743,7 @@ def run_gpt_prompt_event_triple(action_description, persona, verbose=False):
             gpt_response = __func_clean_up(gpt_response, prompt="")
             if len(gpt_response) != 2:
                 return False
-        except:
+        except Exception:
             return False
         return True
 
@@ -788,7 +788,7 @@ def run_gpt_prompt_act_obj_desc(act_game_object, act_desp, persona, verbose=Fals
     def __func_validate(gpt_response, prompt=""):
         try:
             gpt_response = __func_clean_up(gpt_response, prompt="")
-        except:
+        except Exception:
             return False
         return True
 
@@ -833,7 +833,7 @@ def run_gpt_prompt_act_obj_event_triple(act_game_object, act_obj_desc, persona, 
             gpt_response = __func_clean_up(gpt_response, prompt="")
             if len(gpt_response) != 2:
                 return False
-        except:
+        except Exception:
             return False
         return True
 
@@ -966,7 +966,7 @@ def run_gpt_prompt_new_decomp_schedule(
             if int(dur_sum) != int(delta_min):
                 return False
 
-        except:
+        except Exception:
             return False
         return True
 
@@ -1096,7 +1096,7 @@ def run_gpt_prompt_decide_to_talk(persona, target_persona, retrieved, test_input
             if gpt_response.split("Answer in yes or no:")[-1].strip().lower() in ["yes", "no"]:
                 return True
             return False
-        except:
+        except Exception:
             return False
 
     def __func_clean_up(gpt_response, prompt=""):
@@ -1205,7 +1205,7 @@ def run_gpt_prompt_decide_to_react(persona, target_persona, retrieved, test_inpu
             if gpt_response.split("Answer: Option")[-1].strip().lower() in ["3", "2", "1"]:
                 return True
             return False
-        except:
+        except Exception:
             return False
 
     def __func_clean_up(gpt_response, prompt=""):
@@ -1344,7 +1344,7 @@ def run_gpt_prompt_create_conversation(persona, target_persona, curr_loc, test_i
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe(init_persona, target_persona):
@@ -1391,7 +1391,7 @@ def run_gpt_prompt_summarize_conversation(persona, conversation, test_input=None
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -1448,7 +1448,7 @@ def run_gpt_prompt_extract_keywords(persona, description, test_input=None, verbo
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -1490,7 +1490,7 @@ def run_gpt_prompt_keyword_to_thoughts(persona, keyword, concept_summary, test_i
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -1546,7 +1546,7 @@ def run_gpt_prompt_convo_to_thoughts(
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -1593,7 +1593,7 @@ def run_gpt_prompt_event_poignancy(persona, event_description, test_input=None, 
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -1640,7 +1640,7 @@ def run_gpt_prompt_thought_poignancy(persona, event_description, test_input=None
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -1687,7 +1687,7 @@ def run_gpt_prompt_chat_poignancy(persona, event_description, test_input=None, v
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -1732,7 +1732,7 @@ def run_gpt_prompt_focal_pt(persona, statements, n, test_input=None, verbose=Fal
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe(n):
@@ -1782,7 +1782,7 @@ def run_gpt_prompt_insight_and_guidance(persona, statements, n, test_input=None,
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe(n):
@@ -1832,7 +1832,7 @@ def run_gpt_prompt_agent_chat_summarize_ideas(
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -1875,7 +1875,7 @@ def run_gpt_prompt_agent_chat_summarize_relationship(
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -1961,7 +1961,7 @@ def run_gpt_prompt_agent_chat(
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -2002,7 +2002,7 @@ def run_gpt_prompt_summarize_ideas(persona, statements, question, test_input=Non
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -2053,7 +2053,7 @@ def run_gpt_prompt_generate_next_convo_line(
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -2094,7 +2094,7 @@ def run_gpt_prompt_generate_whisper_inner_thought(persona, whisper, test_input=N
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -2135,7 +2135,7 @@ def run_gpt_prompt_planning_thought_on_convo(persona, all_utt, test_input=None, 
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():
@@ -2176,7 +2176,7 @@ def run_gpt_prompt_memo_on_convo(persona, all_utt, test_input=None, verbose=Fals
         try:
             __func_clean_up(gpt_response, prompt)
             return True
-        except:
+        except Exception:
             return False
 
     def get_fail_safe():

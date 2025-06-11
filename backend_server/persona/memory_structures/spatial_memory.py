@@ -101,7 +101,7 @@ class MemoryTree(Memory):
 
         try:
             x = ", ".join(list(self.tree[curr_world][curr_sector][curr_arena]))
-        except:
+        except Exception:
             x = ", ".join(list(self.tree[curr_world][curr_sector][curr_arena.lower()]))
         return x
 
