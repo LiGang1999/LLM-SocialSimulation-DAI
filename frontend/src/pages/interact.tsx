@@ -508,7 +508,7 @@ const LogTab: React.FC<{
                 // onScrollCapture={handleScroll}
                 // onWheel={handleWheel}
                 // ref={scrollRef}
-                viewportRef={scrollRef}
+                // viewportRef={scrollRef}
             >
                 {logs.map((log, index) => (
                     <div key={index} className={`flex items-start ${getLogColor(log.level)} mb-1`}>
@@ -970,7 +970,7 @@ export const InteractPage: React.FC = () => {
                     />
                 </CSSTransition>
                 {/* Left panel with tabs and status bar */}
-                <div className="w-2/3 pr-4 flex flex-col">
+                <div className="w-2/3 pr-4 flex flex-col h-[calc(100vh-80px)]">
                     <div className="flex-grow min-h-0">
                         <Tabs defaultValue="dialog" className="w-full h-full flex flex-col"
                         // onValueChange={(value) => value === 'ai' && fetchAgentStatus()}
