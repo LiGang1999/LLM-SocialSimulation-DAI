@@ -245,8 +245,8 @@ const AgentStatusCard: React.FC<{ agent: apis.Agent, onViewFullInfo: (agentName:
                 <p><strong>Currently:</strong> {agent.currently}</p>
                 {expanded && (
                     <>
-                        <p><strong>Memory:</strong> {agent.memory?.join(', ')}</p>
-                        <p><strong>Plan:</strong> {agent.plan?.join(', ')}</p>
+                        {/* <p><strong>Memory:</strong> {agent.memory?.join(', ')}</p> */}
+                        {/* <p><strong>Plan:</strong> {agent.plan?.join(', ')}</p> */}
                         <p><strong>Bibliography:</strong> {agent.bibliography}</p>
                         <p><strong>Innate Traits:</strong> {agent.innate}</p>
                         <p><strong>Learned Traits:</strong> {agent.learned}</p>
@@ -329,59 +329,59 @@ const AgentStatusTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
                                                 { label: "Currently", value: selectedAgent.currently },
                                                 { label: "Lifestyle", value: selectedAgent.lifestyle },
                                                 { label: "Living Area", value: selectedAgent.living_area },
-                                                { label: "Avatar", value: selectedAgent.avatar },
+                                                // { label: "Avatar", value: selectedAgent.avatar },
                                             ]
                                         },
                                         {
                                             title: "Parameters", fields: [
-                                                { label: "Vision Range", value: selectedAgent.vision_r },
-                                                { label: "Attention Bandwidth", value: selectedAgent.att_bandwidth },
-                                                { label: "Retention", value: selectedAgent.retention },
-                                                { label: "Concept Forget", value: selectedAgent.concept_forget },
-                                                { label: "Daily Reflection Time", value: selectedAgent.daily_reflection_time },
-                                                { label: "Daily Reflection Size", value: selectedAgent.daily_reflection_size },
-                                                { label: "Overlap Reflect Threshold", value: selectedAgent.overlap_reflect_th },
-                                                { label: "Keyword Strong Event Reflect Threshold", value: selectedAgent.kw_strg_event_reflect_th },
-                                                { label: "Keyword Strong Thought Reflect Threshold", value: selectedAgent.kw_strg_thought_reflect_th },
-                                                { label: "Recency Weight", value: selectedAgent.recency_w },
-                                                { label: "Relevance Weight", value: selectedAgent.relevance_w },
-                                                { label: "Importance Weight", value: selectedAgent.importance_w },
-                                                { label: "Recency Decay", value: selectedAgent.recency_decay },
-                                                { label: "Importance Trigger Max", value: selectedAgent.importance_trigger_max },
-                                                { label: "Importance Trigger Current", value: selectedAgent.importance_trigger_curr },
-                                                { label: "Importance Element N", value: selectedAgent.importance_ele_n },
-                                                { label: "Thought Count", value: selectedAgent.thought_count },
+                                                // { label: "Vision Range", value: selectedAgent.vision_r },
+                                                // { label: "Attention Bandwidth", value: selectedAgent.att_bandwidth },
+                                                // { label: "Retention", value: selectedAgent.retention },
+                                                // { label: "Concept Forget", value: selectedAgent.concept_forget },
+                                                // { label: "Daily Reflection Time", value: selectedAgent.daily_reflection_time },
+                                                // { label: "Daily Reflection Size", value: selectedAgent.daily_reflection_size },
+                                                // { label: "Overlap Reflect Threshold", value: selectedAgent.overlap_reflect_th },
+                                                // { label: "Keyword Strong Event Reflect Threshold", value: selectedAgent.kw_strg_event_reflect_th },
+                                                // { label: "Keyword Strong Thought Reflect Threshold", value: selectedAgent.kw_strg_thought_reflect_th },
+                                                // { label: "Recency Weight", value: selectedAgent.recency_w },
+                                                // { label: "Relevance Weight", value: selectedAgent.relevance_w },
+                                                // { label: "Importance Weight", value: selectedAgent.importance_w },
+                                                // { label: "Recency Decay", value: selectedAgent.recency_decay },
+                                                // { label: "Importance Trigger Max", value: selectedAgent.importance_trigger_max },
+                                                // { label: "Importance Trigger Current", value: selectedAgent.importance_trigger_curr },
+                                                // { label: "Importance Element N", value: selectedAgent.importance_ele_n },
+                                                // { label: "Thought Count", value: selectedAgent.thought_count },
                                             ]
                                         },
                                         {
                                             title: "Plan", fields: [
                                                 { label: "Daily Plan Requirement", value: selectedAgent.daily_plan_req },
-                                                { label: "Daily Requirements", value: selectedAgent.daily_req?.join(', ') },
-                                                { label: "Daily Schedule", value: selectedAgent.f_daily_schedule?.join(', ') },
-                                                { label: "Hourly Schedule", value: selectedAgent.f_daily_schedule_hourly_org?.join(', ') },
-                                                { label: "Plan", value: selectedAgent.plan?.join(', ') },
-                                                { label: "Memory", value: selectedAgent.memory?.join(', ') },
+                                                // { label: "Daily Requirements", value: selectedAgent.daily_req?.join(', ') },
+                                                // { label: "Daily Schedule", value: selectedAgent.f_daily_schedule?.join(', ') },
+                                                // { label: "Hourly Schedule", value: selectedAgent.f_daily_schedule_hourly_org?.join(', ') },
+                                                // { label: "Plan", value: selectedAgent.plan?.join(', ') },
+                                                // { label: "Memory", value: selectedAgent.memory?.join(', ') },
                                                 { label: "Bibliography", value: selectedAgent.bibliography },
                                             ]
                                         },
                                         {
                                             title: "Action", fields: [
-                                                { label: "Current Time", value: selectedAgent.curr_time },
-                                                { label: "Current Tile", value: selectedAgent.curr_tile },
-                                                { label: "Current Activity", value: selectedAgent.act_description },
-                                                { label: "Activity Start Time", value: selectedAgent.act_start_time },
-                                                { label: "Activity Duration", value: selectedAgent.act_duration },
-                                                { label: "Activity Pronunciation", value: selectedAgent.act_pronunciatio },
-                                                { label: "Current Event", value: selectedAgent.act_event?.join(', ') },
-                                                { label: "Object Description", value: selectedAgent.act_obj_description },
-                                                { label: "Object Pronunciation", value: selectedAgent.act_obj_pronunciatio },
-                                                { label: "Object Event", value: selectedAgent.act_obj_event?.join(', ') },
-                                                { label: "Chatting With", value: selectedAgent.chatting_with },
-                                                { label: "Chatting End Time", value: selectedAgent.chatting_end_time },
-                                                { label: "Chat", value: JSON.stringify(selectedAgent.chat) },
-                                                { label: "Chatting With Buffer", value: JSON.stringify(selectedAgent.chatting_with_buffer) },
-                                                { label: "Path Set", value: selectedAgent.act_path_set?.toString() },
-                                                { label: "Planned Path", value: selectedAgent.planned_path?.join(' → ') },
+                                                // { label: "Current Time", value: selectedAgent.curr_time },
+                                                // { label: "Current Tile", value: selectedAgent.curr_tile },
+                                                // { label: "Current Activity", value: selectedAgent.act_description },
+                                                // { label: "Activity Start Time", value: selectedAgent.act_start_time },
+                                                // { label: "Activity Duration", value: selectedAgent.act_duration },
+                                                // { label: "Activity Pronunciation", value: selectedAgent.act_pronunciatio },
+                                                // { label: "Current Event", value: selectedAgent.act_event?.join(', ') },
+                                                // { label: "Object Description", value: selectedAgent.act_obj_description },
+                                                // { label: "Object Pronunciation", value: selectedAgent.act_obj_pronunciatio },
+                                                // { label: "Object Event", value: selectedAgent.act_obj_event?.join(', ') },
+                                                // { label: "Chatting With", value: selectedAgent.chatting_with },
+                                                // { label: "Chatting End Time", value: selectedAgent.chatting_end_time },
+                                                // { label: "Chat", value: JSON.stringify(selectedAgent.chat) },
+                                                // { label: "Chatting With Buffer", value: JSON.stringify(selectedAgent.chatting_with_buffer) },
+                                                // { label: "Path Set", value: selectedAgent.act_path_set?.toString() },
+                                                // { label: "Planned Path", value: selectedAgent.planned_path?.join(' → ') },
                                             ]
                                         },
                                     ].map((section, index) => (
@@ -565,6 +565,7 @@ export const InteractPage: React.FC = () => {
     const [publicMessages, setPublicMessages] = useState<ChatMessage[]>([]);
     const [privateMessages, setPrivateMessages] = useState<Record<string, ChatMessage[]>>({});
     const [isOffline, setIsOffline] = useState<boolean>(false);
+    const [isSimOffline, setIsSimOffline] = useState<boolean>(false);
     const [agents, setAgents] = useState<apis.Agent[]>([]);
 
     useEffect(() => {
@@ -689,11 +690,21 @@ export const InteractPage: React.FC = () => {
 
     useEffect(() => {
         const checkStatus = async () => {
-            const status = await apis.queryStatus(ctx.data.currSimCode || '');
-            setIsRunning(status === 'running');
-            if (status !== 'running' && initialCheckRef.current) {
-                setShowGuide(true);
-                initialCheckRef.current = false;  // 标记为已检查
+            try {
+                const status = await apis.queryStatus(ctx.data.currSimCode || '');
+                setIsRunning(status === 'running');
+                if (status === 'terminated') {
+                    setIsSimOffline(true);
+                } else {
+                    setIsSimOffline(false);
+                }
+                if (status !== 'running' && initialCheckRef.current) {
+                    setShowGuide(true);
+                    initialCheckRef.current = false;  // 标记为已检查
+                }
+            } catch (error) {
+                console.error("Failed to get simulation status:", error);
+                setIsSimOffline(true);
             }
         };
 
@@ -883,8 +894,26 @@ export const InteractPage: React.FC = () => {
 
     return (
         <div className="flex flex-col min-h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
-            <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background" />
-            <div className="container flex w-full mx-auto mt-4 mb-4 px-4 flex-grow">
+            <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background z-[5000]" />
+            <div className="container flex w-full mx-auto mt-4 mb-4 px-4 flex-grow relative">
+                {isSimOffline && (
+                    <div className="fixed inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center z-[1500] rounded-lg">
+                        <Loader className="animate-spin w-16 h-16 text-white mb-4" />
+                        <p className="text-white text-xl">Simulation is offline, reconnecting...</p>
+                    </div>
+                )}
+                <CSSTransition
+                    in={showGuide}
+                    timeout={300} // Duration of the animation in milliseconds
+                    classNames="fade"
+                    unmountOnExit
+                >
+                    <SimulationGuide
+                        onClose={() => setShowGuide(false)}
+                        simRounds={simRounds}
+                        buttonPosition={buttonPosition}
+                    />
+                </CSSTransition>
                 {/* Left panel with tabs and status bar */}
                 <div className="w-2/3 pr-4 flex flex-col">
                     <Tabs defaultValue="dialog" className="w-full flex-grow"
@@ -959,23 +988,10 @@ export const InteractPage: React.FC = () => {
                             handleRunSimulation={handleRunSimulation}
                             simRounds={simRounds}
                             setSimRounds={setSimRounds}
-                        />
-                    </Card>
-                </div>
+                    />
+                </Card>
             </div>
-            <CSSTransition
-                in={showGuide}
-                timeout={300} // Duration of the animation in milliseconds
-                classNames="fade"
-                unmountOnExit
-            >
-                <SimulationGuide
-                    onClose={() => setShowGuide(false)}
-                    simRounds={simRounds}
-                    buttonPosition={buttonPosition}
-                />
-            </CSSTransition>
-
         </div>
-    );
+    </div>
+);
 };

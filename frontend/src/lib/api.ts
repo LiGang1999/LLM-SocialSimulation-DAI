@@ -514,7 +514,7 @@ export namespace apis {
         }
     };
 
-    export const queryStatus = async (simCode: string): Promise<'running' | 'stopped' | 'started'> => {
+    export const queryStatus = async (simCode: string): Promise<'running' | 'stopped' | 'started' | 'terminated'> => {
         try {
             const response = await api.get(urls.queryStatus, { params: { sim_code: simCode } });
             return response.data.status;

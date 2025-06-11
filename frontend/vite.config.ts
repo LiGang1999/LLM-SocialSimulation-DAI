@@ -1,6 +1,6 @@
 import { defineConfig, UserConfig } from 'vite'
 import path from "path"
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react-oxc'
 import mdx from '@mdx-js/rollup'
 import customDocPlugin from "./vite-plugin-docs"
 
@@ -30,6 +30,9 @@ const config: UserConfig = {
   },
   preview: {
     port: parseInt(process.env.LISTEN_PORT || '9080')
+  },
+  build: {
+    sourcemap: false
   }
 }
 
