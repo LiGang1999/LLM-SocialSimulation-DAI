@@ -137,9 +137,6 @@ def llm_request(
     if "model" not in llm_config or "chat" not in llm_config:
         raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
 
-    r = ctx.reverie
-    r.interested = True
-
     # Provide default values for optional fields
     temperature = llm_config.get("temperature", 1.0)  # Default temperature
     max_tokens = llm_config.get("max_tokens", 150)  # Default max tokens

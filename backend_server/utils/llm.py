@@ -11,7 +11,7 @@ import openai
 from jinja2 import Template
 
 from backend_server.utils import ctx
-from backend_server.utils.config import default_providers, per_instance_llm_config
+from backend_server.utils.config import default_providers, enable_default_llm
 from backend_server.utils.logs import L
 
 
@@ -38,7 +38,7 @@ template_storage_dir = os.path.join(dir_path, "../prompt_templates")
 
 
 def get_llm_config(usage: str = "chat") -> LLMConfig:
-    if per_instance_llm_config:
+    if enable_default_llm:
         return default_llm_config[usage]
     else:
         if ctx.providers is not None:
@@ -169,6 +169,7 @@ def llm_request(
     retry_delay=0.5,
     raw_response=False,
     legacy=False,
+    llm_config=None,
 ):
     """
     Send a LLM request with error handling and logging. The llm_config dictionary consists of the following fields:
@@ -186,15 +187,13 @@ def llm_request(
     - retry_delay: int          delay in seconds between retries (default: 2)
     """
 
-    llm_config = get_llm_config(usage)
+    if llm_config is None:
+        llm_config = get_llm_config(usage)
     L.debug(llm_config)
 
     # Validate the necessary fields
     if "model" not in llm_config or "kind" not in llm_config:
         raise ValueError("The 'model' and 'kind' fields are required in llm_config.")
-
-    r = ctx.reverie
-    r.interested = True
 
     # Provide default values for optional fields
     temperature = llm_config.get("temperature", 1.0)  # Default temperature
@@ -319,6 +318,7 @@ async def async_llm_request(
     retry_delay=0.5,
     raw_response=False,
     legacy=False,
+    llm_config=None,
 ):
     """
     Send a LLM request with error handling and logging. The llm_config dictionary consists of the following fields:
@@ -336,18 +336,16 @@ async def async_llm_request(
     - retry_delay: int          delay in seconds between retries (default: 2)
     """
 
-    llm_config = get_llm_config(usage)
+    if llm_config is None:
+        llm_config = get_llm_config(usage)
 
     # Validate the necessary fields
     if "model" not in llm_config or "kind" not in llm_config:
         raise ValueError("The 'model' and 'kind' fields are required in llm_config.")
 
-    r = ctx.reverie
-    r.interested = True
-
     # Provide default values for optional fields
     temperature = llm_config.get("temperature", 1.0)  # Default temperature
-    max_tokens = llm_config.get("max_tokens", 150)  # Default max tokens
+    max_tokens = llm_config.get("max_tokens", 4096)  # Default max tokens
     top_p = llm_config.get("top_p", 1.0)  # Default top_p
     frequency_penalty = llm_config.get("frequency_penalty", 0.0)  # Default frequency penalty
     presence_penalty = llm_config.get("presence_penalty", 0.0)  # Default presence penalty
@@ -485,6 +483,8 @@ You MUST not reply anything else. Just reply the json answer.
 def types_match(actual, example, path=""):
     """Helper function to check if the types of two objects match (including nested types)."""
 
+    L.debug(f"Reference: {example}, Actual: {actual}")
+
     def print_warning(expected, got):
         L.warning(f"Warning: Type mismatch at {path}. Expected {expected}, got {got}")
 
@@ -599,7 +599,7 @@ def llm_function(
                     example_args.append(None)  # Default for unknown types
 
         @functools.wraps(desc_func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, llm_config=None, **kwargs):
             bound_args = signature.bind(*args, **kwargs)
             bound_args.apply_defaults()
             bound_example_args = signature.bind(*example_args)
@@ -649,6 +649,7 @@ def llm_function(
                 _failsafe_fn,
                 kwargs,
                 desc_func.__name__,
+                llm_config=llm_config,
             )
             return result
 
@@ -661,7 +662,6 @@ def async_llm_function(
     user_prompt: str = None,
     system_prompt: str = None,
     prompt_file: str = None,
-    is_chat: bool = False,
     stop: str = "",
     cleanup_fn=None,
     failsafe_fn=None,
@@ -701,7 +701,7 @@ def async_llm_function(
                     example_args.append(None)
 
         @functools.wraps(desc_func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args, llm_config=None, **kwargs):
             bound_args = signature.bind(*args, **kwargs)
             bound_args.apply_defaults()
             bound_example_args = signature.bind(*example_args)
@@ -748,6 +748,7 @@ def async_llm_function(
                 _failsafe_fn,
                 kwargs,
                 desc_func.__name__,
+                llm_config=llm_config,
             )
             return result
 

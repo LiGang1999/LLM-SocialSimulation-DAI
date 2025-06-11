@@ -22,6 +22,7 @@ import uvicorn
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
+from starlette_context.middleware import ContextMiddleware
 
 from backend_server.database import init_db
 from backend_server.server.routes import auth, feedback, personas, providers, simulation, templates

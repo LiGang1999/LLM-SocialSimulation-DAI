@@ -78,7 +78,7 @@ class Provider(Base):
     api_key = Column(String(100), nullable=False)
     base_url = Column(String(200))
     temperature = Column(Float, default=1.0)
-    max_tokens = Column(Integer, default=512)
+    max_tokens = Column(Integer, default=4096)
     top_p = Column(Float, default=0.7)
     frequency_penalty = Column(Float, default=0.0)
     presence_penalty = Column(Float, default=0.0)

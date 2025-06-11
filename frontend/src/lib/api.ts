@@ -70,6 +70,8 @@ const urls = {
     updateEnv: '/update_env',
     agentsInfo: '/personas_info',
     agentDetail: '/persona_detail',
+    generateProfilesPlan: '/generate_profiles_plan',
+    generateProfiles: '/generate_profiles',
     sendCommand: '/command',
     privateChat: '/chat',
     publishEvent: '/publish_events',
@@ -178,9 +180,6 @@ export namespace apis {
 
 
     export interface Agent {
-        curr_time?: number;
-        curr_tile?: string;
-        daily_plan_req: string;
         name: string;
         first_name: string;
         last_name: string;
@@ -190,47 +189,8 @@ export namespace apis {
         currently: string;
         lifestyle: string;
         living_area: string;
-        daily_req?: string[];
-        f_daily_schedule?: string[];
-        f_daily_schedule_hourly_org?: string[];
-        act_address?: string;
-        act_start_time?: string;
-        act_duration?: string;
-        act_description?: string;
-        act_pronunciatio?: string;
-        act_event?: [string, string?, string?];
-        act_obj_description?: string;
-        act_obj_pronunciatio?: string;
-        act_obj_event?: [string?, string?, string?];
-        chatting_with?: string;
-        chat?: string[][];
-        chatting_with_buffer?: Record<string, string>;
-        chatting_end_time?: string;
-        act_path_set?: boolean;
-        planned_path?: string[];
-        avatar?: string;
-        plan?: string[];
-        memory?: string[];
+        daily_plan_req?: string;
         bibliography?: string;
-
-        // New fields from Scratch class
-        vision_r: number;
-        att_bandwidth: number;
-        retention: number;
-        concept_forget: number;
-        daily_reflection_time: number;
-        daily_reflection_size: number;
-        overlap_reflect_th: number;
-        kw_strg_event_reflect_th: number;
-        kw_strg_thought_reflect_th: number;
-        recency_w: number;
-        relevance_w: number;
-        importance_w: number;
-        recency_decay: number;
-        importance_trigger_max: number;
-        importance_trigger_curr: number;
-        importance_ele_n: number;
-        thought_count: number;
     }
 
     export interface LLMConfig {
@@ -323,7 +283,7 @@ export namespace apis {
                     act_duration: undefined,
                     act_description: undefined,
                     act_pronunciatio: undefined,
-                    act_event: [persona.name, undefined, undefined],
+                    act_event: [persona.name, "use", "chat"],
                     act_obj_description: undefined,
                     act_obj_pronunciatio: undefined,
                     act_obj_event: [undefined, undefined, undefined],
@@ -476,11 +436,32 @@ export namespace apis {
         try {
             const response = await api.get(urls.agentDetail, { params: { sim_code: simCode, agent_name: agentName } });
             return response.data;
-        } catch (error){
+        } catch (error) {
             console.error("Error fetching agent detail:", error);
             throw error;
         }
     };
+
+
+    export const generateProfilesPlan = async (scenario: string, request: string, agent_count: number): Promise<any> => {
+        try {
+            const response = await api.post(urls.generateProfilesPlan, { scenario, request, agent_count });
+            return response.data;
+        } catch (error) {
+            console.error("Error generating profiles plan:", error);
+            throw error;
+        }
+    }
+
+    export const generateProfiles = async (plan: any): Promise<{ profiles: Agent[] }> => {
+        try {
+            const response = await api.post(urls.generateProfiles, { plan });
+            return response.data;
+        } catch (error) {
+            console.error("Error generating profiles:", error);
+            throw error;
+        }
+    }
 
     export const sendCommand = async (command: string, simCode: string): Promise<any> => {
         try {

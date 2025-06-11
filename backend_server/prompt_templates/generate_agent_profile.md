@@ -22,6 +22,7 @@ The output should be a list of JSON objects, one for each agent. Each JSON objec
 - "learned": A description of the agent's background, skills, and knowledge.
 - "currently": A description of the agent's current situation, goals, and motivations.
 - "lifestyle": A description of the agent's daily routine and habits.
+- "daily_plan_req": A description of the agnet's daily plans and routine.
 - "living_area": A description of the agent's home and neighborhood.
 
 # Parameters

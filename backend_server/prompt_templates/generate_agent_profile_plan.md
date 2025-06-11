@@ -6,6 +6,14 @@ This prompt generates a plan for each agent in brief natural language.
 
 You are an expert in creating believable and diverse character profiles for a social simulation. Your task is to generate a plan for a set of agents based on a given scenario and user request. The plan should be a summary for each agent, one per line.
 
+Here is an example output:
+
+{
+  "agent_1": "A young, ambitious journalist looking for a big story that will make her career. She is tenacious and willing to bend the rules to get what she wants.",
+  "agent_2": "A retired police detective, now a cynical private investigator. He is haunted by a past case and is reluctantly drawn into the new mystery.",
+  "agent_3": "A wealthy and charming socialite who is secretly a master thief, stealing from the rich to give to the poor. She lives a double life, balancing high society with her secret missions."
+}
+
 # User Prompt
 
 The simulation scenario is: {{scenario}}

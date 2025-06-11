@@ -98,7 +98,7 @@ class ProviderBase(BaseModel):
     api_key: str
     base_url: Optional[str] = None
     temperature: Optional[float] = 1.0
-    max_tokens: Optional[int] = 512
+    max_tokens: Optional[int] = 4096
     top_p: Optional[float] = 0.7
     frequency_penalty: Optional[float] = 0.0
     presence_penalty: Optional[float] = 0.0
