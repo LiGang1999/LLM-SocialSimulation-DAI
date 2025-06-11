@@ -9,6 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectItem, SelectTrigger, SelectValue, SelectContent } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ChevronDown, Send, MapPin, MessageSquare, Bot, FileText, Clock, Image, Paperclip, Trash2, MoreHorizontal, RefreshCw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCcw, XCircle, AlertTriangle, Info, Bug, Terminal, AlertOctagon } from 'lucide-react';
 import { apis } from '@/lib/api';
 import { ChatMessage, useSimContext } from '@/SimContext';
@@ -30,7 +39,7 @@ interface LogEntry {
 
 interface ChatFooterProps {
     simCode: string;
-    agentName: string;
+    agentName?: string;
     showGuide: boolean;
     setShowGuide: (show: boolean) => void;
     isRunning: boolean;
@@ -133,9 +142,9 @@ const DialogTab: React.FC<{ messages: ChatMessage[], isRunning: boolean }> = ({ 
     }, [JSON.stringify(messages)]);
 
     return (
-        <div className="relative h-[calc(100vh-200px)]">
+        <div className="relative h-full flex flex-col">
             <ScrollArea
-                className="h-full rounded-md bg-white bg-opacity-70 border-gray-100 pl-2"
+                className="flex-grow rounded-md bg-white bg-opacity-70 border-gray-100 pl-2"
                 ref={scrollRef}
             >
                 <div className="p-4">
@@ -157,7 +166,7 @@ const DialogTab: React.FC<{ messages: ChatMessage[], isRunning: boolean }> = ({ 
             {/* 3. Display the loading overlay when isRunning is true */}
             {isRunning && (
                 <>
-                    <div className="absolute inset-0 bg-white opacity-50 rounded-lg" />
+                    <div className="absolute inset-0 bg-white opacity-50" />
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
                         <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
                         <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
@@ -188,7 +197,7 @@ const MapTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
     const resetPosition = () => setPosition({ x: 0, y: 0 });
 
     return (
-        <div className="relative w-full h-[calc(100vh-200px)] overflow-hidden">
+        <div className="relative w-full h-full overflow-hidden">
             <img
                 src={mockBg}
                 alt="Map"
@@ -213,7 +222,7 @@ const MapTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
             </div>
             {isRunning && (
                 <>
-                    <div className="absolute inset-0 bg-white opacity-50 rounded-lg" />
+                    <div className="absolute inset-0 bg-white opacity-50" />
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
                         <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
                         <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
@@ -294,9 +303,9 @@ const AgentStatusTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
     };
 
     return (
-        <div className="relative">
+        <div className="relative h-full flex flex-col">
 
-            <ScrollArea className="h-[calc(100vh-230px)] bg-white bg-opacity-70 p-4 rounded-lg">
+            <ScrollArea className="flex-grow bg-white bg-opacity-70 p-4 rounded-lg">
                 {agents.map((agent, index) => (
                     <AgentStatusCard key={index} agent={agent} onViewFullInfo={handleViewFullInfo} />
                 ))}
@@ -409,7 +418,7 @@ const AgentStatusTab: React.FC<{ isRunning: boolean }> = ({ isRunning }) => {
             )}
             {isRunning && (
                 <>
-                    <div className="absolute inset-0 bg-white opacity-50 rounded-lg" />
+                    <div className="absolute inset-0 bg-white opacity-50" />
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
                         <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
                         <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
@@ -493,9 +502,9 @@ const LogTab: React.FC<{
     }, [JSON.stringify(logs)]);
 
     return (
-        <div className="flex-col rounded-lg bg-white bg-opacity-70 p-4 relative">
+        <div className="flex flex-col rounded-lg bg-white bg-opacity-70 p-4 relative h-full">
             <ScrollArea
-                className="font-mono text-sm h-[calc(100vh-280px)]"
+                className="font-mono text-sm flex-grow"
                 // onScrollCapture={handleScroll}
                 // onWheel={handleWheel}
                 // ref={scrollRef}
@@ -531,7 +540,7 @@ const LogTab: React.FC<{
             </div>
             {isRunning && (
                 <>
-                    <div className="absolute inset-0 bg-white opacity-50 rounded-lg" />
+                    <div className="absolute inset-0 bg-white opacity-50" />
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-4 flex items-center z-10">
                         <Loader className="animate-spin w-6 h-6 text-gray-500 mr-3" />
                         <div className="font-bold text-sm">仿真正在运行，请稍等...</div>
@@ -765,19 +774,12 @@ export const InteractPage: React.FC = () => {
     const ChatFooter: React.FC<ChatFooterProps> = ({
         simCode,
         agentName,
-        showGuide,
-        setShowGuide,
-        isRunning,
-        handleRunSimulation,
-        simRounds,
-        setSimRounds
     }) => {
 
         const [message, setMessage] = useState('');
-        const runButtonRef = useRef<HTMLButtonElement>(null);
 
         const handleSendMessage = async () => {
-            if (message.trim()) {
+            if (message.trim() && agentName) {
                 try {
                     setIsRunning(true);
 
@@ -804,68 +806,13 @@ export const InteractPage: React.FC = () => {
             }
         };
 
-        useEffect(() => {
-            if (runButtonRef.current && showGuide) {
-                const rect = runButtonRef.current.getBoundingClientRect();
-                setButtonPosition({
-                    top: rect.top,
-                    left: rect.left,
-                    width: rect.width,
-                    height: rect.height
-                });
-            }
-        }, [showGuide]);
-
         return (
             <CardFooter className="p-4 flex-col">
-                <div className="flex w-full justify-start space-x-2 mb-2">
-                    <Button size="sm" variant="outline">
-                        <Image className="h-4 w-4 mr-1" />
-                        发布事件
-                    </Button>
-
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleRunSimulation(1)}
-                        disabled={isRunning}
-                    >
-                        {isRunning ? '模拟中...' : '模拟1轮'}
-                    </Button>
-
-                    <div className="flex items-center space-x-1">
-
-                        <Button
-                            ref={runButtonRef}
-                            size="sm"
-                            variant={showGuide ? "default" : "outline"}
-                            onClick={() => {
-                                handleRunSimulation(simRounds);
-                                setShowGuide(false);
-                            }}
-                            disabled={isRunning}
-                            className={`
-        ${showGuide ? "animate-pulse bg-primary text-primary-foreground" : ""}
-        ${showGuide ? "z-[500] relative shadow-lg" : ""}
-    `}
-                        >
-                            {isRunning ? '模拟中...' : `模拟${simRounds}轮`}
-                        </Button>
-
-                        <Input
-                            type="number"
-                            value={simRounds}
-                            onChange={(e) => setSimRounds(Math.max(1, parseInt(e.target.value) || 1))}
-                            className="w-16 h-8"
-                            min="1"
-                        />
-                    </div>
-                </div>
                 <div className="flex w-full items-center space-x-2">
                     <Button size="icon" variant="outline">
                         <Paperclip className="h-4 w-4" />
                     </Button>
-                    <Select
+                    {agentName && <Select
                         value={chatTypes[agentName]}
                         onValueChange={(value: 'whisper' | 'interview') => setChatTypes(prev => ({ ...prev, [agentName]: value }))}
                     >
@@ -876,7 +823,7 @@ export const InteractPage: React.FC = () => {
                             <SelectItem value="whisper">Whisper</SelectItem>
                             <SelectItem value="interview">Interview</SelectItem>
                         </SelectContent>
-                    </Select>
+                    </Select>}
                     <Input
                         className="flex-grow"
                         placeholder="说点什么..."
@@ -892,12 +839,120 @@ export const InteractPage: React.FC = () => {
         );
     };
 
+    const TabFooter: React.FC<ChatFooterProps> = ({
+        simCode,
+        showGuide,
+        setShowGuide,
+        isRunning,
+        handleRunSimulation,
+        simRounds,
+        setSimRounds
+    }) => {
+        const runButtonRef = useRef<HTMLButtonElement>(null);
+        const [summary, setSummary] = useState("");
+        const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+        const [showSummaryDialog, setShowSummaryDialog] = useState(false);
+
+        const handleGetSummary = async () => {
+            try {
+                setIsSummaryLoading(true);
+                const summaryText = await apis.getSummary(simCode);
+                setSummary(summaryText);
+            } catch (error) {
+                console.error("Error getting summary:", error);
+                setSummary("Failed to get summary.");
+            } finally {
+                setIsSummaryLoading(false);
+                setShowSummaryDialog(true);
+            }
+        };
+
+        useEffect(() => {
+            if (runButtonRef.current && showGuide) {
+                const rect = runButtonRef.current.getBoundingClientRect();
+                setButtonPosition({
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,
+                    height: rect.height
+                });
+            }
+        }, [showGuide]);
+
+        return (
+            <div className="flex w-full justify-start space-x-2 my-2">
+                <Button size="sm" variant="outline">
+                    <Image className="h-4 w-4 mr-1" />
+                    发布事件
+                </Button>
+
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleGetSummary}
+                    disabled={isRunning || isSummaryLoading}
+                >
+                    {isSummaryLoading ? '获取中...' : '获取摘要'}
+                </Button>
+
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleRunSimulation(1)}
+                    disabled={isRunning}
+                >
+                    {isRunning ? '模拟中...' : '模拟1轮'}
+                </Button>
+
+                <div className="flex items-center space-x-1">
+                    <Button
+                        ref={runButtonRef}
+                        size="sm"
+                        variant={showGuide ? "default" : "outline"}
+                        onClick={() => {
+                            handleRunSimulation(simRounds);
+                            setShowGuide(false);
+                        }}
+                        disabled={isRunning}
+                        className={`
+                            ${showGuide ? "animate-pulse bg-primary text-primary-foreground" : ""}
+                            ${showGuide ? "z-[500] relative shadow-lg" : ""}
+                        `}
+                    >
+                        {isRunning ? '模拟中...' : `模拟${simRounds}轮`}
+                    </Button>
+
+                    <Input
+                        type="number"
+                        value={simRounds}
+                        onChange={(e) => setSimRounds(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-16 h-8"
+                        min="1"
+                    />
+                </div>
+                <AlertDialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>仿真摘要</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {summary}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogAction>关闭</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </div>
+        );
+    };
+
     return (
-        <div className="flex flex-col min-h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
+        <div className="flex flex-col h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
             <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background z-[5000]" />
-            <div className="container flex w-full mx-auto mt-4 mb-4 px-4 flex-grow relative">
+            <div className="container flex w-full mx-auto my-4 px-4 flex-grow relative">
                 {isSimOffline && (
-                    <div className="fixed inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center z-[1500] rounded-lg">
+                    <div className="fixed inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center z-[1500]">
                         <Loader className="animate-spin w-16 h-16 text-white mb-4" />
                         <p className="text-white text-xl">Simulation is offline, reconnecting...</p>
                     </div>
@@ -916,34 +971,46 @@ export const InteractPage: React.FC = () => {
                 </CSSTransition>
                 {/* Left panel with tabs and status bar */}
                 <div className="w-2/3 pr-4 flex flex-col">
-                    <Tabs defaultValue="dialog" className="w-full flex-grow"
-                    // onValueChange={(value) => value === 'ai' && fetchAgentStatus()}
-                    >
-                        <TabsList className={isOffline ? `grid w-full grid-cols-4` : `grid w-full grid-cols-3` + " bg-white bg-opacity-50"}>
-                            <TabsTrigger value="dialog"><MessageSquare className="mr-2 h-4 w-4" />对话</TabsTrigger>
-                            {isOffline && <TabsTrigger value="map"><MapPin className="mr-2 h-4 w-4" />地图</TabsTrigger>}
-                            <TabsTrigger value="ai"><Bot className="mr-2 h-4 w-4" />智能体状态</TabsTrigger>
-                            <TabsTrigger value="log"><FileText className="mr-2 h-4 w-4" />日志</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="dialog" className="flex-grow">
-                            <DialogTab messages={publicMessages} isRunning={isRunning} />
-                        </TabsContent>
-                        {isOffline && <TabsContent value="map" className="h-full w-full">
-                            <MapTab isRunning={isRunning} />
-                        </TabsContent>}
-                        <TabsContent value="ai" className="flex-grow">
-                            <AgentStatusTab isRunning={isRunning} />
-                        </TabsContent>
-                        <TabsContent value="log" className="flex-grow">
-                            <LogTab logs={logs} addLog={addLog} clearLogs={clearLogs} setIsRunning={setIsRunning} isRunning={isRunning} />
-                        </TabsContent>
+                    <div className="flex-grow min-h-0">
+                        <Tabs defaultValue="dialog" className="w-full h-full flex flex-col"
+                        // onValueChange={(value) => value === 'ai' && fetchAgentStatus()}
+                        >
+                            <TabsList className={isOffline ? `grid w-full grid-cols-4` : `grid w-full grid-cols-3` + " bg-white bg-opacity-50"}>
+                                <TabsTrigger value="dialog"><MessageSquare className="mr-2 h-4 w-4" />对话</TabsTrigger>
+                                {isOffline && <TabsTrigger value="map"><MapPin className="mr-2 h-4 w-4" />地图</TabsTrigger>}
+                                <TabsTrigger value="ai"><Bot className="mr-2 h-4 w-4" />智能体状态</TabsTrigger>
+                                <TabsTrigger value="log"><FileText className="mr-2 h-4 w-4" />日志</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="dialog" className="flex-grow min-h-0">
+                                <DialogTab messages={publicMessages} isRunning={isRunning} />
+                            </TabsContent>
+                            {isOffline && <TabsContent value="map" className="w-full flex-grow min-h-0">
+                                <MapTab isRunning={isRunning} />
+                            </TabsContent>}
+                            <TabsContent value="ai" className="flex-grow min-h-0">
+                                <AgentStatusTab isRunning={isRunning} />
+                            </TabsContent>
+                            <TabsContent value="log" className="flex-grow min-h-0">
+                                <LogTab logs={logs} addLog={addLog} clearLogs={clearLogs} setIsRunning={setIsRunning} isRunning={isRunning} />
+                            </TabsContent>
 
-                    </Tabs>
+                        </Tabs>
+                    </div>
+                    <TabFooter
+                        showGuide={showGuide}
+                        setShowGuide={setShowGuide}
+                        isRunning={isRunning}
+                        handleRunSimulation={handleRunSimulation}
+                        simRounds={simRounds}
+                        setSimRounds={setSimRounds}
+                        simCode={ctx.data.currSimCode || ""}
+                        agentName={privateChatAgent}
+                    />
                     <StatusBar isRunning={isRunning} />
                 </div>
 
                 {/* Right panel with chat */}
-                <div className="w-1/3 pl-4">
+                <div className="w-1/3 pl-4 flex flex-col">
                     <Card className="h-full flex flex-col bg-white bg-opacity-70">
                         <CardHeader className="flex flex-row items-center space-x-4 pb-6 mb-6 border-b border-b-gray-300">
                             <DropdownMenu>
@@ -970,8 +1037,8 @@ export const InteractPage: React.FC = () => {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </CardHeader>
-                        <CardContent className="flex-grow overflow-hidden">
-                            <ScrollArea className="h-[calc(100vh-350px)] px-4">
+                        <CardContent className="flex-grow min-h-0">
+                            <ScrollArea className="h-full px-4">
                                 {privateChatAgent && privateMessages[privateChatAgent]?.map((msg, index) => (
                                     <ChatMessageBox key={index} {...msg} variant="private" />
                                 )) || (

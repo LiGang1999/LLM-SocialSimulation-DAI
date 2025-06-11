@@ -19,6 +19,7 @@ from backend_server.reverie import ReverieConfig, ScratchData, StageInfo
 from backend_server.server.auth import get_current_active_user, get_user
 from backend_server.server.reverie_manager import ReveriePool
 from backend_server.server.schemas import ChatReq, EventPublishReq, StartReq, User
+from backend_server.server.utils import get_user_providers
 from backend_server.utils import check_if_dir_exists, config
 from backend_server.utils.config import BASE_TEMPLATES
 from backend_server.utils.llm import LLMConfig
@@ -432,3 +433,16 @@ async def list_sessions(current_user: User = Depends(get_current_active_user)):
         if current_user.username in reverie_pool.pool:
             user_sessions = list(reverie_pool.pool[current_user.username].keys())
     return {"sessions": user_sessions}
+
+
+@router.get("/summary")
+async def get_summary(
+    sim_code: str, current_user: User = Depends(get_current_active_user), providers: dict = Depends(get_user_providers)
+):
+    reverie_instance = get_reverie_instance(current_user.username, sim_code)
+    try:
+        summary = reverie_instance.reverie.generate_summary_from_action_log(providers["chat"])
+        return {"summary": summary}
+    except Exception as e:
+        L.error(f"Error in get_summary endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -76,6 +76,7 @@ const urls = {
     privateChat: '/chat',
     publishEvent: '/publish_events',
     queryStatus: '/status',
+    getSummary: '/summary',
     submitFeedback: '/feedback',
     getFeedbacks: '/admin/feedbacks',
     userProviders: '/user_providers',
@@ -520,6 +521,16 @@ export namespace apis {
             return response.data.status;
         } catch (error) {
             console.error("Error querying status:", error);
+            throw error;
+        }
+    }
+
+    export const getSummary = async (simCode: string): Promise<string> => {
+        try {
+            const response = await api.get(urls.getSummary, { params: { sim_code: simCode } });
+            return response.data.summary;
+        } catch (error) {
+            console.error("Error getting summary:", error);
             throw error;
         }
     }

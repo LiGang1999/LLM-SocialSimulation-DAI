@@ -37,10 +37,10 @@ from backend_server.maze import OfflineMaze, OnlineMaze, maze_assets_loc
 from backend_server.persona.cognitive_modules.converse import (
     generate_action_event_triple_new,
     generate_agent_from_text,
-    generate_summary_from_actions,
     load_history_via_whisper,
 )
 from backend_server.persona.persona import DaiPersona, GaPersona, MemoryNode, ScratchData
+from backend_server.persona.prompt_template.run_gpt_prompt import llm_generate_summary_from_actions
 from backend_server.utils import (
     check_if_dir_exists,
     check_if_file_exists,
@@ -798,7 +798,7 @@ class Reverie:
 
         return text.strip()  # 返回去除两端空白的最终文本
 
-    def generate_summary_from_action_log(self):
+    def generate_summary_from_action_log(self, llm_config):
         combine_text = []
         for persona_name, persona in self.personas.items():
             for log_entry in persona.action_log:
@@ -811,8 +811,7 @@ class Reverie:
                     combine_text.append(f"{persona_name}: Unknown log format: {log_entry}")
 
         full_text = "\n".join(combine_text)
-        output = generate_summary_from_actions(full_text)
-        print(output)
+        output = llm_generate_summary_from_actions(full_text, llm_config=llm_config)["output"]
         return output
 
     def custom_run(self, sim_command):
