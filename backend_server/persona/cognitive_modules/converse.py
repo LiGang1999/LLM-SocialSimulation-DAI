@@ -6,20 +6,38 @@ Description: An extra cognitive module for generating conversations.
 """
 
 import datetime
-import math
-import random
 import re
 import sys
 
 sys.path.append("../")
 
 # from backend_server.persona.cognitive_modules.base_sentiment import *
-from backend_server.persona.cognitive_modules.retrieve import *
-from backend_server.persona.memory_structures.associative_memory import *
-from backend_server.persona.memory_structures.scratch import *
-from backend_server.persona.memory_structures.spatial_memory import *
-from backend_server.persona.prompt_template.run_gpt_prompt import *
-from backend_server.utils import *
+from backend_server.persona.cognitive_modules.retrieve import new_retrieve
+from backend_server.persona.prompt_template.run_gpt_prompt import (
+    run_gpt_generate_agent_from_text,
+    run_gpt_generate_execute_custom,
+    run_gpt_generate_iterative_chat_utt,
+    run_gpt_generate_iterative_comment_utt_new,
+    run_gpt_generate_iterative_comment_utt_with_policy_and_websearch_new,
+    run_gpt_generate_iterative_comment_utt_with_policy_new,
+    run_gpt_generate_iterative_comment_utt_with_websearch,
+    run_gpt_generate_summary_from_actions,
+    run_gpt_prompt_agent_chat,
+    run_gpt_prompt_agent_chat_summarize_ideas,
+    run_gpt_prompt_agent_chat_summarize_relationship,
+    run_gpt_prompt_chat_poignancy,
+    run_gpt_prompt_event_poignancy,
+    run_gpt_prompt_event_triple,
+    run_gpt_prompt_event_triple_new,
+    run_gpt_prompt_generate_interview_content,
+    run_gpt_prompt_generate_next_convo_line,
+    run_gpt_prompt_generate_survey_content,
+    run_gpt_prompt_generate_whisper_inner_thought,
+    run_gpt_prompt_summarize_ideas,
+)
+from backend_server.utils.config import debug
+from backend_server.utils.llm import get_embedding
+from backend_server.utils.logs import L
 
 
 def generate_agent_chat_summarize_ideas(init_persona, target_persona, retrieved, curr_context):
@@ -75,7 +93,7 @@ def agent_chat_v1(maze, init_persona, target_persona):
     )
     curr_context += (
         f"{init_persona.scratch.name} "
-        + f"is thinking of initating a conversation with "
+        + "is thinking of initating a conversation with "
         + f"{target_persona.scratch.name}."
     )
 
@@ -105,7 +123,7 @@ def generate_one_utterance(maze, init_persona, target_persona, retrieved, curr_c
         + f"in the middle of {target_persona.scratch.act_description}.\n"
     )
     curr_context += (
-        f"{init_persona.scratch.name} " + f"is initiating a conversation with " + f"{target_persona.scratch.name}."
+        f"{init_persona.scratch.name} " + "is initiating a conversation with " + f"{target_persona.scratch.name}."
     )
 
     print("July 23 5")

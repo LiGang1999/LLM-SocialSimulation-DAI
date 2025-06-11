@@ -5,13 +5,15 @@ File: perceive.py
 Description: This defines the "Perceive" module for generative agents.
 """
 
+import datetime
 import math
-import sys
 from operator import itemgetter
 
-from backend_server.persona.prompt_template.gpt_structure import *
-from backend_server.persona.prompt_template.run_gpt_prompt import *
-from backend_server.utils import *
+from backend_server.persona.prompt_template.run_gpt_prompt import (
+    run_gpt_prompt_chat_poignancy,
+    run_gpt_prompt_event_poignancy,
+)
+from backend_server.utils.llm import get_embedding
 from backend_server.utils.logs import L
 
 

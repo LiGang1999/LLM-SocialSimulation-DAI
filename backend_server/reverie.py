@@ -811,7 +811,7 @@ class Reverie:
                     combine_text.append(f"{persona_name}: Unknown log format: {log_entry}")
 
         full_text = "\n".join(combine_text)
-        output = generate_summary_from_actions(full_text)  # 你自己实现的英文大模型总结函数
+        output = generate_summary_from_actions(full_text)
         print(output)
         return output
 

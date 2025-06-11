@@ -6,16 +6,22 @@ Description: This defines the "Reflect" module for generative agents.
 """
 
 import datetime
-import random
-import sys
 
-from numpy import dot
-from numpy.linalg import norm
-
-from backend_server.persona.cognitive_modules.retrieve import *
-from backend_server.persona.prompt_template.gpt_structure import *
-from backend_server.persona.prompt_template.run_gpt_prompt import *
-from backend_server.utils import *
+from backend_server.persona.cognitive_modules.retrieve import new_retrieve
+from backend_server.persona.prompt_template.run_gpt_prompt import (
+    run_gpt_prompt_chat_poignancy,
+    run_gpt_prompt_event_poignancy,
+    run_gpt_prompt_event_triple,
+    run_gpt_prompt_event_triple_new,
+    run_gpt_prompt_focal_pt,
+    run_gpt_prompt_focal_pt_new,
+    run_gpt_prompt_insight_and_guidance,
+    run_gpt_prompt_memo_on_convo,
+    run_gpt_prompt_planning_thought_on_convo,
+)
+from backend_server.utils.config import debug
+from backend_server.utils.llm import get_embedding
+from backend_server.utils.logs import L
 
 
 def generate_focal_points(persona, n=3):

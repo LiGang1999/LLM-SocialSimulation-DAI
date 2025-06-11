@@ -8,13 +8,34 @@ Description: This defines the "Plan" module for generative agents.
 import datetime
 import math
 import random
-import sys
-import time
 
-from backend_server.persona.cognitive_modules.converse import *
-from backend_server.persona.cognitive_modules.retrieve import *
-from backend_server.persona.prompt_template.run_gpt_prompt import *
-from backend_server.utils import *
+from backend_server.persona.cognitive_modules.converse import agent_chat_v2
+from backend_server.persona.cognitive_modules.retrieve import new_retrieve, new_retrieve_dai
+from backend_server.persona.prompt_template.run_gpt_prompt import (
+    completion_safe_generate_response,
+    run_gpt_prompt_act_obj_desc,
+    run_gpt_prompt_act_obj_event_triple,
+    run_gpt_prompt_action_arena,
+    run_gpt_prompt_action_game_object,
+    run_gpt_prompt_action_sector,
+    run_gpt_prompt_daily_plan,
+    run_gpt_prompt_daily_plan_directed_by_LTP,
+    run_gpt_prompt_decide_to_comment,
+    run_gpt_prompt_decide_to_comment_custom,
+    run_gpt_prompt_decide_to_react,
+    run_gpt_prompt_decide_to_talk,
+    run_gpt_prompt_event_triple,
+    run_gpt_prompt_generate_daily_schedule,
+    run_gpt_prompt_generate_hourly_schedule,
+    run_gpt_prompt_new_decomp_schedule,
+    run_gpt_prompt_pronunciatio,
+    run_gpt_prompt_stagely_plan,
+    run_gpt_prompt_summarize_conversation,
+    run_gpt_prompt_task_decomp,
+    run_gpt_prompt_wake_up_hour,
+)
+from backend_server.utils.config import debug
+from backend_server.utils.llm import get_embedding
 
 ##############################################################################
 # CHAPTER 2: Generate
@@ -498,9 +519,9 @@ def revise_identity(persona):
     plan_prompt = statements + "\n"
     plan_prompt += f"Given the statements above, is there anything that {p_name} should remember as they plan for"
     plan_prompt += f" *{persona.scratch.curr_time.strftime('%A %B %d')}*? "
-    plan_prompt += f"If there is any scheduling information, be as specific as possible (include date, time, and location if stated in the statement)\n\n"
+    plan_prompt += "If there is any scheduling information, be as specific as possible (include date, time, and location if stated in the statement)\n\n"
     plan_prompt += f"Write the response from {p_name}'s perspective."
-    plan_note = chat_request(plan_prompt)
+    plan_note = completion_safe_generate_response(plan_prompt)
     # print (plan_note)
 
     thought_prompt = statements + "\n"
@@ -508,7 +529,7 @@ def revise_identity(persona):
         f"Given the statements above, how might we summarize {p_name}'s feelings about their days up to now?\n\n"
     )
     thought_prompt += f"Write the response from {p_name}'s perspective."
-    thought_note = chat_request(thought_prompt)
+    thought_note = completion_safe_generate_response(thought_prompt)
     # print (thought_note)
 
     currently_prompt = (
@@ -518,11 +539,11 @@ def revise_identity(persona):
     currently_prompt += f"{p_name}'s thoughts at the end of {(persona.scratch.curr_time - datetime.timedelta(days=1)).strftime('%A %B %d')}:\n"
     currently_prompt += (plan_note + thought_note).replace("\n", "") + "\n\n"
     currently_prompt += f"It is now {persona.scratch.curr_time.strftime('%A %B %d')}. Given the above, write {p_name}'s status for {persona.scratch.curr_time.strftime('%A %B %d')} that reflects {p_name}'s thoughts at the end of {(persona.scratch.curr_time - datetime.timedelta(days=1)).strftime('%A %B %d')}. Write this in third-person talking about {p_name}."
-    currently_prompt += f"If there is any scheduling information, be as specific as possible (include date, time, and location if stated in the statement).\n\n"
+    currently_prompt += "If there is any scheduling information, be as specific as possible (include date, time, and location if stated in the statement).\n\n"
     currently_prompt += "Follow this format below:\nStatus: <new status>"
     # print ("DEBUG ;adjhfno;asdjao;asdfsidfjo;af", p_name)
     # print (currently_prompt)
-    new_currently = chat_request(currently_prompt)
+    new_currently = completion_safe_generate_response(currently_prompt)
     # print (new_currently)
     # print (new_currently[10:])
 
@@ -530,10 +551,10 @@ def revise_identity(persona):
 
     daily_req_prompt = persona.scratch.get_str_iss() + "\n"
     daily_req_prompt += f"Today is {persona.scratch.curr_time.strftime('%A %B %d')}. Here is {persona.scratch.name}'s plan today in broad-strokes (with the time of the day. e.g., have a lunch at 12:00 pm, watch TV from 7 to 8 pm).\n\n"
-    daily_req_prompt += f"Follow this format (the list should have 4~6 items but no more):\n"
-    daily_req_prompt += f"1. wake up and complete the morning routine at <time>, 2. ..."
+    daily_req_prompt += "Follow this format (the list should have 4~6 items but no more):\n"
+    daily_req_prompt += "1. wake up and complete the morning routine at <time>, 2. ..."
 
-    new_daily_req = chat_request(daily_req_prompt)
+    new_daily_req = completion_safe_generate_response(daily_req_prompt)
     new_daily_req = new_daily_req.replace("\n", " ")
     print("WE ARE HERE!!!", new_daily_req)
     persona.scratch.daily_plan_req = new_daily_req  # lg: ???
@@ -1153,7 +1174,7 @@ def plan(persona, maze, personas, new_day, retrieved):
         # lg: run_gpt_prompt_daily_plan()
         # lg: revise_identity()
         # lg: new_retrieve()
-        # lg: chat_request()
+        # lg: completion_safe_generate_response()
         # lg: generate_hourly_schedule()
         # lg: run_gpt_prompt_generate_hourly_schedule()
         # lg: get_embedding()
