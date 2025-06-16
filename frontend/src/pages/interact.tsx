@@ -440,7 +440,7 @@ const LogTab: React.FC<{
     const [command, setCommand] = useState('');
     const ctx = useSimContext();
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const scrollRef = useRef<HTMLDivElement>(null);
+    // const scrollRef = useRef<HTMLDivElement>(null);
 
     const handleCommand = async () => {
         setIsRunning(true);

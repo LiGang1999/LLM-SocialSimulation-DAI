@@ -32,7 +32,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { apis } from "@/lib/api"; // Import apis
 
-const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
+// const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
 const docs_link = '/doc/quickstart'
 
 interface RouteProps {
