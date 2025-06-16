@@ -12,106 +12,22 @@ import { RandomAvatar } from '@/components/Avatars';
 import { AutoResizeTextarea } from '@/components/autoResizeTextArea';
 import DescriptionCard from '@/components/DescriptionCard';
 import { InfoTooltip } from '@/components/Tooltip';
+import * as pdfjsLib from 'pdfjs-dist';
+import mammoth from 'mammoth';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.js',
+    import.meta.url,
+).toString();
+
 
 import backgroundImage from '@/assets/Untitled.png'
 
 // Common default values for Agent properties to fix TypeScript errors
 const agentDefaults = {
-    vision_r: 5,
-    att_bandwidth: 3,
-    retention: 8,
-    concept_forget: 100,
-    importance_weight: 1,
-    recency_weight: 1,
-    relevance_weight: 1,
-    daily_reflection_time: 0,
-    daily_reflection_size: 10,
-    overlap_reflect_th: 1,
-    kw_strg_event_reflect_th: 10,
-    kw_strg_thought_reflect_th: 9,
-    recency_w: 1,
-    relevance_w: 15,
-    importance_w: 1, recency_decay: 0.995, importance_trigger_max: 30, importance_trigger_curr: 30,
-    importance_ele_n: 0, thought_count: 10
+    daily_plan_req: '',
+    bibliography: '',
 };
-
-const mockAgents: (apis.Agent & { id: number })[] = [
-    {
-        id: 1,
-        name: 'Isabella Rodriguez',
-        first_name: 'Isabella',
-        last_name: 'Rodriguez',
-        age: 34,
-        daily_plan_req: 'Isabella Rodriguez opens Hobbs Cafe at 8am everyday, and works at the counter until 8pm, at which point she closes the cafe.',
-        daily_req: [],
-        f_daily_schedule: [],
-        f_daily_schedule_hourly_org: [],
-        innate: 'friendly, outgoing, hospitable',
-        learned: 'Isabella Rodriguez is a cafe owner of Hobbs Cafe who loves to make people feel welcome. She is always looking for ways to make the cafe a place where people can come to relax and enjoy themselves. She is concerned with environmental issues and big global events, although she does not have professional knowledge in these areas.',
-        currently: '',
-        lifestyle: 'Busy cafe owner, health-conscious',
-        living_area: 'Small apartment above Hobbs Cafe',
-        plan: [],
-        memory: [],
-        bibliography: 'Local business owner, community pillar',
-        act_event: [''],
-        act_obj_event: [],
-        act_path_set: false,
-        planned_path: [],
-        chatting_with_buffer: {},
-        ...agentDefaults // Add missing properties
-    },
-    {
-        id: 2,
-        name: 'Marcus Chen',
-        first_name: 'Marcus',
-        last_name: 'Chen',
-        age: 28,
-        daily_plan_req: 'Marcus Chen starts his day at 7am with a morning run. He works as a software developer from 9am to 6pm, with a lunch break at noon. After work, he often attends local tech meetups or works on personal coding projects until around 10pm.',
-        daily_req: [],
-        f_daily_schedule: [],
-        f_daily_schedule_hourly_org: [],
-        innate: 'analytical, introverted, creative',
-        learned: 'Marcus Chen is a talented software developer who specializes in AI and machine learning. He\'s passionate about technology and its potential to solve complex problems. He\'s also an advocate for open-source software and contributes to several projects in his free time.',
-        currently: '',
-        lifestyle: 'Tech-savvy, fitness enthusiast',
-        living_area: 'Modern studio apartment in the city center',
-        plan: [],
-        memory: [],
-        bibliography: 'Rising star in the local tech scene',
-        act_event: [''],
-        act_obj_event: [],
-        act_path_set: false,
-        planned_path: [],
-        chatting_with_buffer: {},
-        ...agentDefaults // Add missing properties
-    },
-    {
-        id: 3,
-        name: 'Aisha Patel',
-        first_name: 'Aisha',
-        last_name: 'Patel',
-        age: 42,
-        daily_plan_req: 'Aisha Patel begins her day at 6am with yoga and meditation. She sees patients at her clinic from 9am to 5pm, with a break for lunch and paperwork. In the evenings, she often volunteers at a local community health center or attends medical conferences.',
-        daily_req: [],
-        f_daily_schedule: [],
-        f_daily_schedule_hourly_org: [],
-        innate: 'empathetic, detail-oriented, calm',
-        learned: 'Aisha Patel is a respected pediatrician with over 15 years of experience. She\'s known for her holistic approach to healthcare, combining Western medicine with traditional practices. She\'s actively involved in public health initiatives and regularly gives talks on child nutrition and preventive care.',
-        currently: '',
-        lifestyle: 'Health-focused, community-oriented',
-        living_area: 'Spacious family home in a quiet suburb',
-        plan: [],
-        memory: [],
-        bibliography: 'Renowned pediatrician and public health advocate',
-        act_event: [''],
-        act_obj_event: [],
-        act_path_set: false,
-        planned_path: [],
-        chatting_with_buffer: {},
-        ...agentDefaults // Add missing properties
-    }
-];
 
 export const AgentsPage = () => {
     const ctx = useSimContext();
@@ -125,6 +41,9 @@ export const AgentsPage = () => {
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
     const [descriptionText, setDescriptionText] = useState<string>("");
     const [descriptionFile, setDescriptionFile] = useState<File | null>(null);
+    const [fileContent, setFileContent] = useState<string>("");
+    const [agentCountToGenerate, setAgentCountToGenerate] = useState<number>(1);
+    const [generationPlan, setGenerationPlan] = useState<Record<string, string> | null>(null);
 
     const validateAgent = (agent: apis.Agent) => {
         const agentErrors: { [field: string]: string } = {};
@@ -149,9 +68,7 @@ export const AgentsPage = () => {
 
     useEffect(() => {
         // Validate all agents whenever agents change
-        let agentErrors: { [field: string]: string } = {};
-        const newErrors: { [agentId: string]: { [field: string]: string } } = {};
-        agentErrors['innate'] = 'Innate characteristics are required.';
+        const newErrors: { [agentId: number]: { [field: string]: string } } = {};
         for (const agent of agents) {
             const agentErrors = validateAgent(agent);
             if (Object.keys(agentErrors).length > 0) {
@@ -161,9 +78,8 @@ export const AgentsPage = () => {
         setErrors(newErrors);
     }, [agents]);
 
-
     useEffect(() => {
-        const fetchTemplates = async () => {
+        const fetchTemplate = async () => {
             try {
                 if (ctx.data.templateCode && !ctx.data.currentTemplate) {
                     const templateData = await apis.fetchTemplate(ctx.data.templateCode);
@@ -177,28 +93,20 @@ export const AgentsPage = () => {
             }
         }
 
-        fetchTemplates();
+        fetchTemplate();
     }, []);
 
     useEffect(() => {
-        if (ctx.data.currentTemplate?.personas && ctx.data.currentTemplate.personas.length > 0) {
+        if (ctx.data.currentTemplate?.personas) {
             const agentsWithId = ctx.data.currentTemplate.personas.map((agent, index) => ({
                 ...agent,
                 id: index + 1,
             }));
             setAgents(agentsWithId);
             setNextAgentNumber(agentsWithId.length + 1);
-            // If current selected Agent id is within all ids:
-            if (!(selectedAgentId && agentsWithId.map(a => a.id).includes(selectedAgentId))) {
+            if (agentsWithId.length > 0 && !selectedAgentId) {
                 setSelectedAgentId(agentsWithId[0].id);
-
             }
-        } else if (!ctx.data.currentTemplate && agents.length === 0) {
-            setAgents(mockAgents);
-            setSelectedAgentId(mockAgents[0].id);
-        } else if (ctx.data.currentTemplate && ctx.data.currentTemplate.personas.length === 0) {
-            setAgents([]);
-            setSelectedAgentId(null);
         }
     }, [ctx.data.currentTemplate]);
 
@@ -206,6 +114,8 @@ export const AgentsPage = () => {
         if (selectedAgentId) {
             const agent = agents.find(a => a.id === selectedAgentId);
             setLocalAgent(agent ? { ...agent } : null);
+        } else {
+            setLocalAgent(null);
         }
     }, [selectedAgentId, agents]);
 
@@ -256,9 +166,6 @@ export const AgentsPage = () => {
 
         const newAgent: apis.Agent & { id: number } = {
             id: newId,
-            curr_time: undefined,
-            curr_tile: undefined,
-            daily_plan_req: '',
             name: newName,
             first_name: 'Agent',
             last_name: `${newId}`,
@@ -268,30 +175,7 @@ export const AgentsPage = () => {
             currently: '',
             lifestyle: '',
             living_area: '',
-            daily_req: [],
-            f_daily_schedule: [],
-            f_daily_schedule_hourly_org: [],
-            act_address: undefined,
-            act_start_time: undefined,
-            act_duration: undefined,
-            act_description: undefined,
-            act_pronunciatio: undefined,
-            act_event: [newName, undefined, undefined],
-            act_obj_description: undefined,
-            act_obj_pronunciatio: undefined,
-            act_obj_event: [undefined, undefined, undefined],
-            chatting_with: undefined,
-            chat: undefined,
-            chatting_with_buffer: {},
-            chatting_end_time: undefined,
-            act_path_set: false,
-            planned_path: [],
-            // Additional fields from your original mapping
-            plan: [],
-            memory: [],
-            bibliography: '',
-            // Add missing properties from Agent interface
-            ...agentDefaults
+            ...agentDefaults,
         };
 
         const updatedAgents = [...agents, newAgent];
@@ -344,46 +228,84 @@ export const AgentsPage = () => {
         });
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            setDescriptionFile(e.target.files[0]);
-            setDescriptionText(""); // Clear text input when file is selected
+            const file = e.target.files[0];
+            setDescriptionFile(file);
+            setDescriptionText("");
+            setFileContent("");
+
+            const extension = file.name.split('.').pop()?.toLowerCase();
+
+            try {
+                let text = "";
+                if (extension === 'txt') {
+                    text = await file.text();
+                } else if (extension === 'pdf') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                    const numPages = pdf.numPages;
+                    for (let i = 1; i <= numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        text += content.items.map((item: any) => item.str).join(' ');
+                    }
+                } else if (extension === 'docx') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({ arrayBuffer });
+                    text = result.value;
+                } else if (extension === 'doc') {
+                    console.error(".doc format is not supported. Please convert to .docx");
+                }
+                setFileContent(text);
+            } catch (error) {
+                console.error("Error parsing file:", error);
+            }
         }
     };
 
     const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setDescriptionText(e.target.value);
-        setDescriptionFile(null); // Clear file when text is entered
+        setDescriptionFile(null);
+        setFileContent("");
     };
 
-    const handleGenerateFromDescription = async () => {
-        if (!descriptionText && !descriptionFile) {
-            return; // Don't proceed if no input
+    const handleGetPlan = async () => {
+        const request = descriptionText || fileContent;
+        if (!request) {
+            return;
         }
-
         setIsGenerating(true);
-
         try {
-            // This is a placeholder for the actual API call
-            // TODO: Implement the actual API call when available
+            const scenario = ctx.data.currentTemplate?.meta.name || "a social simulation";
+            const plan = await apis.generateProfilesPlan(scenario, request, agentCountToGenerate);
+            setGenerationPlan(plan);
+        } catch (error) {
+            console.error("Error generating plan:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
-            // Simulate API call with a delay for now
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Mock response for demonstration
-            // const newAgents = [
-            // Mock data that would come from the API
-            // In reality, this would be returned from the API based on the description
-            // ];
-
-            // Process the API response here
-            // For now, we just close the dialog and reset states
+    const handleGenerateAgentsFromPlan = async () => {
+        if (!generationPlan) {
+            return;
+        }
+        setIsGenerating(true);
+        try {
+            const { profiles } = await apis.generateProfiles(generationPlan);
+            const newAgents = profiles.map((profile, index) => ({
+                ...profile,
+                id: nextAgentNumber + index,
+            }));
+            const updatedAgents = [...agents, ...newAgents];
+            setAgents(updatedAgents);
+            setNextAgentNumber(nextAgentNumber + newAgents.length);
+            updateContextPersonas(updatedAgents);
             setIsGenerateDialogOpen(false);
             setDescriptionText("");
             setDescriptionFile(null);
-
-            // TODO: Add the generated agents to the agents list
-
+            setGenerationPlan(null);
         } catch (error) {
             console.error("Error generating agents:", error);
         } finally {
@@ -395,7 +317,7 @@ export const AgentsPage = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-100" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
-            <Navbar />
+            <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background" />
             <div className="container mx-auto">
                 <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 3.</span>自定义智能体</h2>
 
@@ -465,59 +387,110 @@ export const AgentsPage = () => {
                                     </Button>
 
                                     {/* 按照描述生成对话框 */}
-                                    <AlertDialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
-                                        <AlertDialogContent className="max-w-md">
+                                    <AlertDialog open={isGenerateDialogOpen} onOpenChange={(isOpen) => {
+                                        setIsGenerateDialogOpen(isOpen);
+                                        if (!isOpen) {
+                                            setGenerationPlan(null);
+                                            setDescriptionFile(null);
+                                            setDescriptionText("");
+                                        }
+                                    }}>
+                                        <AlertDialogContent className="max-w-2xl">
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>通过描述生成智能体</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    请输入描述文本或上传文件，系统将根据您的描述生成相应的智能体。
+                                                    {generationPlan ? "请编辑生成计划，然后点击“生成智能体”" : "请输入描述文本或上传文件，系统将根据您的描述生成相应的智能体。"}
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
-                                            <div className="space-y-4 my-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">文本描述</label>
-                                                    <AutoResizeTextarea
-                                                        value={descriptionText}
-                                                        onChange={handleTextChange}
-                                                        placeholder="请描述您想要生成的智能体..."
-                                                        className="w-full min-h-[100px] p-2 border rounded-md"
-                                                        disabled={isGenerating}
-                                                    />
+                                            {generationPlan ? (
+                                                <div className="space-y-4 my-4">
+                                                    {Object.entries(generationPlan).map(([key, value]) => (
+                                                        <div key={key}>
+                                                            <label className="block text-sm font-medium text-gray-700 mb-1">{key}</label>
+                                                            <AutoResizeTextarea
+                                                                value={value}
+                                                                onChange={(e) => setGenerationPlan({ ...generationPlan, [key]: e.target.value })}
+                                                                className="w-full min-h-[80px] p-2 border rounded-md"
+                                                                disabled={isGenerating}
+                                                            />
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">或者上传文件</label>
-                                                    <div className="flex items-center space-x-2">
+                                            ) : (
+                                                <div className="space-y-4 my-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">生成数量</label>
                                                         <Input
-                                                            type="file"
-                                                            onChange={handleFileChange}
-                                                            className="flex-1"
+                                                            type="number"
+                                                            value={agentCountToGenerate}
+                                                            onChange={(e) => setAgentCountToGenerate(parseInt(e.target.value, 10) || 1)}
+                                                            className="w-full"
+                                                            min="1"
                                                             disabled={isGenerating}
-                                                            accept=".txt,.pdf,.doc,.docx"
                                                         />
                                                     </div>
-                                                    {descriptionFile && (
-                                                        <p className="text-sm text-gray-600 mt-1">
-                                                            已选择文件: {descriptionFile.name}
-                                                        </p>
-                                                    )}
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">文本描述</label>
+                                                        <AutoResizeTextarea
+                                                            value={descriptionText}
+                                                            onChange={handleTextChange}
+                                                            placeholder="请描述您想要生成的智能体..."
+                                                            className="w-full min-h-[100px] p-2 border rounded-md"
+                                                            disabled={isGenerating}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">或者上传文件</label>
+                                                        <div className="flex items-center space-x-2">
+                                                            <Input
+                                                                type="file"
+                                                                onChange={handleFileChange}
+                                                                className="flex-1"
+                                                                disabled={isGenerating}
+                                                                accept=".txt,.pdf,.doc,.docx"
+                                                            />
+                                                        </div>
+                                                        {descriptionFile && (
+                                                            <p className="text-sm text-gray-600 mt-1">
+                                                                已选择文件: {descriptionFile.name}
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel disabled={isGenerating}>取消</AlertDialogCancel>
-                                                <Button
-                                                    onClick={handleGenerateFromDescription}
-                                                    disabled={isGenerating || (!descriptionText && !descriptionFile)}
-                                                    className={`${isGenerating ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
-                                                >
-                                                    {isGenerating ? (
-                                                        <>
-                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                            生成中...
-                                                        </>
-                                                    ) : (
-                                                        "确认"
-                                                    )}
-                                                </Button>
+                                                {generationPlan ? (
+                                                    <Button
+                                                        onClick={handleGenerateAgentsFromPlan}
+                                                        disabled={isGenerating || !generationPlan}
+                                                        className={`${isGenerating ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                                                    >
+                                                        {isGenerating ? (
+                                                            <>
+                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                生成中...
+                                                            </>
+                                                        ) : (
+                                                            "生成智能体"
+                                                        )}
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        onClick={handleGetPlan}
+                                                        disabled={isGenerating || (!descriptionText && !descriptionFile)}
+                                                        className={`${isGenerating ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+                                                    >
+                                                        {isGenerating ? (
+                                                            <>
+                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                生成中...
+                                                            </>
+                                                        ) : (
+                                                            "获取计划"
+                                                        )}
+                                                    </Button>
+                                                )}
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
@@ -574,7 +547,7 @@ export const AgentsPage = () => {
                                         </div>
                                         <AutoResizeTextarea
                                             name="daily_plan_req"
-                                            value={localAgent.daily_plan_req}
+                                            value={localAgent.daily_plan_req || ''}
                                             onChange={handleInputChange}
                                             placeholder="Daily Plan Requirements"
                                             className={`w-full min-h-[80px] ${errors[localAgent.id]?.daily_plan_req ? 'border-red-500' : ''}`}

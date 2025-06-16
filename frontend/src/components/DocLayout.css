@@ -1,0 +1,92 @@
+/* frontend/src/components/DocLayout.css */
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  color: #1a202c; /* A darker shade for headings */
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+}
+
+.prose h1 {
+  font-size: 2.25rem; /* 36px */
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.prose h2 {
+  font-size: 1.875rem; /* 30px */
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.4rem;
+}
+
+.prose h3 {
+  font-size: 1.5rem; /* 24px */
+}
+
+.prose p,
+.prose ul,
+.prose ol,
+.prose blockquote {
+  color: #2d3748; /* A darker color for body text */
+  font-size: 1rem; /* 16px */
+  line-height: 1.7;
+}
+
+.prose ul,
+.prose ol {
+  list-style-position: inside;
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose img {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+.prose a {
+  color: #3182ce;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+.prose a:hover {
+  color: #2b6cb0;
+  text-decoration: underline;
+}
+
+.prose code {
+  background-color: #edf2f7;
+  color: #2d3748;
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  border-radius: 3px;
+}
+
+.prose pre {
+  background-color: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  font-size: 100%;
+}

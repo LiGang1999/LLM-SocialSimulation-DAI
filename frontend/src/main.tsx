@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import DashboardPage from './pages/dashboard.tsx';
@@ -14,10 +14,14 @@ import { InteractPage } from './pages/interact.tsx';
 import { SimContextProvider } from './SimContext.tsx';
 import { LoginPage } from './pages/login.tsx';
 import { RegisterPage } from './pages/register.tsx';
+import { ProviderConfigPage } from './pages/ProviderConfig.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import AdminPage from './pages/AdminPage.tsx'; // Import AdminPage
 import ProtectedRoute from './components/ProtectedRoute.tsx'; // Corrected import name
 import SSOLogin from './pages/ssologin.tsx';
+import DocPage from './pages/DocPage.tsx';
+import docRoutes from 'socialsim-docs-routes';
+
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -47,6 +51,11 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/llmconfig" element={
               <ProtectedRoute>
                 <ConfigPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <ProviderConfigPage />
               </ProtectedRoute>
             } />
             <Route path="/events" element={
@@ -79,6 +88,15 @@ createRoot(document.getElementById('root')!).render(
                 <AdminPage />
               </ProtectedRoute>
             } />
+            <Route path="/doc/*" element={<DocPage />}>
+              {docRoutes.map(({ path, Component }) => (
+                <Route key={path} path={path} element={
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <Component />
+                  </Suspense>
+                } />
+              ))}
+            </Route>
           </Routes>
         </BrowserRouter>
       </AuthProvider>

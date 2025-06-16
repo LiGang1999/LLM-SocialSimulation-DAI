@@ -6,7 +6,12 @@ export interface ChatMessage {
     sender: string;
     role: string;
     type: 'public' | 'private';
-    content: string;
+    content: string | {
+        reasoning: string;
+        execution: string;
+        emoji: string;
+        Emotion: string;
+    };
     timestamp: string;
     subject: string;
     // avatar: string;
@@ -20,7 +25,7 @@ export interface SimContext {
     allTemplates: apis.TemplateListItem[] | undefined;
     currentTemplate: apis.Template | undefined;
     agents: { [agentName: string]: apis.Agent },
-    llmConfig: apis.LLMConfig | undefined;
+    llmProviders: Record<string, apis.LLMConfig> | undefined;
     initialRounds: number | undefined;
     publicMessages: ChatMessage[];  // Add public messages
     privateMessages: { [agentName: string]: ChatMessage[] };  // Add private messages by agent
@@ -44,7 +49,7 @@ export const SimContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         agents: {},
         allTemplates: [],
         currentTemplate: undefined,
-        llmConfig: undefined,
+        llmProviders: undefined,
         initialRounds: 0,
         publicMessages: [],
         privateMessages: {},

@@ -60,7 +60,7 @@ def start_servers(quiet, dev_mode, compile=False):
     back_port = int(os.environ.get("BACKEND_PORT", 10069))
 
     # Storage configuration
-    storage_path = os.environ.get("STORAGE_PATH", "./reverie/storage").strip('"')
+    storage_path = os.environ.get("STORAGE_PATH", "./storage").strip('"')
 
     # Log environment variables for debugging
     print(f"{COLORS['manage']} Using network configuration:")
@@ -91,11 +91,11 @@ def start_servers(quiet, dev_mode, compile=False):
         frontend_command = "bun run dev --host"
 
     # Backend command now uses environment-specified parameters
-    backend_command = "python3 reverie/backend_server/server.py"
+    backend_command = f"python3 -m uvicorn backend_server.server:app --port {back_port}"
 
     # Add dev mode flag if specified
     if dev_mode:
-        backend_command += " --dev"
+        backend_command += " --reload"
 
     commands = [
         {
@@ -134,7 +134,6 @@ def start_servers(quiet, dev_mode, compile=False):
 
 
 def main(quiet, dev_mode, compile):
-
     threads = start_servers(quiet, dev_mode, compile)
 
     try:

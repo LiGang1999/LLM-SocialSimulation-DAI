@@ -6,10 +6,11 @@ import re
 import time
 
 import openai
-from utils.config import  override_gpt_param, override_model
-from utils.logs import L
 from jinja2 import Template
-from utils import thread_local
+
+from backend_server.utils import ctx
+from backend_server.utils.config import override_gpt_param, override_model
+from backend_server.utils.logs import L
 
 default_llm_config = override_gpt_param
 
@@ -135,9 +136,6 @@ def llm_request(
     # Validate the necessary fields
     if "model" not in llm_config or "chat" not in llm_config:
         raise ValueError("The 'model' and 'chat' fields are required in llm_config.")
-
-    r = thread_local.reverie
-    r.interested = True
 
     # Provide default values for optional fields
     temperature = llm_config.get("temperature", 1.0)  # Default temperature
@@ -422,7 +420,7 @@ def llm_function(
                     largest_json = extract_largest_json(result)
                     json_result = json.loads(largest_json)
                     return types_match(json_result, example_result)
-                except:
+                except Exception:
                     return False
 
             def default_failsafe_fn(result, kwargs):

@@ -130,7 +130,7 @@ back_port: <backend port>
 
 ### LLM Configuration
 
-Copy `config_template.py` to `config.py` under `reverie/backend_server/utils`. Use the following template and replace the placeholders with your actual API keys and preferences:
+Copy `config_template.py` to `config.py` under `backend_server/utils`. Use the following template and replace the placeholders with your actual API keys and preferences:
 
 ```python
 openai_api_base = "https://api.openai.com/v1"
@@ -162,7 +162,7 @@ Use `python start.py --help` for additional options.
 3. If you want to run it directy in your terminal:
 
 ```bash
-cd reverie/backend_server
+cd backend_server
 python reverie.py
 ```
 

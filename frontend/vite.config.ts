@@ -1,7 +1,8 @@
 import { defineConfig, UserConfig } from 'vite'
 import path from "path"
-import react from '@vitejs/plugin-react'
-
+import react from '@vitejs/plugin-react-oxc'
+import mdx from '@mdx-js/rollup'
+import customDocPlugin from "./vite-plugin-socialsim-docs"
 
 const LISTEN_PREFIX = process.env.LISTEN_PREFIX;
 const API_PREFIX = `${LISTEN_PREFIX}/api`
@@ -11,10 +12,15 @@ const config: UserConfig = {
   define: {
     'process.env': process.env
   },
-  plugins: [react()],
+  plugins: [
+    customDocPlugin(),
+    mdx(),
+    react()
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "#": path.resolve(__dirname, "./src/doc"),
     },
   },
   server: {
@@ -25,6 +31,9 @@ const config: UserConfig = {
   },
   preview: {
     port: parseInt(process.env.LISTEN_PORT || '9080')
+  },
+  build: {
+    sourcemap: false
   }
 }
 
@@ -32,6 +41,7 @@ if (config.server?.proxy) {
   config.server.proxy[API_PREFIX] = {
     target: `http://localhost:${process.env.BACKEND_PORT || '9081'}`,
     rewrite: (path) => path.replace(new RegExp(`^${LISTEN_PREFIX}`), ''),
+    rewriteWsOrigin: true,
     changeOrigin: true,
     ws: true
   }

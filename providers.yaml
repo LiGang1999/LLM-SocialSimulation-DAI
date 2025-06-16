@@ -1,0 +1,27 @@
+chat:
+  model: gpt-3.5-turbo
+  base_url: ${LLM_BASE_URL}
+  api_key: ${LLM_API_KEY}
+  temperature: 1.0
+  max_tokens: 512
+  top_p: 0.7
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+  stream: false
+  kind: chat
+completion:
+  model: gpt-3.5-turbo-instruct
+  base_url: ${LLM_BASE_URL}
+  api_key: ${LLM_API_KEY}
+  temperature: 1.0
+  max_tokens: 512
+  top_p: 0.7
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+  stream: false
+  kind: completion
+embedding:
+  model: text-embedding-ada-002
+  base_url: ${LLM_BASE_URL}
+  api_key: ${LLM_API_KEY}
+  kind: embedding

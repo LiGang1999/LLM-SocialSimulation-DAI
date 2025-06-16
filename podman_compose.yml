@@ -28,7 +28,7 @@ services:
       - LLM_BASE_URL="https://api.example.com"  # Base URL of LLM service
       - LLM_MODEL_NAME="your-model-v1"          # Default model name
     volumes:
-      - ./config/custom_config.py:/app/reverie/backend_server/utils/config.py
+      - ./config/custom_config.py:/app/backend_server/utils/config.py
         # Mounts your local config file to container's internal path
       - ./storage_data:/app/storage
         # Mounts local storage directory to container's storage path

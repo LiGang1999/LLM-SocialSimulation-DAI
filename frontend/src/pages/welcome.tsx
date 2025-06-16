@@ -61,7 +61,7 @@ export const WelcomePage = () => {
             style={{ backgroundImage: `url(${backgroundImage})` }}
         >
             <div className="absolute inset-0 bg-black opacity-30"></div>
-            <Navbar ></Navbar>
+            <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background" />
             {/* <div className="container w-full h-full mx-auto py-20 px-4 flex flex-col justify-between"> */}
             <div className="container w-full flex-grow mx-auto py-20 px-4 flex flex-col justify-center">
                 <div className="flex flex-col md:flex-row gap-8">

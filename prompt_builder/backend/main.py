@@ -1,15 +1,17 @@
-import os
 import json
-from typing import List, Dict, Any
+import os
+from typing import Any, Dict, List
+
 import aiohttp
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from utils.llm_function import *
+
+from backend_server.utils.llm_function import *
 
 app = FastAPI()
 
-templates_storage_dir = "../../reverie/backend_server/prompt_templates"
+templates_storage_dir = "../../backend_server/prompt_templates"
 
 # Add CORS middleware
 app.add_middleware(
@@ -89,22 +91,19 @@ async def get_prompt_template(template_name: str):
 
 @app.post("/generate_prompt", response_model=GeneratePromptResponse)
 async def generate_prompt(data: GeneratePromptRequest):
-    generated_system_prompt = insert_prompt_args(
-        data.system_prompt, data.parameters
-    ) + example_output_format({}, {}, data.example)
+    generated_system_prompt = insert_prompt_args(data.system_prompt, data.parameters) + example_output_format(
+        {}, {}, data.example
+    )
     generated_user_prompt = insert_prompt_args(data.user_prompt, data.parameters)
     return {"system": generated_system_prompt, "user": generated_user_prompt}
 
 
 @app.post("/generate_response", response_model=GenerateResponse)
 async def generate_response(data: GenerateResponseRequest):
-
     params = data.parameters
 
     user_prompt = insert_prompt_args(data.user_prompt, params)
-    system_prompt = insert_prompt_args(data.system_prompt, params) + example_output_format(
-        {}, {}, data.example
-    )
+    system_prompt = insert_prompt_args(data.system_prompt, params) + example_output_format({}, {}, data.example)
 
     def dummy_validate_fn(result, kwargs):
         return True

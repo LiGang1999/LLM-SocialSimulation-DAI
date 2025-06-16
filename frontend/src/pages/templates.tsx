@@ -147,7 +147,7 @@ export const TemplatePage = () => {
 
     return (
         <div className="flex flex-col bg-gray-100 min-h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
-            <Navbar />
+            <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background" />
             <main className="container flex-grow mx-auto">
 
                 <h2 className="text-5xl font-bold my-12 text-left text-black-800"><span className="font-mono">Step 1.</span>选择仿真模板</h2>
