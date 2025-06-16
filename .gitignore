@@ -4,6 +4,7 @@ storage/user_templates
 storage/user_templates/*
 reverie/storage/user_templates
 reverie/storage/user_templates/*
+backend_server
 storage/*
 static_dirs/*
 !storage/public_templates
