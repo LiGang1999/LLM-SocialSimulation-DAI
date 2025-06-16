@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { X } from "lucide-react";
 import {
     NavigationMenu,
     NavigationMenuItem,
@@ -32,7 +33,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { apis } from "@/lib/api"; // Import apis
 
 const github_link = 'https://github.com/ZJUCSS/social-experiment-platform'
-const docs_link = '/doc/getting_started'
+const docs_link = '/doc/quickstart'
 
 interface RouteProps {
     href: string;
@@ -57,7 +58,7 @@ const routeList: RouteProps[] = [
         label: "关于",
     },
     {
-        href: "#faq",
+        href: "/doc/faq",
         label: "FAQ",
     },
 ];
@@ -71,6 +72,21 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
     const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
     const [feedbackText, setFeedbackText] = useState<string>("");
     const { user, isAuthenticated, logout } = useAuth();
+    const [showBanner, setShowBanner] = useState(false);
+
+    useEffect(() => {
+        const bannerClosed = sessionStorage.getItem('bannerClosed');
+        if (isAuthenticated && !bannerClosed) {
+            setShowBanner(true);
+        } else {
+            setShowBanner(false);
+        }
+    }, [isAuthenticated]);
+
+    const handleCloseBanner = () => {
+        sessionStorage.setItem('bannerClosed', 'true');
+        setShowBanner(false);
+    };
 
     const handleFeedbackSubmit = async () => {
         if (!feedbackText.trim()) {
@@ -102,7 +118,7 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
             // and throws it, so we can catch it here for the alert.
             // Check if error has a response and a message property for more specific error messages
             let errorMessage = "提交反馈时发生错误。";
-            if (error && typeof error === 'object' && 'response' in error && error.response && 
+            if (error && typeof error === 'object' && 'response' in error && error.response &&
                 typeof error.response === 'object' && 'data' in error.response && error.response.data &&
                 typeof error.response.data === 'object' && 'message' in error.response.data) {
                 errorMessage = `提交失败: ${error.response.data.message}`;
@@ -248,7 +264,7 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
                                 {route.label}
                             </Link>
                         ))}
-                         {isAuthenticated && user?.is_admin && (
+                        {isAuthenticated && user?.is_admin && (
                             <Link
                                 rel="noreferrer noopener"
                                 to="/admin"
@@ -359,6 +375,14 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
                     </div>
                 </NavigationMenuList>
             </NavigationMenu>
+            {showBanner && (
+                <div className="bg-blue-100 border-b border-blue-200 text-blue-800 text-center p-2 text-sm relative">
+                    为了使用本平台，请先前往<Link to="/profile" className="font-bold underline">个人主页</Link>配置您的 Providers
+                    <button onClick={handleCloseBanner} className="absolute top-1/2 right-2 -translate-y-1/2">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+            )}
         </header>
     );
 };

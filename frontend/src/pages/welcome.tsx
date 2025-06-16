@@ -134,7 +134,7 @@ export const WelcomePage = () => {
 
                     </div>
                 </div>
-
+{/* 
                 <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4">
                     <h3 className="text-lg font-semibold mb-2 font-serif">References</h3>
                     <ol className="list-decimal list-inside space-y-1 font-serif text-sm text-gray-300">
@@ -151,7 +151,7 @@ export const WelcomePage = () => {
                             <span className="italic">ACM Computing Surveys</span>, 57(3), 1-35.
                         </li>
                     </ol>
-                </div>
+                </div> */}
 
 
 

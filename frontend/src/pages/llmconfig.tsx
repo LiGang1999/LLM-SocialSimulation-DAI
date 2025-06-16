@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { RefreshCw } from 'lucide-react';
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
@@ -24,64 +25,68 @@ export const ConfigPage = () => {
     const ctx = useSimContext();
     const [providers, setProviders] = useState<ProviderConfigs>({});
     const [openCollapsibles, setOpenCollapsibles] = useState<Record<string, boolean>>({});
+    const [isFetching, setIsFetching] = useState(false);
+
+    const fetchUserProviders = useCallback(async () => {
+        setIsFetching(true);
+        try {
+            const userProviders = await apis.getUserProviders();
+            const defaultProviders: ProviderConfigs = {
+                chat: {
+                    kind: "chat",
+                    base_url: "",
+                    api_key: "",
+                    model: "",
+                    temperature: 1.0,
+                    max_tokens: 4096,
+                    top_p: 0.7,
+                    frequency_penalty: 0.0,
+                    presence_penalty: 0.0,
+                    stream: false,
+                },
+                embedding: {
+                    kind: "embedding",
+                    base_url: "",
+                    api_key: "",
+                    model: "",
+                    temperature: 1.0,
+                    max_tokens: 4096,
+                    top_p: 0.7,
+                    frequency_penalty: 0.0,
+                    presence_penalty: 0.0,
+                    stream: false,
+                },
+                completion: {
+                    kind: "completion",
+                    base_url: "",
+                    api_key: "",
+                    model: "",
+                    temperature: 1.0,
+                    max_tokens: 4096,
+                    top_p: 0.7,
+                    frequency_penalty: 0.0,
+                    presence_penalty: 0.0,
+                    stream: false,
+                },
+            };
+
+            const providersData = { ...defaultProviders, ...userProviders };
+            setProviders(providersData);
+            ctx.setData({ ...ctx.data, llmProviders: providersData });
+            // Initialize all collapsible sections to be closed
+            const initialOpenState = Object.keys(providersData).reduce((acc, key) => {
+                acc[key] = false;
+                return acc;
+            }, {} as Record<string, boolean>);
+            setOpenCollapsibles(initialOpenState);
+        } catch (err) {
+            console.error("Failed to fetch user providers:", err);
+        } finally {
+            setIsFetching(false);
+        }
+    }, [ctx]);
 
     useEffect(() => {
-        const fetchUserProviders = async () => {
-            try {
-                const userProviders = await apis.getUserProviders();
-                const defaultProviders: ProviderConfigs = {
-                    chat: {
-                        kind: "chat",
-                        base_url: "",
-                        api_key: "",
-                        model: "",
-                        temperature: 1.0,
-                        max_tokens: 512,
-                        top_p: 0.7,
-                        frequency_penalty: 0.0,
-                        presence_penalty: 0.0,
-                        stream: false,
-                    },
-                    embedding: {
-                        kind: "embedding",
-                        base_url: "",
-                        api_key: "",
-                        model: "",
-                        temperature: 1.0,
-                        max_tokens: 512,
-                        top_p: 0.7,
-                        frequency_penalty: 0.0,
-                        presence_penalty: 0.0,
-                        stream: false,
-                    },
-                    completion: {
-                        kind: "completion",
-                        base_url: "",
-                        api_key: "",
-                        model: "",
-                        temperature: 1.0,
-                        max_tokens: 512,
-                        top_p: 0.7,
-                        frequency_penalty: 0.0,
-                        presence_penalty: 0.0,
-                        stream: false,
-                    },
-                };
-
-                const providersData = { ...defaultProviders, ...userProviders };
-                setProviders(providersData);
-                ctx.setData({ ...ctx.data, llmProviders: providersData });
-                // Initialize all collapsible sections to be closed
-                const initialOpenState = Object.keys(providersData).reduce((acc, key) => {
-                    acc[key] = false;
-                    return acc;
-                }, {} as Record<string, boolean>);
-                setOpenCollapsibles(initialOpenState);
-            } catch (err) {
-                console.error("Failed to fetch user providers:", err);
-            }
-        };
-
         if (ctx.data.llmProviders && Object.keys(ctx.data.llmProviders).length > 0) {
             setProviders(ctx.data.llmProviders);
             const initialOpenState = Object.keys(ctx.data.llmProviders).reduce((acc, key) => {
@@ -92,7 +97,7 @@ export const ConfigPage = () => {
         } else {
             fetchUserProviders();
         }
-    }, []);
+    }, [fetchUserProviders]);
 
     const updateProviderConfig = (usage: string, key: keyof LLMConfig, value: any) => {
         const newProviders = {
@@ -136,7 +141,13 @@ export const ConfigPage = () => {
         <div className="flex flex-col min-h-screen" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
             <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background" />
             <main className="flex-grow w-full container mx-auto">
-                <h2 className="text-5xl font-bold my-12 text-gray-900"><span className="font-mono">Step 4.</span>仿真参数配置</h2>
+                <div className="flex items-center my-12">
+                    <h2 className="text-5xl font-bold text-gray-900"><span className="font-mono">Step 4.</span>仿真参数配置</h2>
+                    <Button onClick={fetchUserProviders} disabled={isFetching} className="ml-4">
+                        <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+                        刷新
+                    </Button>
+                </div>
 
                 <DescriptionCard
                     title="配置您的专属AI模型"
