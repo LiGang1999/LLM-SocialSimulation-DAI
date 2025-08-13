@@ -91,8 +91,9 @@ async def sso_login(sso_data: SSOLoginRequest, db: AsyncSession = Depends(get_db
     # Check if timestamp is not too old (e.g., within 5 minutes)
     try:
         request_time = int(sso_data.time)
-        current_time = int(time.time())
-        if abs(current_time - request_time) > 300:  # 5 minutes
+        current_time = int(time.time() * 1000)
+        print(f"req_time: {request_time}, current_time: {current_time}")
+        if abs(current_time - request_time) > 300 * 1000:  # 5 minutes
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="SSO request expired",

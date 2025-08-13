@@ -273,6 +273,8 @@ async def start(
             reverie_config,
         )
 
+        L.debug(f"starting simulation. providers: {sim_data.providers}")
+
         # Start a new thread to run the open_server method
         thread = threading.Thread(
             target=reverie_instance.reverie.open_server,

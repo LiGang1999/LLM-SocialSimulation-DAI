@@ -1,4 +1,12 @@
+{
+	admin :2020
+}
+
 :{$LISTEN_PORT} {
+	log {
+		level debug
+	}
+
 	# reverse proxy for api
 	handle {$LISTEN_PREFIX}/api/* {
 		uri strip_prefix {$LISTEN_PREFIX}
@@ -9,7 +17,7 @@
 	handle {$LISTEN_PREFIX}/* {
 		root * ./dist
 		uri strip_prefix {$LISTEN_PREFIX}
-		try_files {path} /index.html
+		try_files {path}/index.html
 		file_server
 	}
 }
