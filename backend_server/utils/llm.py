@@ -37,6 +37,9 @@ template_storage_dir = os.path.join(dir_path, "../prompt_templates")
 
 
 def get_llm_config(usage: str = "chat") -> LLMConfig:
+    if hasattr(ctx, "user") and ctx.user and getattr(ctx.user, "institution", None) == "zjgsu":
+        L.debug("User from zjgsu detected, using default LLM config.")
+        return default_llm_config[usage]
     if enable_default_llm:
         return default_llm_config[usage]
     else:
