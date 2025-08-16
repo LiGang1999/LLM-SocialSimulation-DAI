@@ -122,3 +122,8 @@ node_modules
 analysis
 
 prompt_builder/backend/utils/config.py
+*.tar.gz
+run_backend.py
+run_backend.dist
+run_backend.build
+run_backend.bin
