@@ -3,11 +3,15 @@ import os
 from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
+from backend_server.database import User as DBUser
+from backend_server.database import get_db
 from backend_server.server.auth import get_current_active_user, get_current_user
 from backend_server.server.routes.simulation import is_template_public, user_owns_template
 from backend_server.server.schemas import User
-from backend_server.utils import config
+from backend_server.utils import config, get_user_hash
 from backend_server.utils.logs import L
 
 router = APIRouter()
@@ -112,6 +116,65 @@ async def delete_template(sim_code: str, current_user: User = Depends(get_curren
             raise HTTPException(status_code=404, detail="Template not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/admin/list_templates")
+async def admin_list_templates(
+    current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+):
+    """List all user templates for admin"""
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="You don't have permission to access this resource")
+
+    # Get all users from DB and create a hash -> username mapping
+    result = await db.execute(select(DBUser))
+    all_users = result.scalars().all()
+    hash_to_username = {get_user_hash(user.username): user.username for user in all_users}
+
+    user_templates_path = os.path.join(STORAGE_PATH, "user_templates")
+    all_templates = []
+
+    if os.path.exists(user_templates_path):
+        user_hashes = [
+            h for h in os.listdir(user_templates_path) if os.path.isdir(os.path.join(user_templates_path, h))
+        ]
+        for user_hash in user_hashes:
+            username = hash_to_username.get(user_hash, "Unknown")
+            user_path = os.path.join(user_templates_path, user_hash)
+            template_dirs = [d for d in os.listdir(user_path) if os.path.isdir(os.path.join(user_path, d))]
+            for template_dir in template_dirs:
+                env_path = os.path.join(user_path, template_dir)
+                template_meta_file = os.path.join(env_path, "reverie", "meta.json")
+                template_meta = load_json_file(template_meta_file)
+
+                if not template_meta:
+                    continue
+
+                # Load events
+                events_file = os.path.join(env_path, "reverie", "events.json")
+                events = load_json_file(events_file)
+                
+                workflow = template_meta.get("workflow", {})
+
+                try:
+                    # Get modification time of the meta.json file
+                    mtime = os.path.getmtime(template_meta_file)
+                    
+                    full_template_data = {
+                        "meta": template_meta,
+                        "events": events,
+                        "workflow": workflow,
+                        "username": username,
+                        "creation_time": mtime,
+                    }
+                    all_templates.append(full_template_data)
+                except OSError as e:
+                    L.error(f"Could not get modification time for {template_meta_file}: {e}")
+
+    # Sort templates by creation time, from newest to oldest
+    all_templates.sort(key=lambda x: x.get("creation_time", 0), reverse=True)
+
+    return all_templates
 
 
 @router.get("/fetch_template")

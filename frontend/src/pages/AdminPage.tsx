@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/Navbar'; // Assuming Navbar is in components
-import { apis, FeedbackAdminItem } from '@/lib/api';
+import { apis, FeedbackAdminItem, AdminTemplate, User } from '@/lib/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -11,11 +11,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { ArrowUpDown } from 'lucide-react';
+
+type TemplateSortKey = keyof AdminTemplate | 'name' | 'username' | 'description' | 'creation_time' | 'agent_count';
+type UserSortKey = keyof User | 'username' | 'full_name' | 'email' | 'institution';
 
 const AdminPage: React.FC = () => {
   const [feedbacks, setFeedbacks] = useState<FeedbackAdminItem[]>([]);
+  const [templates, setTemplates] = useState<AdminTemplate[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [templatesLoading, setTemplatesLoading] = useState<boolean>(true);
+  const [templatesError, setTemplatesError] = useState<string | null>(null);
+  const [usersLoading, setUsersLoading] = useState<boolean>(true);
+  const [usersError, setUsersError] = useState<string | null>(null);
+  const [templateSortKey, setTemplateSortKey] = useState<TemplateSortKey>('creation_time');
+  const [templateSortOrder, setTemplateSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [userSortKey, setUserSortKey] = useState<UserSortKey>('username');
+  const [userSortOrder, setUserSortOrder] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
@@ -32,8 +47,117 @@ const AdminPage: React.FC = () => {
       }
     };
 
+    const fetchTemplates = async () => {
+      try {
+        setTemplatesLoading(true);
+        const data = await apis.getAllUserTemplates();
+        setTemplates(data);
+        setTemplatesError(null);
+      } catch (err) {
+        setTemplatesError('获取用户模板列表失败。请稍后再试。');
+        console.error(err);
+      } finally {
+        setTemplatesLoading(false);
+      }
+    };
+
+    const fetchUsers = async () => {
+      try {
+        setUsersLoading(true);
+        const data = await apis.getAllUsers();
+        setUsers(data);
+        setUsersError(null);
+      } catch (err) {
+        setUsersError('获取用户列表失败。请稍后再试。');
+        console.error(err);
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+
     fetchFeedbacks();
+    fetchTemplates();
+    fetchUsers();
   }, []);
+
+  const handleRefreshTemplates = async () => {
+    try {
+      setTemplatesLoading(true);
+      const data = await apis.getAllUserTemplates();
+      setTemplates(data);
+      setTemplatesError(null);
+    } catch (err) {
+      setTemplatesError('获取用户模板列表失败。请稍后再试。');
+      console.error(err);
+    } finally {
+      setTemplatesLoading(false);
+    }
+  };
+
+  const handleTemplateSort = (key: TemplateSortKey) => {
+    if (templateSortKey === key) {
+      setTemplateSortOrder(templateSortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setTemplateSortKey(key);
+      setTemplateSortOrder('asc');
+    }
+  };
+
+  const handleUserSort = (key: UserSortKey) => {
+    if (userSortKey === key) {
+      setUserSortOrder(userSortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setUserSortKey(key);
+      setUserSortOrder('asc');
+    }
+  };
+
+  const sortedTemplates = [...templates].sort((a, b) => {
+    let aValue: any;
+    let bValue: any;
+
+    if (templateSortKey === 'name' || templateSortKey === 'description') {
+      aValue = a.meta[templateSortKey];
+      bValue = b.meta[templateSortKey];
+    } else if (templateSortKey === 'agent_count') {
+        aValue = a.meta.persona_names.length;
+        bValue = b.meta.persona_names.length;
+    } 
+    else {
+      aValue = a[templateSortKey as keyof AdminTemplate];
+      bValue = b[templateSortKey as keyof AdminTemplate];
+    }
+
+    if (aValue < bValue) {
+      return templateSortOrder === 'asc' ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return templateSortOrder === 'asc' ? 1 : -1;
+    }
+    return 0;
+  });
+
+  const sortedUsers = [...users].sort((a, b) => {
+    const aValue = a[userSortKey as keyof User] || '';
+    const bValue = b[userSortKey as keyof User] || '';
+
+    if (aValue < bValue) {
+      return userSortOrder === 'asc' ? -1 : 1;
+    }
+    if (aValue > bValue) {
+      return userSortOrder === 'asc' ? 1 : -1;
+    }
+    return 0;
+  });
+
+  const formatAgentNames = (names: string[]) => {
+    const max_shown = 3;
+    if (names.length <= max_shown) {
+      return names.join(', ');
+    }
+    const shown_names = names.slice(0, max_shown).join(', ');
+    return `${shown_names}, and ${names.length - max_shown} more...`;
+  };
 
   return (
     <>
@@ -42,13 +166,14 @@ const AdminPage: React.FC = () => {
         <h1 className="text-3xl font-bold mb-6 text-center">管理后台</h1>
         
         <Tabs defaultValue="feedbacks" className="w-full">
-          <TabsList className="grid w-full grid-cols-1 mb-4"> {/* Adjust grid-cols as more tabs are added */}
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="feedbacks">用户反馈</TabsTrigger>
-            {/* Add more TabsTrigger here for other admin sections */}
+            <TabsTrigger value="templates">用户模板</TabsTrigger>
+            <TabsTrigger value="users">用户管理</TabsTrigger>
           </TabsList>
           <TabsContent value="feedbacks">
             <div className="rounded-md border">
-              <ScrollArea className="h-[600px]"> {/* Adjust height as needed */}
+              <ScrollArea className="h-[600px]">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -94,7 +219,152 @@ const AdminPage: React.FC = () => {
               </ScrollArea>
             </div>
           </TabsContent>
-          {/* Add more TabsContent here */}
+          <TabsContent value="templates">
+            <div className="flex justify-end mb-4">
+              <Button onClick={handleRefreshTemplates} disabled={templatesLoading}>
+                {templatesLoading ? '刷新中...' : '刷新'}
+              </Button>
+            </div>
+            <div className="rounded-md border">
+              <ScrollArea className="h-[600px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[200px]">
+                        <Button variant="ghost" onClick={() => handleTemplateSort('name')}>
+                          模板名称
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                      <TableHead className="w-[150px]">
+                        <Button variant="ghost" onClick={() => handleTemplateSort('username')}>
+                          用户名
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => handleTemplateSort('description')}>
+                          描述
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                      <TableHead className="w-[200px]">
+                        <Button variant="ghost" onClick={() => handleTemplateSort('agent_count')}>
+                          智能体
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                      <TableHead className="w-[200px] text-right">
+                        <Button variant="ghost" onClick={() => handleTemplateSort('creation_time')}>
+                          创建时间
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {templatesLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
+                          正在加载用户模板...
+                        </TableCell>
+                      </TableRow>
+                    ) : templatesError ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center text-red-600">
+                          {templatesError}
+                        </TableCell>
+                      </TableRow>
+                    ) : sortedTemplates.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
+                          暂无用户模板。
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      sortedTemplates.map((template, index) => (
+                        <TableRow key={`${template.meta.template_sim_code}-${template.username}-${index}`}>
+                          <TableCell className="font-medium">{template.meta.name}</TableCell>
+                          <TableCell>{template.username}</TableCell>
+                          <TableCell className="whitespace-pre-wrap break-words">{template.meta.description}</TableCell>
+                          <TableCell>{formatAgentNames(template.meta.persona_names)}</TableCell>
+                          <TableCell className="text-right">
+                            {new Date(template.creation_time * 1000).toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </div>
+          </TabsContent>
+          <TabsContent value="users">
+            <div className="rounded-md border">
+              <ScrollArea className="h-[600px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => handleUserSort('username')}>
+                          用户名
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => handleUserSort('full_name')}>
+                          姓名
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => handleUserSort('email')}>
+                          邮箱
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" onClick={() => handleUserSort('institution')}>
+                          机构
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {usersLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center">
+                          正在加载用户数据...
+                        </TableCell>
+                      </TableRow>
+                    ) : usersError ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center text-red-600">
+                          {usersError}
+                        </TableCell>
+                      </TableRow>
+                    ) : sortedUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center">
+                          暂无用户记录。
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      sortedUsers.map((user) => (
+                        <TableRow key={user.username}>
+                          <TableCell>{user.username}</TableCell>
+                          <TableCell>{user.full_name}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.institution}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </>

@@ -225,12 +225,11 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
                                         Github
                                     </Link> */}
                                     <Button
-                                        variant="ghost"
                                         onClick={() => {
                                             setIsFeedbackOpen(true);
                                             setIsOpen(false);
                                         }}
-                                        className="w-[110px] border-[1px] bg-gray-50 border-white border-opacity-40"
+                                        className="w-[110px] border-[1px] bg-blue-500 text-white border-white border-opacity-40"
                                     >
                                         <MessageSquareText className="mr-2 w-5 h-5" />
                                         反馈
@@ -331,8 +330,7 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
                         <Dialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen}>
                             <DialogTrigger asChild>
                                 <Button
-                                    variant="ghost"
-                                    className={`border bg-white bg-opacity-20 border-opacity-40 border-white`}
+                                    className={`border bg-blue-500 text-white border-opacity-40 border-white`}
                                 >
                                     <MessageSquareText className="mr-2 w-5 h-5" />
                                     反馈

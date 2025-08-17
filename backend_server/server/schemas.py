@@ -32,6 +32,14 @@ class User(UserBase):
     is_sso: Optional[bool] = False
 
 
+class UserAdminResponse(User):
+    institution: str
+    phone: str
+
+    class Config:
+        from_attributes = True
+
+
 class UserInDB(User):
     hashed_password: str
 

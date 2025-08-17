@@ -7,17 +7,15 @@
 		level debug
 	}
 
-	# reverse proxy for api
-	handle {$LISTEN_PREFIX}/api/* {
-		uri strip_prefix {$LISTEN_PREFIX}
+	# API 反向代理
+	handle_path {$LISTEN_PREFIX}/api/* {
 		reverse_proxy localhost:{$BACKEND_PORT}
 	}
 
-	# static website
-	handle {$LISTEN_PREFIX}/* {
+	# 静态网站 (SPA)
+	handle_path {$LISTEN_PREFIX}/* {
 		root * ./dist
-		uri strip_prefix {$LISTEN_PREFIX}
-		try_files {path}/index.html
+		try_files {path} /index.html
 		file_server
 	}
 }

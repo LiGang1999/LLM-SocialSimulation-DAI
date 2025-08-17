@@ -37,6 +37,7 @@ export interface User {
     username: string;
     email?: string;
     full_name?: string;
+    institution?: string;
     disabled?: boolean;
     is_admin?: boolean;
     is_sso?: boolean;
@@ -53,6 +54,14 @@ export interface FeedbackAdminItem {
     user_email: string;
     feedback_text: string;
     timestamp: string;
+}
+
+export interface AdminTemplate {
+    meta: apis.Meta;
+    events: apis.Event[];
+    workflow: Record<string, apis.Stage>;
+    username: string;
+    creation_time: number;
 }
 
 
@@ -79,6 +88,8 @@ const urls = {
     getSummary: '/summary',
     submitFeedback: '/feedback',
     getFeedbacks: '/admin/feedbacks',
+    getAllUserTemplates: '/admin/list_templates',
+    getAllUsers: '/admin/list_users',
     userProviders: '/user_providers',
     messageSocket: (simCode: string) => {
         const token = localStorage.getItem('token');
@@ -88,66 +99,6 @@ const urls = {
 };
 
 export namespace apis {
-    export const login = async (username: string, password: string): Promise<AuthResponse> => {
-        try {
-            // Login endpoint expects form data
-            const formData = new FormData();
-            formData.append('username', username);
-            formData.append('password', password);
-
-            const response = await api.post<AuthResponse>(urls.login, formData);
-            return response.data;
-        } catch (error) {
-            console.error("Login error:", error);
-            throw error;
-        }
-    };
-
-    export const logout = async (): Promise<void> => {
-        try {
-            // We'll call this endpoint even if it doesn't exist yet, so we can add it later
-            await api.post(urls.logout);
-        } catch (error) {
-            console.error("Logout error:", error);
-        }
-    };
-
-    export const register = async (userData: RegisterRequest): Promise<User> => {
-        try {
-            const response = await api.post<User>(urls.register, userData);
-            return response.data;
-        } catch (error) {
-            console.error("Registration error:", error);
-            throw error;
-        }
-    };
-
-    export const getCurrentUser = async (): Promise<User> => {
-        try {
-            const response = await api.get<User>(urls.currentUser);
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching current user:", error);
-            throw error;
-        }
-    };
-
-    export const ssoLogin = async (params: {
-        appId: string;
-        username: string;
-        time: string;
-        sign: string;
-    }): Promise<AuthResponse> => {
-        try {
-            const response = await api.post<AuthResponse>(urls.ssoLogin, params);
-            return response.data;
-        } catch (error) {
-            console.error("SSO login error:", error);
-            throw error;
-        }
-    };
-
-
     export interface EventConfig {
         name: string;
         policy: string;
@@ -216,7 +167,7 @@ export namespace apis {
 
     export interface Stage {
         task: string,
-        output_format: Record<string,string>
+        output_format: Record<string, string>
     }
 
 
@@ -227,6 +178,64 @@ export namespace apis {
         meta: Meta;
         workflow: Record<string, Stage>
     }
+    export const login = async (username: string, password: string): Promise<AuthResponse> => {
+        try {
+            // Login endpoint expects form data
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+
+            const response = await api.post<AuthResponse>(urls.login, formData);
+            return response.data;
+        } catch (error) {
+            console.error("Login error:", error);
+            throw error;
+        }
+    };
+
+    export const logout = async (): Promise<void> => {
+        try {
+            // We'll call this endpoint even if it doesn't exist yet, so we can add it later
+            await api.post(urls.logout);
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
+
+    export const register = async (userData: RegisterRequest): Promise<User> => {
+        try {
+            const response = await api.post<User>(urls.register, userData);
+            return response.data;
+        } catch (error) {
+            console.error("Registration error:", error);
+            throw error;
+        }
+    };
+
+    export const getCurrentUser = async (): Promise<User> => {
+        try {
+            const response = await api.get<User>(urls.currentUser);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching current user:", error);
+            throw error;
+        }
+    };
+
+    export const ssoLogin = async (params: {
+        appId: string;
+        username: string;
+        time: string;
+        sign: string;
+    }): Promise<AuthResponse> => {
+        try {
+            const response = await api.post<AuthResponse>(urls.ssoLogin, params);
+            return response.data;
+        } catch (error) {
+            console.error("SSO login error:", error);
+            throw error;
+        }
+    };
 
     export interface TemplateListItem {
         template_sim_code: string;
@@ -555,6 +564,26 @@ export namespace apis {
             return response.data;
         } catch (error) {
             console.error("Error fetching feedbacks:", error);
+            throw error;
+        }
+    };
+
+    export const getAllUserTemplates = async (): Promise<AdminTemplate[]> => {
+        try {
+            const response = await api.get<AdminTemplate[]>(urls.getAllUserTemplates);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching user templates:", error);
+            throw error;
+        }
+    };
+
+    export const getAllUsers = async (): Promise<User[]> => {
+        try {
+            const response = await api.get<User[]>(urls.getAllUsers);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching users:", error);
             throw error;
         }
     };

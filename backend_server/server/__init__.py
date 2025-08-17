@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
 
 from backend_server.database import init_db
-from backend_server.server.routes import auth, feedback, personas, providers, simulation, templates
+from backend_server.server.routes import admin, auth, feedback, personas, providers, simulation, templates
 from backend_server.utils.config import storage_path
 
 
@@ -331,7 +331,7 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="")
 
 router.include_router(auth.router, tags=["auth"])
 router.include_router(simulation.router, tags=["simulation"])
@@ -339,5 +339,6 @@ router.include_router(templates.router, tags=["templates"])
 router.include_router(personas.router, tags=["personas"])
 router.include_router(feedback.router, tags=["feedback"])
 router.include_router(providers.router, tags=["providers"])
+router.include_router(admin.router, tags=["admin"])
 
 app.include_router(router)
