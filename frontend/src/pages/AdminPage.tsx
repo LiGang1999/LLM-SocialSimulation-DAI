@@ -12,7 +12,17 @@ import {
 } from "@/components/ui/table";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, Calendar as CalendarIcon } from 'lucide-react';
+import { Toaster, toast } from 'sonner';
+import { DateRange } from 'react-day-picker';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 type TemplateSortKey = keyof AdminTemplate | 'name' | 'username' | 'description' | 'creation_time' | 'agent_count';
 type UserSortKey = keyof User | 'username' | 'full_name' | 'email' | 'institution';
@@ -31,6 +41,7 @@ const AdminPage: React.FC = () => {
   const [templateSortOrder, setTemplateSortOrder] = useState<'asc' | 'desc'>('desc');
   const [userSortKey, setUserSortKey] = useState<UserSortKey>('username');
   const [userSortOrder, setUserSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [date, setDate] = useState<DateRange | undefined>(undefined);
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
@@ -94,6 +105,43 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  const handleCopyToCSV = () => {
+    const headers = ["Template Name", "Username", "Description", "Agents", "Creation Time"];
+    const rows = filteredTemplates.map(template => [
+      `"${template.meta.name}"`,
+      `"${template.username}"`,
+      `"${template.meta.description.replace(/"/g, '""')}"`,
+      `"${template.meta.persona_names.join(', ')}"`,
+      `"${new Date(template.creation_time * 1000).toLocaleString()}"`
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+    
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(csvContent).then(() => {
+        toast.success('已复制到剪贴板');
+      }, (err) => {
+        toast.error('复制失败');
+        console.error('Could not copy text: ', err);
+      });
+    } else {
+      // Fallback for insecure contexts
+      const textArea = document.createElement("textarea");
+      textArea.value = csvContent;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        toast.success('已复制到剪贴板');
+      } catch (err) {
+        toast.error('复制失败');
+        console.error('Could not copy text: ', err);
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
   const handleTemplateSort = (key: TemplateSortKey) => {
     if (templateSortKey === key) {
       setTemplateSortOrder(templateSortOrder === 'asc' ? 'desc' : 'asc');
@@ -137,6 +185,18 @@ const AdminPage: React.FC = () => {
     return 0;
   });
 
+  const filteredTemplates = sortedTemplates.filter(template => {
+    if (!date?.from) return true;
+    const from = new Date(date.from);
+    from.setHours(0, 0, 0, 0);
+
+    const to = date.to ? new Date(date.to) : new Date();
+    to.setHours(23, 59, 59, 999);
+    
+    const templateDate = new Date(template.creation_time * 1000);
+    return templateDate >= from && templateDate <= to;
+  });
+
   const sortedUsers = [...users].sort((a, b) => {
     const aValue = a[userSortKey as keyof User] || '';
     const bValue = b[userSortKey as keyof User] || '';
@@ -161,6 +221,7 @@ const AdminPage: React.FC = () => {
 
   return (
     <>
+      <Toaster />
       <Navbar className="border-white border-b-[1px] border-opacity-40 bg-white bg-opacity-40 backdrop-filter backdrop-blur-lg dark:border-b-slate-700 dark:bg-background" />
       <div className="container mx-auto p-4 mt-6">
         <h1 className="text-3xl font-bold mb-6 text-center">管理后台</h1>
@@ -220,10 +281,49 @@ const AdminPage: React.FC = () => {
             </div>
           </TabsContent>
           <TabsContent value="templates">
-            <div className="flex justify-end mb-4">
-              <Button onClick={handleRefreshTemplates} disabled={templatesLoading}>
-                {templatesLoading ? '刷新中...' : '刷新'}
-              </Button>
+            <div className="flex justify-between mb-4">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                      "w-[300px] justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                      date.to ? (
+                        <>
+                          {format(date.from, "LLL dd, y")} -{" "}
+                          {format(date.to, "LLL dd, y")}
+                        </>
+                      ) : (
+                        format(date.from, "LLL dd, y")
+                      )
+                    ) : (
+                      <span>选择日期范围</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={2}
+                  />
+                </PopoverContent>
+              </Popover>
+              <div>
+                <Button onClick={handleCopyToCSV} className="mr-2">复制为CSV</Button>
+                <Button onClick={handleRefreshTemplates} disabled={templatesLoading}>
+                  {templatesLoading ? '刷新中...' : '刷新'}
+                </Button>
+              </div>
             </div>
             <div className="rounded-md border">
               <ScrollArea className="h-[600px]">
@@ -275,14 +375,14 @@ const AdminPage: React.FC = () => {
                           {templatesError}
                         </TableCell>
                       </TableRow>
-                    ) : sortedTemplates.length === 0 ? (
+                    ) : filteredTemplates.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={5} className="h-24 text-center">
                           暂无用户模板。
                         </TableCell>
                       </TableRow>
                     ) : (
-                      sortedTemplates.map((template, index) => (
+                      filteredTemplates.map((template, index) => (
                         <TableRow key={`${template.meta.template_sim_code}-${template.username}-${index}`}>
                           <TableCell className="font-medium">{template.meta.name}</TableCell>
                           <TableCell>{template.username}</TableCell>
